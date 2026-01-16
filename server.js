@@ -7,7 +7,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import sharp from 'sharp';
-import shrinkRay from 'shrink-ray-current'; // Thư viện nén Brotli mạnh mẽ nhất
+import compression from 'compression'; // Quay lại Gzip chân ái
 
 
 // Get __dirname in ES module
@@ -15,8 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-// Kích hoạt Brotli (và Gzip fallback)
-app.use(shrinkRay());
+app.use(compression()); // Kích hoạt Gzip (không bao giờ lỗi)
 app.enable('trust proxy'); // Cần thiết khi chạy sau Nginx (để nhận diện đúng https)
 const PORT = process.env.PORT || 3001; // Ưu tiên PORT từ env
 const HOST = '0.0.0.0'; // Bind tất cả IP để tránh lỗi kết nối từ OLS
