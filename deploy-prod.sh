@@ -57,10 +57,18 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # Chạy build
-npm run build
+if ! npm run build; then
+    echo -e "${RED}⚠️ Lỗi Build lần 1. Đang thử cài đặt lại dependencies sạch sẽ...${NC}"
+    rm -rf node_modules package-lock.json
+    npm cache clean --force
+    npm install --legacy-peer-deps
+    
+    echo " -> Đang thử Build lần 2..."
+    npm run build
+fi
 
 if [ ! -d "dist/index.html" ]; then
-    echo -e "${RED}❌ Lỗi: Build thất bại. Không tìm thấy file dist/index.html${NC}"
+    echo -e "${RED}❌ Lỗi: Build thất bại sau 2 lần thử.${NC}"
     exit 1
 fi
 echo -e "${GREEN}✅ Build Frontend thành công!${NC}"
