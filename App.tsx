@@ -20,12 +20,13 @@ import { loadAnalyticsData, trackPageView, trackProductClick, exportAnalytics, c
 // Production: deployed with Nginx proxy
 const isDevelopment = window.location.hostname === 'localhost' ||
   window.location.hostname.match(/^192\.168\./) ||
-  window.location.hostname.match(/^10\./) ||
-  window.location.hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./); // Private IP ranges
+  window.location.hostname.match(/^10\./);
 
+// Khi deploy lên VPS (Production), ta muốn dùng Relative Path (để gọi qua Domain hiện tại)
+// Ví dụ: /api/database (sẽ tự động thành https://lemyloi.work.gd/api/database)
 const BACKEND_URL = isDevelopment
-  ? `http://${window.location.hostname}:3001`  // Development: use same host with backend port
-  : '';  // Production: use same origin (Nginx proxy)
+  ? `http://${window.location.hostname}:3001`  // Dev: Port 3001
+  : '';  // Prod: Empty string (Relative Path)
 
 const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(window.location.hash);
