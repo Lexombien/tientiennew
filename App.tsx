@@ -956,8 +956,8 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error('Save to server error:', error);
-      alert('❌ Lỗi đồng bộ! Vui lòng kiểm tra:\n1. Backend server đang chạy\n2. URL đúng: ' + BACKEND_URL);
-    } finally {
+      // alert('❌ Lỗi đồng bộ!...'); // Tắt thông báo làm phiền
+      console.log('⚠️ Sync failed but data saved to localStorage.');
       setIsSyncing(false);
     }
   };

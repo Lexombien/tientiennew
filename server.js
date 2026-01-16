@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.enable('trust proxy'); // Cần thiết khi chạy sau Nginx (để nhận diện đúng https)
 const PORT = process.env.PORT || 3001; // Ưu tiên PORT từ env
-const HOST = process.env.HOST || 'localhost'; // Ưu tiên HOST từ env, fallback localhost
+const HOST = '0.0.0.0'; // Bind tất cả IP để tránh lỗi kết nối từ OLS
 
 // Nếu không có HOST trong env, ta sẽ cố gắng sử dụng request header để xác định host động trong các API upload
 const USE_DYNAMIC_HOST = !process.env.HOST;
