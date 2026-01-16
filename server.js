@@ -801,9 +801,9 @@ app.get('/api/health', (req, res) => {
 // Phục vụ file tĩnh từ thư mục dist (React App)
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// QUAN TRỌNG: Tất cả request không phải API sẽ trả về index.html (để React Router xử lý)
-// Dùng app.use thay vì app.get('*') để tránh lỗi PathError trong Express mới
-app.use((req, res) => {
+// QUAN TRỌNG: Tất cả request không phải API sẽ trả về index.html
+// Sử dụng Regex /(.*)/ để bắt tất cả các đường dẫn (thay thế cho *)
+app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
