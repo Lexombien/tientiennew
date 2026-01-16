@@ -1,0 +1,84 @@
+# HƯỚNG DẪN TRIỂN KHAI LÊN VPS (OPENLITESPEED / CYBERPANEL)
+
+Tài liệu này hướng dẫn cách đưa website lên mạng chạy trên VPS sử dụng **OpenLiteSpeed (OLS)** hoặc **CyberPanel**.
+
+---
+
+## 🚀 CÁCH 1: Cài đặt Tự động (Khuyên dùng)
+
+Đây là cách nhanh nhất, chỉ cần chạy 1 lệnh là xong tất cả (Node.js, SSL, Cấu hình).
+
+### 1. Chuẩn bị
+- Một VPS đã cài sẵn **OpenLiteSpeed** (hoặc CyberPanel).
+- Tên miền đã trỏ về IP của VPS.
+- Đã tạo Website trong Admin Panel của OLS/CyberPanel (ví dụ: `lemyloi.work.gd`).
+
+### 2. Thực hiện trên VPS
+Mở SSH (Terminal) và chạy lần lượt các lệnh sau:
+
+**Bước 1: Vào thư mục chứa web**
+```bash
+cd /usr/local/lsws/lemyloi.work.gd/html
+# Thay 'lemyloi.work.gd' bằng tên miền thực của bạn
+```
+
+**Bước 2: Xóa file rác và lấy code về**
+```bash
+rm -rf * .[^.]*  # Xóa sạch file cũ
+git clone https://github.com/Lexombien/webbanhoa.git .
+```
+
+**Bước 3: Chạy Script cài đặt "Thần thánh"**
+```bash
+bash ols-install.sh
+```
+
+### 3. Nhập thông tin
+Script sẽ hỏi bạn vài câu đơn giản:
+1. **Tên miền:** Nhập domain (VD: `lemyloi.work.gd`)
+2. **Mật khẩu Admin:** Nhập mật khẩu để đăng nhập trang quản trị shop hoa.
+3. **Cài SSL:** Chọn `y` để có ổ khóa xanh (HTTPS) miễn phí.
+
+**🎉 XONG!** Web của bạn đã chạy.
+
+---
+
+## 🔧 CÁCH 2: Cập nhật code mới (Khi sửa code)
+
+Mỗi khi bạn sửa code ở máy tính và chạy `dongbo githup.bat` xong, hãy làm như sau để cập nhật lên VPS:
+
+1. SSH vào VPS.
+2. Chạy lệnh:
+```bash
+cd /usr/local/lsws/lemyloi.work.gd/html
+git pull
+bash ols-install.sh
+```
+*(Chạy lại `ols-install.sh` giúp build lại giao diện mới nhất và restart server)*.
+
+---
+
+## ❓ Xử lý lỗi thường gặp
+
+**1. Lỗi "404 Not Found" khi vào trang chủ**
+- Nguyên nhân: OpenLiteSpeed chưa nhận đúng thư mục code.
+- Khắc phục: Chạy lại `bash ols-install.sh` và nhập đúng tên miền.
+
+**2. Lỗi "503 Service Unavailable" hoặc API lỗi**
+- Nguyên nhân: Backend Server chưa chạy.
+- Khắc phục: Kiểm tra bằng lệnh `pm2 list`. Nếu chưa có, chạy lại script install.
+
+**3. Web không hiện ảnh sản phẩm**
+- Nguyên nhân: Chưa trỏ đúng thư mục uploads.
+- Khắc phục: Script install đã tự làm việc này. Nếu vẫn lỗi, vào OLS WebAdmin > Context > Kiểm tra mục `/uploads/`.
+
+---
+
+## 📂 Thông tin hệ thống
+
+- **Web Root:** `/usr/local/lsws/<domain>/html/dist` (Giao diện React)
+- **Backend:** Port `3001` (Chạy ngầm bằng PM2)
+- **Uploads:** `/usr/local/lsws/<domain>/html/uploads` (Chứa ảnh)
+- **Database:** `/usr/local/lsws/<domain>/html/database.json` (Lưu đơn hàng & sản phẩm)
+
+**Chúc bạn thành công!** 🌸
