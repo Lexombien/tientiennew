@@ -811,15 +811,16 @@ app.get(/(.*)/, (req, res) => {
 
 // Listen trên 0.0.0.0 để cho phép truy cập từ tất cả IPs trong mạng
 app.listen(PORT, '0.0.0.0', () => {
+    const { botToken, ownerIds } = getZaloConfig(); // Lấy config từ DB
+
     console.log(`✅ Backend server đang chạy tại:`);
     console.log(`   - Local: http://localhost:${PORT}`);
     console.log(`   - LAN:   http://${HOST}:${PORT}`);
     console.log(`📁 Ảnh được lưu trong: ${uploadsDir}`);
     console.log(`🌐 Upload API: http://${HOST}:${PORT}/api/upload`);
     console.log(`\n🤖 Zalo Bot Tracking:`);
-    console.log(`   - Webhook: http://${HOST}:${PORT}/api/zalo-webhook`);
     console.log(`   - Tracking: http://${HOST}:${PORT}/api/track-click`);
-    console.log(`   - Bot Token: ${BOT_TOKEN ? '✅ Configured' : '❌ Missing'}`);
-    console.log(`   - Owner IDs: ${OWNER_ZALO_IDS.length > 0 ? `✅ ${OWNER_ZALO_IDS.length} người` : '❌ Missing (nhắn tin cho bot để lấy)'}`);
+    console.log(`   - Bot Token: ${botToken ? '✅ Configured' : '❌ Missing'}`);
+    console.log(`   - Owner IDs: ${ownerIds.length > 0 ? `✅ ${ownerIds.length} người` : '❌ Missing (nhắn tin cho bot để lấy)'}`);
 });
 
