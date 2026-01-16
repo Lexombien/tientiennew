@@ -31,15 +31,22 @@ while [ -z "$DOMAIN_NAME" ]; do
     read -p "❌ Không được để trống. Nhập lại: " DOMAIN_NAME
 done
 
-# 2. NHẬP MẬT KHẨU ADMIN (CHO .ENV)
-echo -e "\n${YELLOW}[2/3] Nhập Mật khẩu quản trị Admin (Mặc định: admin123):${NC}"
+# 2. NHẬP THÔNG TIN QUẢN TRỊ (CHO .ENV)
+echo -e "\n${YELLOW}[2/3] Nhập Tên Tài Khoản Admin (Mặc định: admin):${NC}"
+read -r ADMIN_USER
+if [ -z "$ADMIN_USER" ]; then
+    ADMIN_USER="admin"
+fi
+
+echo -e "\n${YELLOW}[2a/3] Nhập Mật khẩu quản trị Admin (Mặc định: admin123):${NC}"
 read -s ADMIN_PASS
 if [ -z "$ADMIN_PASS" ]; then
     ADMIN_PASS="admin123"
 fi
-echo -e "✅ Đã lưu mật khẩu."
+echo -e "✅ Đã lưu thông tin quản trị."
 
-RAND_PASS=$ADMIN_PASS # Gán biến để dùng ở bước sau
+RAND_PASS=$ADMIN_PASS # Gán biến mật khẩu
+RAND_USER=$ADMIN_USER # Gán biến user
 
 # Xác định thư mục
 OLS_ROOT="/usr/local/lsws"
@@ -78,7 +85,7 @@ if [ ! -f ".env" ]; then
     cat > .env <<EOF
 PORT=3001
 HOST=0.0.0.0
-ADMIN_USERNAME=admin
+ADMIN_USERNAME=$RAND_USER
 ADMIN_PASSWORD=$RAND_PASS
 EOF
     echo "✅ Đã tạo .env mới."
@@ -86,7 +93,10 @@ else
     echo "ℹ️  File .env đã tồn tại, giữ nguyên."
     # Lấy pass cũ để hiển thị cuối cùng
     EXISTING_PASS=$(grep ADMIN_PASSWORD .env | cut -d '=' -f2)
+    EXISTING_USER=$(grep ADMIN_USERNAME .env | cut -d '=' -f2)
+    
     if [ ! -z "$EXISTING_PASS" ]; then RAND_PASS=$EXISTING_PASS; fi
+    if [ ! -z "$EXISTING_USER" ]; then RAND_USER=$EXISTING_USER; fi
 fi
 
 # 6. BUILD PROJECT
@@ -173,7 +183,7 @@ echo -e "${GREEN}🎉 CÀI ĐẶT THÀNH CÔNG! HỆ THỐNG ĐÃ ONLINE.${NC}"
 echo -e "${GREEN}=================================================${NC}"
 echo -e "👉 Website:   http://$DOMAIN_NAME"
 echo -e "👉 Admin Url: http://$DOMAIN_NAME/admin"
-echo -e "🔑 Tài khoản: admin"
+echo -e "🔑 Tài khoản: $RAND_USER"
 echo -e "🔑 Mật khẩu:  $RAND_PASS"
 echo -e "${YELLOW}(Hãy lưu lại mật khẩu này ngay!)${NC}"
 echo -e "================================================="
