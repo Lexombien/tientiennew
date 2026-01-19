@@ -1086,9 +1086,178 @@ const App: React.FC = () => {
 
         <main className="max-w-6xl mx-auto p-6 space-y-8 mt-6">
           {activeTab === 'products' ? (
-            <>
-              {/* Product Management Sections will go here */}
-            </>
+            <div className="space-y-8 animate-in fade-in duration-300">
+              {/* 1. Category Management Section */}
+              <section className="glass p-6 rounded-2xl border border-pink-100/50 shadow-sm">
+                <div
+                  className="flex justify-between items-center cursor-pointer select-none"
+                  onClick={() => toggleSection('categories')}
+                >
+                  <h3 className="text-lg font-bold serif-display gradient-text flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-gradient-pink rounded-full inline-block"></span>
+                    🗂️ Quản lý danh mục
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold text-gray-400 bg-white/50 px-3 py-1 rounded-full border border-gray-100">
+                      {categories.length} danh mục
+                    </span>
+                    <button className={`p-2 rounded-full hover:bg-white/50 transition-all ${expandedSections.categories ? 'rotate-180' : ''}`}>
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                  </div>
+                </div>
+
+                {expandedSections.categories && (
+                  <div className="mt-6 space-y-6 animate-in slide-in-from-top-2">
+                    {/* Add Category */}
+                    <div className="flex gap-3">
+                      <div className="relative flex-1 group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-xl">✨</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && addCategory()}
+                          placeholder="Nhập tên danh mục mới (Vd: Hoa Valentine)..."
+                          className="glass-input w-full pl-10 pr-4 py-3 rounded-xl border-2 border-transparent focus:border-pink-300 focus:ring-0 text-sm font-semibold transition-all"
+                        />
+                      </div>
+                      <button
+                        onClick={addCategory}
+                        className="bg-gradient-pink text-white px-6 py-2 rounded-xl font-bold hover:shadow-lg hover:scale-105 active:scale-95 transition-all whitespace-nowrap flex items-center gap-2"
+                      >
+                        <span>＋</span> Thêm mục
+                      </button>
+                    </div>
+
+                    {/* List Categories */}
+                    <div className="space-y-2">
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Kéo thả để sắp xếp</div>
+                      <div className="grid gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {categories.map((cat, index) => (
+                          <div
+                            key={cat}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, cat)}
+                            onDragEnd={handleDragEnd}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, cat)}
+                            className={`group glass p-3 rounded-xl flex items-center justify-between hover:bg-white border border-transparent hover:border-pink-200 transition-all cursor-move ${draggedCategory === cat ? 'opacity-40 border-dashed border-pink-400 bg-pink-50' : ''}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded-md bg-gray-100 text-gray-500 font-bold text-xs flex items-center justify-center group-hover:bg-gradient-pink group-hover:text-white transition-colors">
+                                {index + 1}
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-800 text-sm">{categorySettings[cat]?.displayName || cat}</p>
+                                <p className="text-[10px] text-gray-400">{products.filter(p => p.category === cat).length} sản phẩm</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                              <button onClick={(e) => { e.stopPropagation(); openCategoryEditModal(cat); }} className="p-2 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors" title="Đổi tên">
+                                ✏️
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); setShowCategorySettingsModal(true); }} className="p-2 hover:bg-gray-100 text-gray-500 rounded-lg transition-colors" title="Cấu hình">
+                                ⚙️
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); deleteCategory(cat); }} className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors" title="Xóa">
+                                🗑️
+                              </button>
+                              <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                              <div className="flex flex-col">
+                                <button onClick={(e) => { e.stopPropagation(); moveCategoryUp(index); }} disabled={index === 0} className="text-gray-400 hover:text-pink-500 disabled:opacity-30 text-[10px] px-1">▲</button>
+                                <button onClick={(e) => { e.stopPropagation(); moveCategoryDown(index); }} disabled={index === categories.length - 1} className="text-gray-400 hover:text-pink-500 disabled:opacity-30 text-[10px] px-1">▼</button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* 2. Product List by Category */}
+              {categories.map((category) => (
+                <section key={category} className="animate-in fade-in duration-500">
+                  <div className="flex items-center justify-between mb-6 sticky top-[72px] z-20 py-4 blur-backdrop rounded-xl px-2 -mx-2">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-bold gradient-text serif-display">{categorySettings[category]?.displayName || category}</h2>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingProduct({ category, images: [], switchInterval: 3000, aspectRatio: '3/4', originalPrice: 0, salePrice: 0 });
+                        setShowEditModal(true);
+                      }}
+                      className="pill-button bg-white border border-pink-100 text-pink-600 px-4 py-2 text-sm font-bold shadow-sm hover:shadow-md hover:bg-pink-50 transition-all flex items-center gap-2"
+                    >
+                      <span>＋</span> Thêm hoa
+                    </button>
+                  </div>
+
+                  {products.filter(p => p.category === category).length > 0 ? (
+                    <div
+                      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                    >
+                      {products.filter(p => p.category === category).map((product) => (
+                        <div key={product.id} className="relative group">
+                          {/* Nút Admin Overlay */}
+                          <div className="absolute top-2 right-2 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto scale-90 group-hover:scale-100">
+                            <button
+                              onClick={() => openEditModal(product)}
+                              className="w-8 h-8 rounded-full bg-white text-blue-500 shadow-lg flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all"
+                              title="Sửa sản phẩm"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => deleteProduct(product.id)}
+                              className="w-8 h-8 rounded-full bg-white text-red-500 shadow-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                              title="Xóa sản phẩm"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+
+                          {/* Card Display - Reuse FlowerCard with isAdmin */}
+                          <FlowerCard
+                            product={product}
+                            isAdmin={true}
+                            onEdit={openEditModal}
+                            globalAspectRatio={globalSettings.aspectRatio}
+                            showSKU={globalSettings.showSKU}
+                          />
+
+                          {/* SKU Badge (Always show in Admin) */}
+                          <div className="absolute top-2 left-2 z-10">
+                            <span className="bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded font-mono border border-white/20">
+                              {product.sku || '#' + product.id.slice(-4)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="glass p-12 rounded-3xl text-center border-2 border-dashed border-gray-200">
+                      <div className="text-4xl mb-4 opacity-30">🥀</div>
+                      <p className="text-gray-500 font-medium mb-4">Chưa có sản phẩm nào trong danh mục này</p>
+                      <button
+                        onClick={() => {
+                          setEditingProduct({ category, images: [], switchInterval: 3000, aspectRatio: '3/4', originalPrice: 0, salePrice: 0 });
+                          setShowEditModal(true);
+                        }}
+                        className="text-pink-500 font-bold hover:underline"
+                      >
+                        Thêm sản phẩm đầu tiên
+                      </button>
+                    </div>
+                  )}
+                </section>
+              ))}
+            </div>
           ) : activeTab === 'settings' ? (
             <div className="space-y-6 animate-in fade-in duration-300">
               {/* General Settings Section - Now Standalone */}
