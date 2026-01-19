@@ -41,7 +41,9 @@ fi
 
 # 2. GIT PULL
 echo -e "\n${YELLOW}[2/6] Cập nhật source code (Git Pull)...${NC}"
-git pull
+git fetch origin
+git reset --hard origin/main
+chmod +x deploy-prod.sh
 
 # 3. BUILD FRONTEND
 echo -e "\n${YELLOW}[3/6] Build Frontend (Vite/React)...${NC}"
