@@ -2256,10 +2256,10 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
-    </section>
+    </div>
 
 
-        {/* QUẢN LÝ NHANH SẢN PHẨM */ }
+      {/* QUẢN LÝ NHANH SẢN PHẨM */ }
   <section>
     <div
       className="flex justify-between items-center mb-6 cursor-pointer group glass-strong p-4 rounded-2xl"
@@ -2394,8 +2394,8 @@ const App: React.FC = () => {
       </div>
     )}
   </section>
-      </>
-    ) : activeTab === 'media' ? (
+    </>
+  ) : activeTab === 'media' ? (
   <section className="glass-strong p-8 rounded-3xl border border-white/30 shadow-xl">
     <MediaLibrary
       onMetadataChange={setMediaMetadata}
@@ -2531,7 +2531,7 @@ const App: React.FC = () => {
     <OrdersManagement />
   </>
 ) : null
-  }
+}
         </main >
 
   {/* Floating Action Button - Add Product */ }
