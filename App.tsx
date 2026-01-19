@@ -2081,30 +2081,55 @@ const App: React.FC = () => {
 
               {/* Zalo Bot Configuration */}
               <div className="glass p-6 rounded-2xl">
-                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-                  🤖 Cấu hình Zalo Bot (Thông báo đơn hàng)
-                </label>
-                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  Nhập ID Zalo của Admin để nhận thông báo khi có khách đặt hàng
-                </p>
-                <div>
-                  <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
-                    Zalo Admin ID (User ID từ Zalo OA)
+                <div className="mb-4">
+                  <label className="block text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                    🤖 Cấu hình Zalo Bot (Thông báo đơn hàng)
                   </label>
-                  <input
-                    type="text"
-                    className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
-                    placeholder="Nhập User ID (ví dụ: 8486756627606018884)"
-                    value={globalSettings.zaloAdminId || ''}
-                    onChange={(e) => {
-                      const newSettings = { ...globalSettings, zaloAdminId: e.target.value };
-                      setGlobalSettings(newSettings);
-                      localStorage.setItem('global_settings', JSON.stringify(newSettings));
-                    }}
-                  />
-                  <p className="text-[10px] text-neutral-400 mt-2">
-                    * Để lấy User ID: Chat với OA của bạn và xem trong Zalo Official Account Tool
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    Cấu hình để nhận thông báo đơn hàng qua Zalo OA
                   </p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Bot Token */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Zalo Bot Token (Lấy từ Zalo Developers)
+                    </label>
+                    <input
+                      type="password"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-mono"
+                      placeholder="Nhập Access Token của Bot..."
+                      value={globalSettings.zaloBotToken || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, zaloBotToken: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                  </div>
+
+                  {/* Admin IDs */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Zalo User IDs (Người nhận thông báo)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                      placeholder="Ví dụ: 84888..., 84999... (Ngăn cách bằng dấu phẩy)"
+                      value={globalSettings.zaloAdminIds || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, zaloAdminIds: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-2">
+                      * Nhập nhiều ID ngăn cách bằng dấu phẩy để gửi cho nhiều người.
+                      <br />* Để lấy ID: Chat với Bot/OA và kiểm tra công cụ quản lý.
+                    </p>
+                  </div>
                 </div>
               </div>
 

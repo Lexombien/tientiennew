@@ -282,31 +282,58 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
         const ext = path.extname(req.file.filename);
         const nameWithoutExt = path.basename(req.file.filename, ext);
 
-        // Convert to WebP and resize
-        const optimizedFilename = `${nameWithoutExt}.webp`;
-        const optimizedPath = path.join(uploadsDir, optimizedFilename);
+        // Logic tối ưu hình ảnh thông minh:
+        // 1. File .ico hoặc file ảnh nhỏ (< 200KB) -> Giữ nguyên gốc (Logo/Favicon)
+        // 2. File ảnh lớn -> Convert sang WebP để tối ưu tốc độ
 
-        await sharp(originalPath)
-            .resize(1920, 1920, {
-                fit: 'inside',
-                withoutEnlargement: true
-            })
-            .webp({ quality: 85 })
-            .toFile(optimizedPath);
+        const isSmallFile = req.file.size < 200 * 1024; // < 200KB
+        const isIco = ext.toLowerCase() === '.ico';
+        const isGif = ext.toLowerCase() === '.gif'; // GIF động không nên convert static
 
-        // Delete original file
-        fs.unlinkSync(originalPath);
+        if (isIco || isGif || isSmallFile) {
+            // GIỮ NGUYÊN FILE GỐC
+            // Rename file để đảm bảo format an toàn (đã được tạo ở storage filename, chỉ cần move file nếu cần thiết, 
+            // nhưng multer đã lưu file ở 'originalPath' = safeName-uniqueSuffix.ext rồi)
 
-        const imageUrl = `/uploads/${optimizedFilename}`;
+            // Chỉ cần trả về đường dẫn file gốc
+            const savedFilename = path.basename(originalPath);
+            const imageUrl = `/uploads/${savedFilename}`;
 
-        res.json({
-            success: true,
-            url: imageUrl,
-            filename: optimizedFilename,
-            originalName: req.file.originalname,
-            size: fs.statSync(optimizedPath).size,
-            optimized: true
-        });
+            res.json({
+                success: true,
+                url: imageUrl,
+                filename: savedFilename,
+                originalName: req.file.originalname,
+                size: req.file.size,
+                optimized: false // Báo là không convert
+            });
+        } else {
+            // CONVERT SANG WEBP (Sản phẩm, Banner lớn)
+            const optimizedFilename = `${nameWithoutExt}.webp`;
+            const optimizedPath = path.join(uploadsDir, optimizedFilename);
+
+            await sharp(originalPath)
+                .resize(1920, 1920, {
+                    fit: 'inside',
+                    withoutEnlargement: true
+                })
+                .webp({ quality: 85 })
+                .toFile(optimizedPath);
+
+            // Xóa file gốc sau khi convert thành công
+            fs.unlinkSync(originalPath);
+
+            const imageUrl = `/uploads/${optimizedFilename}`;
+
+            res.json({
+                success: true,
+                url: imageUrl,
+                filename: optimizedFilename,
+                originalName: req.file.originalname,
+                size: fs.statSync(optimizedPath).size,
+                optimized: true
+            });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
