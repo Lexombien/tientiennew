@@ -301,34 +301,34 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
               )}
             </div>
 
-            {/* Variant Selection - Compact */}
+            {/* Variant Selection - Compact & Balanced */}
             {product.variants && product.variants.length > 0 && (
-              <div className="mb-3">
+              <div className="mb-2">
                 <h3 className="text-xs font-bold mb-1.5 gradient-text">🎨 Biến thể</h3>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {product.variants.map((variant) => {
                     const variantSKU = variant.sku || product.sku || '';
                     return (
                       <label
                         key={variant.id}
-                        className={`p-2 rounded-lg border-2 cursor-pointer transition-all ${selectedVariant === variant.id
-                          ? 'border-pink-500 bg-pink-50'
+                        className={`px-3 py-2 rounded-lg border cursor-pointer transition-all flex-1 min-w-[45%] sm:min-w-fit ${selectedVariant === variant.id
+                          ? 'border-pink-500 bg-pink-50 shadow-sm'
                           : 'border-gray-200 hover:border-pink-300 bg-white'
                           }`}
                       >
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <input
                             type="radio"
                             name="variant"
                             value={variant.id}
                             checked={selectedVariant === variant.id}
                             onChange={(e) => setSelectedVariant(e.target.value)}
-                            className="w-4 h-4 text-pink-600 focus:ring-pink-500"
+                            className="w-3.5 h-3.5 text-pink-600 focus:ring-pink-500"
                           />
                           <div className="flex-1">
-                            <p className="text-sm font-bold text-gray-800">{variant.name}</p>
+                            <p className="text-xs font-bold text-gray-800 leading-tight">{variant.name}</p>
                             {variantSKU && (
-                              <p className="text-xs text-gray-500">SKU: {variantSKU}</p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">SKU: {variantSKU}</p>
                             )}
                           </div>
                         </div>
@@ -339,14 +339,14 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
               </div>
             )}
 
-            {/* Price */}
-            <div className="mb-6 p-4 bg-pink-50 rounded-xl">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 font-semibold">Giá bán:</span>
-                <div className="flex flex-col items-end">
-                  <span className="text-2xl font-bold text-pink-600">{formatPrice(product.salePrice)}</span>
-                  <span className="text-sm line-through text-gray-400">{formatPrice(product.originalPrice)}</span>
-                </div>
+            {/* Price - Compact Intgration */}
+            <div className="mb-4 px-3 py-2 bg-gradient-to-r from-pink-50 to-white rounded-lg border border-pink-100 flex items-center justify-between shadow-sm">
+              <span className="text-sm text-gray-700 font-semibold">Thành tiền:</span>
+              <div className="flex flex-col items-end sm:flex-row sm:items-baseline sm:gap-2">
+                <span className="text-xl font-bold text-pink-600">{formatPrice(product.salePrice)}</span>
+                {product.salePrice < product.originalPrice && (
+                  <span className="text-xs line-through text-gray-400">{formatPrice(product.originalPrice)}</span>
+                )}
               </div>
             </div>
 
