@@ -1681,22 +1681,130 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Website Name */}
+              {/* Branding: Logo & Website Name */}
               <div className="glass p-6 rounded-2xl">
                 <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-                  🏪 Tên website/cửa hàng
+                  🏪 Thương hiệu & Logo
                 </label>
-                <input
-                  type="text"
-                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-medium"
-                  placeholder="Vd: Floral Essence"
-                  value={globalSettings.websiteName}
-                  onChange={(e) => {
-                    const newSettings = { ...globalSettings, websiteName: e.target.value };
-                    setGlobalSettings(newSettings);
-                    localStorage.setItem('global_settings', JSON.stringify(newSettings));
-                  }}
-                />
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Tên website/cửa hàng
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-medium"
+                      placeholder="Vd: Floral Essence"
+                      value={globalSettings.websiteName}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, websiteName: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Upload Logo
+                    </label>
+                    <div className="space-y-3">
+                      {globalSettings.logoUrl && (
+                        <div className="p-4 glass rounded-xl">
+                          <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>Logo hiện tại:</p>
+                          <img src={globalSettings.logoUrl} alt="Logo" className="max-h-20 w-auto mx-auto" />
+                          <button
+                            onClick={() => {
+                              const newSettings = { ...globalSettings, logoUrl: '' };
+                              setGlobalSettings(newSettings);
+                              localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                            }}
+                            className="mt-3 w-full text-xs text-rose-500 hover:text-rose-600 font-bold"
+                          >
+                            Xóa logo
+                          </button>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          const formData = new FormData();
+                          formData.append('image', file);
+
+                          try {
+                            const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                              method: 'POST',
+                              body: formData
+                            });
+                            const result = await response.json();
+
+                            if (result.success) {
+                              const newSettings = { ...globalSettings, logoUrl: result.url };
+                              setGlobalSettings(newSettings);
+                              localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                              alert('✅ Upload logo thành công!');
+                            }
+                          } catch (error) {
+                            console.error('Upload error:', error);
+                            alert('❌ Lỗi khi upload logo!');
+                          }
+
+                          e.target.value = '';
+                        }}
+                        className="glass-input w-full rounded-2xl px-5 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-pink file:text-white hover:file:bg-opacity-90"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                        Kích thước logo PC
+                      </label>
+                      <select
+                        className="glass-input w-full rounded-2xl px-4 py-3 text-sm font-medium"
+                        value={globalSettings.logoSizeDesktop}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, logoSizeDesktop: e.target.value };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                      >
+                        <option value="h-8">Nhỏ (32px)</option>
+                        <option value="h-10">Vừa (40px)</option>
+                        <option value="h-12">Lớn (48px)</option>
+                        <option value="h-16">Rất lớn (64px)</option>
+                        <option value="h-20">Cực lớn (80px)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                        Kích thước logo Mobile
+                      </label>
+                      <select
+                        className="glass-input w-full rounded-2xl px-4 py-3 text-sm font-medium"
+                        value={globalSettings.logoSizeMobile}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, logoSizeMobile: e.target.value };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                      >
+                        <option value="h-8">Nhỏ (32px)</option>
+                        <option value="h-10">Vừa (40px)</option>
+                        <option value="h-12">Lớn (48px)</option>
+                        <option value="h-16">Rất lớn (64px)</option>
+                        <option value="h-20">Cực lớn (80px)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Feature Toggles */}
@@ -1751,6 +1859,252 @@ const App: React.FC = () => {
                       <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-pink"></div>
                     </label>
                   </div>
+                </div>
+              </div>
+
+              {/* Favicon Upload */}
+              <div className="glass p-6 rounded-2xl">
+                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  🌐 Favicon (icon tab trình duyệt)
+                </label>
+                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Upload ảnh nhỏ (16x16 hoặc 32x32px) để làm icon cho tab trình duyệt
+                </p>
+
+                {globalSettings.faviconUrl && (
+                  <div className="mb-4 flex items-center gap-4">
+                    <img
+                      src={globalSettings.faviconUrl}
+                      alt="Favicon preview"
+                      className="w-8 h-8 border-2 border-pink-200 rounded"
+                    />
+                    <button
+                      onClick={() => {
+                        const newSettings = { ...globalSettings, faviconUrl: '' };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                      className="text-xs text-rose-500 hover:text-rose-600 font-bold"
+                    >
+                      Xóa favicon
+                    </button>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    try {
+                      const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                        method: 'POST',
+                        body: formData
+                      });
+                      const result = await response.json();
+
+                      if (result.success) {
+                        const newSettings = { ...globalSettings, faviconUrl: result.url };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        alert('✅ Upload favicon thành công!');
+                      }
+                    } catch (error) {
+                      console.error('Upload error:', error);
+                      alert('❌ Lỗi khi upload favicon!');
+                    }
+
+                    e.target.value = '';
+                  }}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-pink file:text-white hover:file:bg-opacity-90"
+                />
+              </div>
+
+              {/* Google Fonts Selection */}
+              <div className="glass p-6 rounded-2xl">
+                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  🔤 Chọn Font Chữ (Google Fonts)
+                </label>
+                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Tùy chỉnh font chữ cho tiêu đề, giá và nội dung
+                </p>
+
+                <div className="space-y-4">
+                  {/* Font for Product Title */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Font Tiêu Đề Sản Phẩm
+                    </label>
+                    <select
+                      className="glass-input w-full rounded-2xl px-4 py-3 text-sm font-medium"
+                      value={globalSettings.fontTitle}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, fontTitle: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    >
+                      <option value="Playfair Display">Playfair Display (Elegant)</option>
+                      <option value="Montserrat">Montserrat (Modern)</option>
+                      <option value="Poppins">Poppins (Clean)</option>
+                      <option value="Merriweather">Merriweather (Classic)</option>
+                      <option value="Lora">Lora (Serif)</option>
+                      <option value="Raleway">Raleway (Thin)</option>
+                      <option value="Oswald">Oswald (Bold)</option>
+                    </select>
+                    <p className="text-xs mt-1 opacity-60" style={{ fontFamily: globalSettings.fontTitle }}>
+                      Preview: {globalSettings.fontTitle}
+                    </p>
+                  </div>
+
+                  {/* Font for Price */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Font Giá Sản Phẩm
+                    </label>
+                    <select
+                      className="glass-input w-full rounded-2xl px-4 py-3 text-sm font-medium"
+                      value={globalSettings.fontPrice}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, fontPrice: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    >
+                      <option value="Roboto">Roboto (Standard)</option>
+                      <option value="Open Sans">Open Sans (Clean)</option>
+                      <option value="Lato">Lato (Friendly)</option>
+                      <option value="Source Sans Pro">Source Sans Pro (Professional)</option>
+                      <option value="Nunito">Nunito (Rounded)</option>
+                      <option value="Ubuntu">Ubuntu (Modern)</option>
+                    </select>
+                    <p className="text-xs mt-1 opacity-60" style={{ fontFamily: globalSettings.fontPrice }}>
+                      Preview: {globalSettings.fontPrice}
+                    </p>
+                  </div>
+
+                  {/* Font for Body Text */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Font Nội Dung Chung
+                    </label>
+                    <select
+                      className="glass-input w-full rounded-2xl px-4 py-3 text-sm font-medium"
+                      value={globalSettings.fontBody}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, fontBody: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    >
+                      <option value="Inter">Inter (Modern)</option>
+                      <option value="Roboto">Roboto (Standard)</option>
+                      <option value="Open Sans">Open Sans (Readable)</option>
+                      <option value="Noto Sans">Noto Sans (Universal)</option>
+                      <option value="Work Sans">Work Sans (Geometric)</option>
+                      <option value="DM Sans">DM Sans (Clean)</option>
+                    </select>
+                    <p className="text-xs mt-1 opacity-60" style={{ fontFamily: globalSettings.fontBody }}>
+                      Preview: {globalSettings.fontBody}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SEO Settings */}
+              <div className="glass p-6 rounded-2xl">
+                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  📊 Tối ưu hóa SEO (Google Search)
+                </label>
+                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Cải thiện thứ hạng website trên Google
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Tiêu đề SEO (Title Tag)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                      placeholder="Vd: Tiệm Hoa Tươi Cao Cấp - Giao Hàng Nhanh"
+                      value={globalSettings.seoTitle}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, seoTitle: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Mô tả SEO (Meta Description)
+                    </label>
+                    <textarea
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                      rows={3}
+                      placeholder="Vd: Chuyên cung cấp hoa tươi cao cấp, bó hoa đẹp, giao hoa tận nơi..."
+                      value={globalSettings.seoDescription}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, seoDescription: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Từ khóa SEO (Keywords) - Cách nhau bởi dấu phẩy
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                      placeholder="hoa tươi, bó hoa, tiệm hoa, hoa sinh nhật"
+                      value={globalSettings.seoKeywords}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, seoKeywords: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Zalo Bot Configuration */}
+              <div className="glass p-6 rounded-2xl">
+                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  🤖 Cấu hình Zalo Bot (Thông báo đơn hàng)
+                </label>
+                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Nhập ID Zalo của Admin để nhận thông báo khi có khách đặt hàng
+                </p>
+                <div>
+                  <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                    Zalo Admin ID (User ID từ Zalo OA)
+                  </label>
+                  <input
+                    type="text"
+                    className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                    placeholder="Nhập User ID (ví dụ: 8486756627606018884)"
+                    value={globalSettings.zaloAdminId || ''}
+                    onChange={(e) => {
+                      const newSettings = { ...globalSettings, zaloAdminId: e.target.value };
+                      setGlobalSettings(newSettings);
+                      localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                    }}
+                  />
+                  <p className="text-[10px] text-neutral-400 mt-2">
+                    * Để lấy User ID: Chat với OA của bạn và xem trong Zalo Official Account Tool
+                  </p>
                 </div>
               </div>
 
