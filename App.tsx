@@ -240,6 +240,8 @@ const App: React.FC = () => {
         document.head.appendChild(link);
       }
 
+      // Fix cache by adding timestamp
+      link.href = `${globalSettings.faviconUrl}?v=${Date.now()}`;
     }
   }, [globalSettings.faviconUrl]);
 
