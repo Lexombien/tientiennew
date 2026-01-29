@@ -39,8 +39,10 @@ const CategorySection: React.FC<CategorySectionProps> = ({
 }) => {
     const observerTarget = useRef<HTMLDivElement>(null);
 
-    // Sort products by order
-    const sortedProducts = [...products].sort((a, b) => (a.order || 0) - (b.order || 0));
+    // Sort products by order and filter out hidden ones
+    const sortedProducts = [...products]
+        .filter(p => !p.isHidden)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
 
     // Pagination logic
     const itemsPerPage = settings.itemsPerPage;
@@ -95,7 +97,10 @@ const CategorySection: React.FC<CategorySectionProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4 flex-grow">
-                    <h3 className="text-2xl md:text-3xl font-bold gradient-text serif-display whitespace-nowrap">
+                    <h3
+                        className="text-2xl md:text-3xl font-bold gradient-text serif-display whitespace-nowrap"
+                        style={{ fontFamily: 'var(--font-category-title)' }}
+                    >
                         {settings.displayName || category}
                     </h3>
                     <div className="h-[2px] bg-gradient-to-r from-pink-300 via-purple-300 to-transparent w-full" />
@@ -135,7 +140,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                 <div className="flex justify-center mt-8">
                     <button
                         onClick={onLoadMore}
-                        className="pill-button bg-gradient-pink text-white px-8 py-4 text-sm font-bold shadow-xl hover-glow-pink"
+                        className="btn-skeuo-pink"
                     >
                         ➕ Tải thêm sản phẩm
                     </button>

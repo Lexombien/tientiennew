@@ -46,9 +46,15 @@ app.get('/api/ping', (req, res) => {
 });
 
 // ==================== AUTHENTICATION API ====================
-// Credentials được lưu trong biến môi trường (không lộ ở frontend)
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+// Credentials được lưu trong biến môi trường
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+    console.error("❌ LỖI BẢO MẬT: Chưa cấu hình ADMIN_USERNAME hoặc ADMIN_PASSWORD trong file .env");
+    console.error("👉 Vui lòng tạo file .env và thêm ADMIN_USERNAME=... ADMIN_PASSWORD=...");
+    process.exit(1);
+}
 
 // API: Login
 app.post('/api/login', (req, res) => {
@@ -110,11 +116,84 @@ app.get('/api/database', (req, res) => {
     }
 });
 
-// POST: Lưu toàn bộ database
+// POST: Lưu toàn bộ database (Merge with existing data to preserve orders)
 app.post('/api/database', (req, res) => {
     try {
-        const data = req.body;
-        fs.writeFileSync(dbFile, JSON.stringify(data, null, 2));
+        const newData = req.body;
+        
+        // Read current database to preserve fields not sent by frontend (like orders)
+        let currentDb = {};
+        if (fs.existsSync(dbFile)) {
+            currentDb = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+        }
+
+        // Merge new data into current database
+        // This ensures that if frontend doesn't send 'orders', it's not deleted
+        const updatedDb = {
+            ...currentDb,
+            ...newData,
+            // Explicitly preserve orders if not provided in newData (just to be safe, though spread handles it)
+            orders: newData.orders || currentDb.orders || []
+        };
+
+        fs.writeFileSync(dbFile, JSON.stringify(updatedDb, null, 2));
+
+        // ==================== AUTO-UPDATE INDEX.HTML ====================
+        // Update index.html meta tags to prevent flickering
+        if (updatedDb.settings) {
+            const indexFile = path.join(__dirname, 'index.html');
+            if (fs.existsSync(indexFile)) {
+                let indexContent = fs.readFileSync(indexFile, 'utf8');
+                const s = updatedDb.settings;
+
+                // Helper to replace content in meta tags
+                const replaceMeta = (name, content) => {
+                    const regex = new RegExp(`<meta name="${name}" content="[^"]*">`, 'g');
+                    indexContent = indexContent.replace(regex, `<meta name="${name}" content="${content}">`);
+                };
+                
+                const replaceProperty = (property, content) => {
+                    const regex = new RegExp(`<meta property="${property}" content="[^"]*">`, 'g');
+                    indexContent = indexContent.replace(regex, `<meta property="${property}" content="${content}">`);
+                };
+
+                // 1. Title
+                const title = s.seoTitle || s.websiteName || 'Tiệm Hoa Tươi';
+                indexContent = indexContent.replace(/<title>.*<\/title>/, `<title>${title}</title>`);
+
+                // 2. Description & Keywords
+                if (s.seoDescription) {
+                    replaceMeta('description', s.seoDescription);
+                    replaceProperty('og:description', s.seoDescription);
+                    replaceProperty('twitter:description', s.seoDescription);
+                }
+                
+                if (s.seoKeywords) {
+                    replaceMeta('keywords', s.seoKeywords);
+                }
+
+                // 3. OG Title & Twitter Title
+                replaceMeta('title', title);
+                replaceProperty('og:title', title);
+                replaceProperty('twitter:title', title);
+
+                // 4. Favicon
+                if (s.faviconUrl) {
+                    // Support both <link rel="icon" href="..."> and type="image/..."
+                    indexContent = indexContent.replace(/<link rel="icon"([^>]*)href="[^"]*"/, `<link rel="icon"$1href="${s.faviconUrl}"`);
+                }
+
+                // 5. Social Share Image (og:image & twitter:image)
+                if (s.socialShareImage) {
+                    replaceProperty('og:image', s.socialShareImage);
+                    replaceProperty('twitter:image', s.socialShareImage);
+                }
+
+                fs.writeFileSync(indexFile, indexContent, 'utf8');
+                console.log('✅ Updated index.html meta tags');
+            }
+        }
+
         res.json({ success: true, message: 'Đã lưu database thành công!' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -258,15 +337,16 @@ const upload = multer({
         fileSize: 5 * 1024 * 1024 // Max 5MB
     },
     fileFilter: (req, file, cb) => {
-        // Chỉ cho phép upload ảnh
-        const allowedTypes = /jpeg|jpg|png|gif|webp/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedTypes.test(file.mimetype);
+        // Cho phép upload ảnh và font chữ
+        const allowedTypes = /jpeg|jpg|png|gif|webp|ttf|otf|woff|woff2/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase().replace('.', ''));
+        // Mimetype cho font có thể phức tạp, nên check extname là chính
+        // const mimetype = allowedTypes.test(file.mimetype);
 
-        if (mimetype && extname) {
+        if (extname) {
             return cb(null, true);
         } else {
-            cb(new Error('Chỉ cho phép upload file ảnh (JPEG, PNG, GIF, WebP)!'));
+            cb(new Error('Chỉ cho phép upload file ảnh (JPEG, PNG, GIF, WebP) hoặc font (TTF, OTF, WOFF)!'));
         }
     }
 });
@@ -289,8 +369,9 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
         const isSmallFile = req.file.size < 200 * 1024; // < 200KB
         const isIco = ext.toLowerCase() === '.ico';
         const isGif = ext.toLowerCase() === '.gif'; // GIF động không nên convert static
+        const isFont = /^\.(ttf|otf|woff|woff2)$/i.test(ext); // Font file
 
-        if (isIco || isGif || isSmallFile) {
+        if (isIco || isGif || isSmallFile || isFont) {
             // GIỮ NGUYÊN FILE GỐC
             // Rename file để đảm bảo format an toàn (đã được tạo ở storage filename, chỉ cần move file nếu cần thiết, 
             // nhưng multer đã lưu file ở 'originalPath' = safeName-uniqueSuffix.ext rồi)
@@ -497,15 +578,22 @@ app.put('/api/rename-upload/:oldFilename', (req, res) => {
 
 // ==================== ZALO BOT TRACKING ====================
 
-// Helper function to get Zalo configuration from Database
+// Helper function to get Zalo configuration from Database or Env
 const getZaloConfig = () => {
     try {
-        const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
-        const settings = db.settings || {};
+        let settings = {};
+        if (fs.existsSync(dbFile)) {
+            const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+            settings = db.settings || {};
+        }
 
+        // Prioritize Database settings, fallback to Environment variables
+        const botToken = settings.zaloBotToken || process.env.BOT_TOKEN || '';
+        const ownerIdsString = settings.zaloAdminIds || process.env.OWNER_ZALO_ID || '';
+        
         return {
-            botToken: settings.zaloBotToken || '',
-            ownerIds: (settings.zaloAdminIds || '')
+            botToken: botToken,
+            ownerIds: ownerIdsString
                 .split(',')
                 .map(id => id.trim())
                 .filter(id => id.length > 0),
@@ -596,13 +684,23 @@ app.post('/api/submit-order', async (req, res) => {
             isGift,
             senderName,
             senderPhone,
-            // Thông tin biến thể ← NEW
+            // Thông tin biến thể
             variantId,
             variantName,
-            variantSKU
+            variantSKU,
+            // Thông tin thiệp/bảng chữ
+            isCard,
+            cardType,
+            cardContent,
+            // Thông tin giao hàng
+            deliveryMode,
+            deliveryTime
         } = req.body;
 
         const time = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+        console.log('\n🛒 ===== ĐƠN HÀNG MỚI (DEBUG) =====');
+        console.log('📦 Body nhận được:', JSON.stringify(req.body, null, 2));
 
         // Format message cho Zalo Bot
         let message = isGift
@@ -638,11 +736,32 @@ app.post('/api/submit-order', async (req, res) => {
         message += `💰 Giá: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(productPrice)}\n`;
         // BỎ dòng Mã SP
         if (note) message += `📝 Ghi chú: ${note}\n`;
+
+        // Thông tin thiệp/bảng chữ (nếu có)
+        if (isCard) {
+             const typeName = cardType === 'banner' ? 'Bảng chữ (Banner)' : 'Thiệp nhỏ';
+             message += `✍️ ${typeName}: ${cardContent}\n`;
+        }
+
+        // Thông tin giao hàng
+        if (deliveryMode === 'scheduled' && deliveryTime) {
+             const date = new Date(deliveryTime);
+             const formattedDate = date.toLocaleString('vi-VN', {
+                 timeZone: 'Asia/Ho_Chi_Minh',
+                 hour: '2-digit',
+                 minute: '2-digit',
+                 day: '2-digit',
+                 month: '2-digit',
+                 year: 'numeric'
+             });
+             message += `🕒 Hẹn giao: ${formattedDate}\n`;
+        } else {
+             message += `⚡ Giao hàng: Giao liền (Càng sớm càng tốt)\n`;
+        }
+
         message += `\n⏰ Thời gian: ${time}`;
 
-        console.log('\n🛒 ===== ĐƠN HÀNG MỚI =====');
-        console.log(`Khách: ${customerName} - ${customerPhone}`);
-        console.log(`Sản phẩm: ${productName}`);
+        console.log('📨 Message gửi Zalo:', message);
 
         // 1. LƯU ĐƠN HÀNG VÀO DATABASE
         const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
@@ -668,6 +787,11 @@ app.post('/api/submit-order', async (req, res) => {
             variantId,
             variantName,
             variantSKU,
+            isCard,
+            cardType,
+            cardContent,
+            deliveryMode,
+            deliveryTime,
             note
         };
 
@@ -740,11 +864,21 @@ app.get('/api/orders', (req, res) => {
         const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
         const orders = db.orders || [];
 
-        // Optional: Filter by status
-        const { status } = req.query;
-        const filteredOrders = status
-            ? orders.filter(order => order.status === status)
-            : orders;
+        // Optional: Filter by status and phone
+        const { status, phone } = req.query;
+        let filteredOrders = orders;
+
+        if (status) {
+            filteredOrders = filteredOrders.filter(order => order.status === status);
+        }
+
+        if (phone) {
+            // Normalize phone for comparison (remove spaces, dots, etc if needed, but simple includes/exact match is okay for now)
+            filteredOrders = filteredOrders.filter(order => 
+                (order.customerPhone && order.customerPhone.includes(phone)) ||
+                (order.senderPhone && order.senderPhone.includes(phone))
+            );
+        }
 
         res.json({ success: true, orders: filteredOrders });
     } catch (error) {

@@ -5,6 +5,11 @@ const OrdersManagement: React.FC = () => {
     // State
     const [orders, setOrders] = useState<Order[]>([]);
     const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
+
+    // Time filter state
+    const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year' | 'all' | 'custom'>('all');
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
+
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -116,105 +121,265 @@ const OrdersManagement: React.FC = () => {
     };
 
     // Computed values
+    const filteredByTimeOrders = React.useMemo(() => {
+        if (timeRange === 'all') return orders;
+
+        const now = new Date();
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        return orders.filter(order => {
+            const orderDate = new Date(order.createdAt);
+
+            if (timeRange === 'day' || timeRange === 'custom') {
+                return orderDate >= startOfDay && orderDate <= endOfDay;
+            }
+
+            if (timeRange === 'week') {
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(now.getDate() - 7);
+                return orderDate >= oneWeekAgo;
+            }
+
+            if (timeRange === 'month') {
+                const oneMonthAgo = new Date();
+                oneMonthAgo.setMonth(now.getMonth() - 1);
+                return orderDate >= oneMonthAgo;
+            }
+
+            if (timeRange === 'year') {
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(now.getFullYear() - 1);
+                return orderDate >= oneYearAgo;
+            }
+
+            return true;
+        });
+    }, [orders, timeRange, selectedDate]);
+
     const filteredOrders = filterStatus === 'all'
-        ? orders
-        : orders.filter(o => o.status === filterStatus);
+        ? filteredByTimeOrders
+        : filteredByTimeOrders.filter(o => o.status === filterStatus);
 
     const stats = {
-        total: orders.length,
-        pending: orders.filter(o => o.status === 'pending').length,
-        processing: orders.filter(o => o.status === 'processing').length,
-        completed: orders.filter(o => o.status === 'completed').length,
-        cancelled: orders.filter(o => o.status === 'cancelled').length,
+        total: filteredByTimeOrders.length,
+        pending: filteredByTimeOrders.filter(o => o.status === 'pending').length,
+        processing: filteredByTimeOrders.filter(o => o.status === 'processing').length,
+        completed: filteredByTimeOrders.filter(o => o.status === 'completed').length,
+        cancelled: filteredByTimeOrders.filter(o => o.status === 'cancelled').length,
+    };
+
+    // Revenue Stats
+    const revenueStats = {
+        total: filteredByTimeOrders.filter(o => o.status === 'completed').reduce((sum, o) => sum + (Number(o.productPrice) || 0), 0),
+        pending: filteredByTimeOrders.filter(o => ['pending', 'processing'].includes(o.status)).reduce((sum, o) => sum + (Number(o.productPrice) || 0), 0),
+        cancelled: filteredByTimeOrders.filter(o => o.status === 'cancelled').reduce((sum, o) => sum + (Number(o.productPrice) || 0), 0),
     };
 
     return (
-        <div className="space-y-6">
-            {/* Stats Header */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {[
-                    { key: 'all' as const, count: stats.total, label: 'Tổng đơn', color: 'pink' },
-                    { key: 'pending' as const, count: stats.pending, label: 'Chờ xử lý', color: 'yellow' },
-                    { key: 'processing' as const, count: stats.processing, label: 'Đang xử lý', color: 'blue' },
-                    { key: 'completed' as const, count: stats.completed, label: 'Hoàn thành', color: 'green' },
-                    { key: 'cancelled' as const, count: stats.cancelled, label: 'Đã hủy', color: 'red' }
-                ].map(stat => (
-                    <div
-                        key={stat.key}
-                        className={`glass p-4 rounded-2xl cursor-pointer transition-all ${filterStatus === stat.key ? `ring-2 ring-${stat.color}-500` : ''}`}
-                        onClick={() => setFilterStatus(stat.key as any)}
-                    >
-                        <div className={`text-2xl font-bold ${stat.key === 'all' ? 'gradient-text' : `text-${stat.color}-600`}`}>
-                            {stat.count}
+        <div className="space-y-8">
+            {/* Time Filter Controls */}
+            <div className="glass p-5 md:p-6 rounded-[32px] flex flex-col md:flex-row gap-6 items-start md:items-center justify-between border border-white/40">
+                <div className="flex p-1.5 glass-inset gap-1 w-full md:w-auto overflow-x-auto scrollbar-hide">
+                    {(['all', 'day', 'week', 'month', 'year'] as const).map(range => (
+                        <button
+                            key={range}
+                            onClick={() => setTimeRange(range)}
+                            className={`px-5 py-2.5 rounded-2xl text-xs md:text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${timeRange === range
+                                ? 'bg-gradient-pink text-white shadow-md'
+                                : 'text-gray-500 hover:bg-white/50 hover:text-gray-700'
+                                }`}
+                        >
+                            {range === 'all' && '🌐 Tất cả'}
+                            {range === 'day' && '📅 Hôm nay'}
+                            {range === 'week' && '📊 Tuần này'}
+                            {range === 'month' && '📈 Tháng này'}
+                            {range === 'year' && '🗓️ Năm nay'}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-2 p-1.5 glass-inset w-full md:w-auto">
+                    <span className="text-xs md:text-sm font-bold text-gray-400 pl-3 uppercase tracking-wider flex-shrink-0">Chọn ngày:</span>
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => {
+                            setSelectedDate(e.target.value);
+                            setTimeRange('custom');
+                        }}
+                        className="bg-white/40 px-3 py-1.5 rounded-2xl font-bold outline-none text-gray-800 cursor-pointer w-full md:w-auto text-sm border border-white/20 shadow-sm transition-all focus:bg-white/60"
+                    />
+                </div>
+            </div>
+
+            {/* Order Statistics */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold serif-display gradient-text flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-gradient-sunset rounded-full inline-block"></span>
+                    📊 Thống kê đơn hàng
+                </h3>
+                <div className="flex p-2 glass-inset rounded-[30px] gap-2 md:gap-4 overflow-x-auto scrollbar-hide">
+                    {[
+                        { key: 'all' as const, count: stats.total, label: 'TỔNG ĐƠN', color: 'pink', icon: '📦' },
+                        { key: 'pending' as const, count: stats.pending, label: 'CHỜ XỬ LÝ', color: 'yellow', icon: '⏳' },
+                        { key: 'processing' as const, count: stats.processing, label: 'ĐANG XỬ LÝ', color: 'blue', icon: '🔄' },
+                        { key: 'completed' as const, count: stats.completed, label: 'HOÀN THÀNH', color: 'green', icon: '✅' },
+                        { key: 'cancelled' as const, count: stats.cancelled, label: 'ĐÃ HỦY', color: 'red', icon: '❌' }
+                    ].map(stat => (
+                        <div
+                            key={stat.key}
+                            className={`flex-1 min-w-[120px] p-4 rounded-2xl cursor-pointer transition-all duration-300 group relative overflow-hidden ${filterStatus === stat.key ? 'bg-white shadow-md scale-[1.02] border border-white/60' : 'hover:bg-white/30'
+                                }`}
+                            onClick={() => setFilterStatus(stat.key as any)}
+                        >
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-xl opacity-80 group-hover:scale-110 transition-transform">{stat.icon}</span>
+                                <div className={`text-2xl font-black ${filterStatus === stat.key ? (
+                                    stat.key === 'all' ? 'text-pink-600' :
+                                        stat.color === 'yellow' ? 'text-amber-600' :
+                                            stat.color === 'blue' ? 'text-blue-600' :
+                                                stat.color === 'green' ? 'text-emerald-600' :
+                                                    'text-rose-600'
+                                ) : 'text-gray-400'
+                                    }`}>
+                                    {stat.count}
+                                </div>
+                            </div>
+                            <div className={`text-[10px] font-black tracking-widest ${filterStatus === stat.key ? 'text-gray-700' : 'text-gray-400'}`}>
+                                {stat.label}
+                            </div>
                         </div>
-                        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>{stat.label}</div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Revenue Statistics */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold serif-display gradient-text flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-gradient-sunset rounded-full inline-block"></span>
+                    💰 Thống kê doanh thu
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Real Revenue */}
+                    <div className="glass p-6 rounded-2xl bg-green-50/50 border border-green-100 hover:scale-[1.02] transition-transform">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="p-2 bg-green-100 rounded-lg text-green-600">
+                                <span className="text-xl">💵</span>
+                            </div>
+                            <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full">Đã nhận</span>
+                        </div>
+                        <div className="text-3xl font-bold text-green-700 mb-1 tracking-tight">
+                            {formatPrice(revenueStats.total)}
+                        </div>
+                        <div className="text-sm font-semibold text-green-800">Doanh thu thực tế</div>
+                        <div className="text-xs text-green-600 mt-1 opacity-80">Từ {stats.completed} đơn đã hoàn thành</div>
                     </div>
-                ))}
+
+                    {/* Potential Revenue */}
+                    <div className="glass p-6 rounded-2xl bg-blue-50/50 border border-blue-100 hover:scale-[1.02] transition-transform">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                                <span className="text-xl">⏳</span>
+                            </div>
+                            <span className="text-xs font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded-full">Dự kiến</span>
+                        </div>
+                        <div className="text-3xl font-bold text-blue-700 mb-1 tracking-tight">
+                            {formatPrice(revenueStats.pending)}
+                        </div>
+                        <div className="text-sm font-semibold text-blue-800">Doanh thu tiềm năng</div>
+                        <div className="text-xs text-blue-600 mt-1 opacity-80">Từ {stats.pending + stats.processing} đơn đang xử lý</div>
+                    </div>
+
+                    {/* Lost Revenue */}
+                    <div className="glass p-6 rounded-2xl bg-red-50/50 border border-red-100 opacity-70 hover:opacity-100 transition-all hover:scale-[1.02]">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="p-2 bg-red-100 rounded-lg text-red-600">
+                                <span className="text-xl">💸</span>
+                            </div>
+                            <span className="text-xs font-bold px-2 py-1 bg-red-100 text-red-700 rounded-full">Đã mất</span>
+                        </div>
+                        <div className="text-3xl font-bold text-red-700 mb-1 tracking-tight">
+                            {formatPrice(revenueStats.cancelled)}
+                        </div>
+                        <div className="text-sm font-semibold text-red-800">Doanh thu thất thoát</div>
+                        <div className="text-xs text-red-600 mt-1 opacity-80">Từ {stats.cancelled} đơn đã hủy</div>
+                    </div>
+                </div>
             </div>
 
             {/* Orders Table */}
-            <div className="glass rounded-3xl overflow-hidden">
-                <div className="p-6 border-b border-white/20">
-                    <h2 className="text-2xl font-bold serif-display gradient-text">
-                        📦 Danh sách đơn hàng
+            <div className="glass rounded-[32px] overflow-hidden border border-white/40 shadow-2xl">
+                <div className="p-8 border-b border-white/20 bg-white/10 flex justify-between items-center">
+                    <h2 className="text-2xl font-bold serif-display gradient-text flex items-center gap-3">
+                        <span className="p-2 bg-pink-100 rounded-xl text-xl">📦</span>
+                        Danh sách đơn hàng
                     </h2>
+                    <div className="text-xs font-bold px-4 py-2 glass-inset text-gray-500">
+                        {filteredOrders.length} đơn hàng
+                    </div>
                 </div>
 
                 {loading ? (
-                    <div className="p-12 text-center">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-                        <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Đang tải...</p>
+                    <div className="p-20 text-center">
+                        <div className="spinner-glass mx-auto"></div>
+                        <p className="mt-6 font-bold text-gray-400 animate-pulse">Đang tải dữ liệu...</p>
                     </div>
                 ) : filteredOrders.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <div className="text-6xl mb-4">📦</div>
-                        <p style={{ color: 'var(--text-secondary)' }}>Chưa có đơn hàng nào</p>
+                    <div className="p-20 text-center">
+                        <div className="text-7xl mb-6 grayscale opacity-30">📦</div>
+                        <p className="text-lg font-bold text-gray-400">Chưa có đơn hàng nào trong khoảng thời gian này</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-white/10">
+                                <tr className="border-b border-white/10 bg-white/5">
                                     {['Mã đơn', 'Khách hàng', 'Sản phẩm', 'Giá', 'Trạng thái', 'Ngày đặt', 'Hành động'].map(header => (
-                                        <th key={header} className="text-left p-4 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+                                        <th key={header} className="text-left p-6 text-[10px] font-black uppercase tracking-[0.1em]" style={{ color: 'var(--text-secondary)' }}>
                                             {header}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-white/5">
                                 {filteredOrders.map(order => (
                                     <tr
                                         key={order.id}
-                                        className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
+                                        className="group hover:bg-white/40 transition-all cursor-pointer"
                                         onClick={() => {
                                             setSelectedOrder(order);
                                             setShowDetailModal(true);
                                         }}
                                     >
-                                        <td className="p-4">
-                                            <div className="font-bold text-pink-600">{order.orderNumber}</div>
-                                            {order.isGift && <div className="text-xs text-purple-600">🎁 Quà tặng</div>}
+                                        <td className="p-6">
+                                            <div className="font-bold text-pink-600 group-hover:scale-110 transition-transform origin-left">#{order.orderNumber}</div>
+                                            {order.isGift && <div className="text-[10px] font-bold mt-1 text-purple-500 flex items-center gap-1"><span>🎁</span> Quà tặng</div>}
                                         </td>
-                                        <td className="p-4">
-                                            <div className="font-semibold">{order.customerName}</div>
-                                            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>{order.customerPhone}</div>
+                                        <td className="p-6">
+                                            <div className="font-bold text-gray-800">{order.customerName}</div>
+                                            <div className="text-xs font-medium text-gray-500 mt-1">{order.customerPhone}</div>
                                         </td>
-                                        <td className="p-4">
-                                            <div className="font-medium">{order.productName}</div>
+                                        <td className="p-6 max-w-[200px]">
+                                            <div className="font-bold text-gray-700 truncate">{order.productName}</div>
                                             {order.variantName && (
-                                                <div className="text-xs text-blue-600">🎨 {order.variantName}</div>
+                                                <div className="text-[10px] font-bold text-blue-500 mt-1 bg-blue-50 px-2 py-0.5 rounded-md inline-block">🎨 {order.variantName}</div>
                                             )}
                                         </td>
-                                        <td className="p-4 font-semibold">{formatPrice(order.productPrice)}</td>
-                                        <td className="p-4">
+                                        <td className="p-6">
+                                            <div className="font-black text-gray-800 tracking-tight">{formatPrice(order.productPrice)}</div>
+                                        </td>
+                                        <td className="p-6">
                                             <select
                                                 value={order.status}
                                                 onChange={(e) => {
                                                     e.stopPropagation();
                                                     updateOrderStatus(order.id, e.target.value as OrderStatus);
                                                 }}
-                                                className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer ${getStatusColor(order.status)}`}
+                                                className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer border-none shadow-sm focus:ring-2 focus:ring-pink-300 transition-all ${getStatusColor(order.status)}`}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <option value="pending">⏳ Chờ xử lý</option>
@@ -223,15 +388,16 @@ const OrdersManagement: React.FC = () => {
                                                 <option value="cancelled">❌ Đã hủy</option>
                                             </select>
                                         </td>
-                                        <td className="p-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                        <td className="p-6 text-xs font-medium text-gray-500">
                                             {formatDate(order.createdAt)}
                                         </td>
-                                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                        <td className="p-6 text-center" onClick={(e) => e.stopPropagation()}>
                                             <button
                                                 onClick={() => deleteOrder(order.id)}
-                                                className="pill-button bg-rose-500 hover:bg-rose-600 text-white px-3 py-1 text-xs"
+                                                className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                                title="Xóa đơn hàng"
                                             >
-                                                🗑️
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </td>
                                     </tr>
@@ -301,6 +467,16 @@ const OrdersManagement: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Card/Banner Info */}
+                            {selectedOrder.isCard && selectedOrder.cardContent && (
+                                <div className="glass p-4 rounded-2xl bg-blue-50/50">
+                                    <h3 className="font-bold mb-3">
+                                        {selectedOrder.cardType === 'banner' ? '🎨 Nội dung Bảng chữ' : '✍️ Nội dung Thiệp'}
+                                    </h3>
+                                    <p className="text-sm italic whitespace-pre-wrap">{selectedOrder.cardContent}</p>
+                                </div>
+                            )}
+
                             {/* Customer Note */}
                             {selectedOrder.note && (
                                 <div className="glass p-4 rounded-2xl">
@@ -308,6 +484,23 @@ const OrdersManagement: React.FC = () => {
                                     <p className="text-sm italic">{selectedOrder.note}</p>
                                 </div>
                             )}
+
+                            {/* Delivery Info */}
+                            <div className="glass p-4 rounded-2xl bg-orange-50/50">
+                                <h3 className="font-bold mb-2">🚚 Thông tin giao hàng</h3>
+                                <div className="text-sm">
+                                    <p>
+                                        <span className="font-semibold">Chế độ: </span>
+                                        {selectedOrder.deliveryMode === 'scheduled' ? 'Hẹn giờ giao' : 'Giao liền'}
+                                    </p>
+                                    {selectedOrder.deliveryMode === 'scheduled' && selectedOrder.deliveryTime && (
+                                        <p className="mt-1">
+                                            <span className="font-semibold">Thời gian: </span>
+                                            {new Date(selectedOrder.deliveryTime).toLocaleString('vi-VN')}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
 
                             {/* Admin Notes */}
                             <div className="glass p-4 rounded-2xl">

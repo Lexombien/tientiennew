@@ -322,37 +322,37 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ onMetadataChange, onImageDe
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold gradient-text">📁 Thư Viện Ảnh (Media Library)</h2>
-                    <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    <h2 className="text-xl md:text-2xl font-bold gradient-text">📁 Thư Viện Ảnh (Media Library)</h2>
+                    <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
                         Quản lý file ảnh và thiết lập SEO tập trung
                     </p>
                 </div>
                 <button
                     onClick={loadData}
                     disabled={loading}
-                    className="pill-button bg-gradient-pink text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink"
+                    className="pill-button bg-gradient-pink !text-white px-4 py-2 text-sm font-bold shadow-lg hover-glow-pink w-full md:w-auto flex items-center justify-center gap-2"
                 >
-                    {loading ? '⏳ Đang tải...' : '🔄 Làm mới'}
+                    {loading ? '⏳' : '🔄'} <span className="md:inline">Làm mới</span>
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="glass p-4 rounded-2xl text-center">
-                    <p className="text-3xl font-bold gradient-text">{images.length}</p>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Tổng số ảnh</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div className="glass p-3 md:p-4 rounded-2xl text-center">
+                    <p className="text-2xl md:text-3xl font-bold gradient-text">{images.length}</p>
+                    <p className="text-[10px] md:text-xs mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>Tổng số ảnh</p>
                 </div>
-                <div className="glass p-4 rounded-2xl text-center">
-                    <p className="text-3xl font-bold gradient-text">
+                <div className="glass p-3 md:p-4 rounded-2xl text-center">
+                    <p className="text-2xl md:text-3xl font-bold gradient-text">
                         {formatSize(images.reduce((sum, img) => sum + img.size, 0))}
                     </p>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Tổng dung lượng</p>
+                    <p className="text-[10px] md:text-xs mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>Tổng dung lượng</p>
                 </div>
-                <div className="glass p-4 rounded-2xl text-center">
-                    <p className="text-3xl font-bold gradient-text">{filteredImages.length}</p>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Đang hiển thị</p>
+                <div className="glass p-3 md:p-4 rounded-2xl text-center col-span-2 md:col-span-1">
+                    <p className="text-2xl md:text-3xl font-bold gradient-text">{filteredImages.length}</p>
+                    <p className="text-[10px] md:text-xs mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>Đang hiển thị</p>
                 </div>
             </div>
 
@@ -612,7 +612,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ onMetadataChange, onImageDe
                                     <button
                                         onClick={handleSaveMetadata}
                                         disabled={saving}
-                                        className="w-full bg-gradient-pink text-white py-4 rounded-xl text-sm font-bold shadow-lg hover-glow-pink transition-all flex items-center justify-center gap-2"
+                                        className="w-full bg-gradient-pink !text-white py-4 rounded-xl text-sm font-bold shadow-lg hover-glow-pink transition-all flex items-center justify-center gap-2"
                                     >
                                         {saving ? (
                                             <>⏳ Đang lưu...</>

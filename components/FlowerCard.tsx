@@ -126,7 +126,7 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
   };
 
   return (
-    <div className={`glass-card glass rounded-2xl overflow-hidden transition-all duration-500 flex flex-col border border-white/30 ${!isAdmin ? 'group' : ''}`}>
+    <div className={`glass-card glass overflow-hidden transition-all duration-500 flex flex-col border border-white/30 ${isAdmin ? '!rounded-none md:!rounded-2xl' : 'rounded-2xl group'}`}>
       <div
         className={`relative overflow-hidden image-container ${transitionClass} ${!isAdmin ? 'cursor-zoom-in' : ''}`}
         style={{ paddingBottom: `${(parseInt(globalAspectRatio.split('/')[1]) / parseInt(globalAspectRatio.split('/')[0])) * 100}%`, height: 0 }}
@@ -158,12 +158,21 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
         </div>
 
         {isAdmin && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit?.(product); }}
-            className="absolute top-2 right-2 bg-gradient-pink text-white p-2 rounded-full shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-          </button>
+          <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[1px]">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit?.(product);
+              }}
+              className="bg-white/20 p-4 rounded-full backdrop-blur-md shadow-xl border border-white/50 text-white hover:bg-gradient-pink hover:border-transparent transition-all hover:scale-110 active:scale-95"
+              title="Chỉnh sửa sản phẩm"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+          </div>
         )}
 
         {/* SKU Badge - Dynamic: Changes based on current image's variant */}
@@ -189,13 +198,7 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
           );
         })()}
 
-        {!isAdmin && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-            <span className="badge-glass bg-gradient-pink text-white px-6 py-3 text-sm font-bold shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-transform">
-              Xem ảnh
-            </span>
-          </div>
-        )}
+
       </div>
 
       {/* Info Section - Click to Zalo */}
@@ -203,17 +206,26 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
         className={`p-3 md:p-4 flex flex-col flex-grow ${!isAdmin ? 'cursor-pointer hover:bg-pink-50/50 transition-colors' : ''}`}
         onClick={!isAdmin ? handleZaloRedirect : undefined}
       >
-        <h3 className="font-semibold text-sm md:text-base mb-2 line-clamp-2 leading-snug group-hover:text-[var(--primary-pink)] transition-colors" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-title, inherit)' }}>
+        <h3
+          className={`font-semibold mb-2 line-clamp-2 leading-snug group-hover:text-[var(--primary-pink)] transition-colors ${isAdmin ? 'text-xs md:text-base' : 'text-sm md:text-base'}`}
+          style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-title, inherit)' }}
+        >
           {product.title}
         </h3>
 
         <div className="mt-auto space-y-1">
           {enablePriceDisplay && (
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-base md:text-lg font-bold" style={{ color: 'var(--primary-pink)', fontFamily: 'var(--font-price, inherit)' }}>
+              <span
+                className={`font-bold ${isAdmin ? 'text-sm md:text-lg' : 'text-base md:text-lg'}`}
+                style={{ color: 'var(--primary-pink)', fontFamily: 'var(--font-price, inherit)' }}
+              >
                 {formatPrice(product.salePrice)}
               </span>
-              <span className="text-xs md:text-sm line-through opacity-60" style={{ color: 'var(--text-secondary)' }}>
+              <span
+                className={`line-through opacity-60 ${isAdmin ? 'text-[10px] md:text-sm' : 'text-xs md:text-sm'}`}
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 {formatPrice(product.originalPrice)}
               </span>
             </div>
@@ -221,7 +233,7 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
           <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-pink-200 to-transparent my-2" />
           {!isAdmin && (
             <button
-              className="w-full bg-gradient-pink text-white py-3 rounded-xl text-xs font-bold shadow-lg hover-glow-pink transition-all flex items-center justify-center gap-1 hover:scale-[1.02] active:scale-95"
+              className="w-full btn-skeuo-pink flex items-center justify-center gap-1"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onOrderClick) {

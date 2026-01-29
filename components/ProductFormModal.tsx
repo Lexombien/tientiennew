@@ -115,7 +115,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             images: formData.images || [],
             imagesWithMetadata: formData.imagesWithMetadata || [],
             variants: formData.variants || [],
-            order: formData.order
+            order: formData.order,
+            isHidden: formData.isHidden
         };
 
         onSave(productToSave);
@@ -130,8 +131,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-strong rounded-3xl border border-white/30 shadow-2xl">
-                <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-white/20 blur-backdrop">
+            <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide glass-strong rounded-3xl border border-white/30 shadow-2xl">
+                <div className="sticky top-0 z-10 flex items-center justify-between p-2 md:p-6 border-b border-white/20 blur-backdrop">
                     <h2 className="text-2xl font-bold serif-display gradient-text">
                         {product?.id ? '✏️ Cập nhật sản phẩm' : '➕ Thêm sản phẩm mới'}
                     </h2>
@@ -145,10 +146,10 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-2 md:p-6 space-y-6">
                     {/* Product Name & SKU */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="glass p-4 rounded-2xl">
+                        <div className="glass p-2 md:p-4 rounded-2xl">
                             <label className="block text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-secondary)' }}>
                                 Tên sản phẩm *
                             </label>
@@ -162,7 +163,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                             />
                         </div>
 
-                        <div className="glass p-4 rounded-2xl">
+                        <div className="glass p-2 md:p-4 rounded-2xl">
                             <label className="block text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-secondary)' }}>
                                 Mã sản phẩm (SKU)
                             </label>
@@ -178,7 +179,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
                     {/* Prices */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="glass p-4 rounded-2xl">
+                        <div className="glass p-2 md:p-4 rounded-2xl">
                             <label className="block text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-secondary)' }}>
                                 Giá gốc (₫)
                             </label>
@@ -192,7 +193,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                             />
                         </div>
 
-                        <div className="glass p-4 rounded-2xl">
+                        <div className="glass p-2 md:p-4 rounded-2xl">
                             <label className="block text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--text-secondary)' }}>
                                 Giá khuyến mãi (₫)
                             </label>
@@ -209,7 +210,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     </div>
 
                     {/* Categories */}
-                    <div className="glass p-6 rounded-2xl">
+                    <div className="glass p-2 md:p-6 rounded-2xl">
                         <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                             📁 Danh mục hiện tại (Chọn nhiều)
                         </label>
@@ -251,6 +252,30 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                         </div>
                     </div>
 
+                    {/* Visibility Toggle */}
+                    <div className="glass p-2 md:p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <label className="block text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                                👁️ Trạng thái hiển thị
+                            </label>
+                            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                Ẩn sản phẩm khỏi khách hàng (nhưng vẫn giữ trong kho quản trị)
+                            </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={!formData.isHidden}
+                                onChange={(e) => setFormData(prev => ({ ...prev, isHidden: !e.target.checked }))}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-pink peer-checked:shadow-[0_0_15px_rgba(255,107,157,0.8)]"></div>
+                            <span className="ml-3 text-sm font-bold" style={{ color: !formData.isHidden ? 'var(--primary-pink)' : 'var(--text-secondary)' }}>
+                                {!formData.isHidden ? 'Đang hiện' : 'Đã ẩn'}
+                            </span>
+                        </label>
+                    </div>
+
                     {/* Product Variants Editor */}
                     <ProductVariantsEditor
                         variants={formData.variants}
@@ -259,8 +284,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     />
 
                     {/* Images with Variant Selection */}
-                    <div className="glass p-6 rounded-2xl">
-                        <div className="flex items-center justify-between mb-4">
+                    <div className="glass p-2 md:p-6 rounded-2xl">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
                             <div>
                                 <label className="block text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                                     📷 Hình ảnh sản phẩm (Tối đa 10 ảnh + SEO)
@@ -269,7 +294,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                     Tải ảnh lên sẽ tự động lưu vào thư viện SEO của bạn. Chọn biến thể cho từng ảnh (nếu có).
                                 </p>
                             </div>
-                            <label className="pill-button bg-gradient-pink text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink cursor-pointer">
+                            <label className="pill-button bg-gradient-pink !text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink cursor-pointer w-full md:w-auto text-center whitespace-nowrap">
                                 + Tải ảnh lên
                                 <input
                                     type="file"
@@ -354,7 +379,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 justify-between pt-4 border-t border-white/20">
+                    <div className="flex flex-col md:flex-row gap-3 justify-between pt-4 border-t border-white/20">
                         {/* Delete Button - Only show for existing products */}
                         {product?.id && onDelete && (
                             <button
@@ -364,24 +389,24 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                         onDelete(product.id);
                                     }
                                 }}
-                                className="pill-button bg-rose-500 text-white px-6 py-3 text-sm font-bold shadow-xl hover:bg-rose-600 transition-all"
+                                className="pill-button bg-rose-500 text-white px-6 py-3 text-sm font-bold shadow-xl hover:bg-rose-600 transition-all w-full md:w-auto order-last md:order-first"
                             >
-                                🗑️ XÓA SẢN PHẨM
+                                🗑️ XÓA SP
                             </button>
                         )}
 
                         {/* Right side buttons */}
-                        <div className="flex gap-3 ml-auto">
+                        <div className="flex flex-col md:flex-row gap-3 ml-auto w-full md:w-auto">
                             <button
                                 type="button"
                                 onClick={onCancel}
-                                className="pill-button glass text-sm px-6 py-3 font-bold hover:glass-strong"
+                                className="pill-button glass text-sm px-6 py-3 font-bold hover:glass-strong w-full md:w-auto"
                             >
                                 Hủy bỏ
                             </button>
                             <button
                                 type="submit"
-                                className="pill-button bg-gradient-pink text-white px-8 py-3 text-sm font-bold shadow-xl hover-glow-pink"
+                                className="pill-button bg-gradient-pink !text-white px-8 py-3 text-sm font-bold shadow-xl hover-glow-pink w-full md:w-auto"
                             >
                                 {product?.id ? 'Lưu thông tin' : 'Thêm sản phẩm'}
                             </button>

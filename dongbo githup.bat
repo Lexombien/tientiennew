@@ -5,7 +5,7 @@ REM ===============================
 REM  CAU HINH
 REM ===============================
 :: Set remote URL moi
-set REMOTE_URL=https://github.com/Lexombien/webbanhoa.git
+set REMOTE_URL=https://github.com/Lexombien/tientiennew.git
 
 :: Chuyen den thu muc chua file bat nay
 cd /d "%~dp0"

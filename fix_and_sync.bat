@@ -12,7 +12,7 @@ echo   [1/2] CAP NHAT FILE SETUP LEN GITHUB
 echo ============================================
 
 REM 1. Set remote URL
-set REMOTE_URL=https://github.com/Lexombien/webbanhoa.git
+set REMOTE_URL=https://github.com/Lexombien/tientiennew.git
 cd /d "%~dp0"
 
 REM 2. Init Git neu chua co

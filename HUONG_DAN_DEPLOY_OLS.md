@@ -25,7 +25,7 @@ cd /usr/local/lsws/lemyloi.work.gd/html
 **Bước 2: Xóa file rác và lấy code về**
 ```bash
 rm -rf * .[^.]*  # Xóa sạch file cũ
-git clone https://github.com/Lexombien/webbanhoa.git .
+git clone https://github.com/Lexombien/tientiennew.git .
 ```
 
 **Bước 3: Chạy Script cài đặt "Thần thánh"**

@@ -44,7 +44,7 @@ const ProductVariantsEditor: React.FC<ProductVariantsEditorProps> = ({
     };
 
     return (
-        <div className="glass p-6 rounded-2xl">
+        <div className="glass p-2 md:p-6 rounded-2xl">
             <div
                 className="flex justify-between items-center mb-4 cursor-pointer"
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -78,10 +78,10 @@ const ProductVariantsEditor: React.FC<ProductVariantsEditorProps> = ({
                     </p>
 
                     {/* Add New Variant */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-col md:flex-row gap-2">
                         <input
                             type="text"
-                            className="glass-input flex-1 rounded-2xl px-4 py-2 text-sm"
+                            className="glass-input flex-1 rounded-2xl px-4 py-2 text-sm w-full"
                             placeholder="Nhập tên biến thể (vd: Màu Đỏ, Size L...)"
                             value={newVariantName}
                             onChange={(e) => setNewVariantName(e.target.value)}
@@ -95,7 +95,7 @@ const ProductVariantsEditor: React.FC<ProductVariantsEditorProps> = ({
                         <button
                             type="button"
                             onClick={handleAddVariant}
-                            className="pill-button bg-gradient-pink text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink whitespace-nowrap"
+                            className="pill-button bg-gradient-pink text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink whitespace-nowrap w-full md:w-auto self-start"
                         >
                             + Thêm
                         </button>
@@ -114,29 +114,39 @@ const ProductVariantsEditor: React.FC<ProductVariantsEditorProps> = ({
                                     className="glass p-4 rounded-xl border border-white/30 space-y-3 animate-in slide-in-from-left-2 duration-300"
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold" style={{ color: 'var(--primary-pink)' }}>
+                                    <div className="flex items-center justify-between gap-2 md:gap-4">
+                                        <div className="flex items-center gap-2 flex-grow min-w-0">
+                                            <span className="text-sm font-bold flex-shrink-0" style={{ color: 'var(--primary-pink)' }}>
                                                 #{index + 1}
                                             </span>
                                             <input
                                                 type="text"
-                                                className="glass-input rounded-xl px-3 py-2 text-sm font-semibold flex-1"
+                                                className={`glass-input rounded-xl px-3 py-2 text-sm font-semibold flex-1 min-w-0 w-full ${variant.isHidden ? 'opacity-50 line-through' : ''}`}
                                                 value={variant.name}
                                                 onChange={(e) => handleUpdateVariant(variant.id, { name: e.target.value })}
                                                 placeholder="Tên biến thể"
                                             />
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteVariant(variant.id)}
-                                            className="text-rose-500 hover:text-rose-700 transition-colors px-2"
-                                            title="Xóa biến thể"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleUpdateVariant(variant.id, { isHidden: !variant.isHidden })}
+                                                className={`p-2 rounded-lg transition-all ${variant.isHidden ? 'bg-neutral-200 text-neutral-500' : 'bg-green-100 text-green-600'}`}
+                                                title={variant.isHidden ? 'Biến thể đang ẩn (Click để hiện)' : 'Biến thể đang hiện (Click để ẩn)'}
+                                            >
+                                                {variant.isHidden ? '🙈' : '👁️'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteVariant(variant.id)}
+                                                className="text-rose-500 hover:text-rose-700 transition-colors px-2"
+                                                title="Xóa biến thể"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div>

@@ -13,6 +13,7 @@ import ProductOrderModal from './components/ProductOrderModal';
 import ProductFormModal from './components/ProductFormModal';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import OrdersManagement from './components/OrdersManagement';
+import OrderTrackingModal from './components/OrderTrackingModal';
 import { loadAnalyticsData, trackPageView, trackProductClick, exportAnalytics, clearAllAnalytics, clearOldAnalytics } from './utils/analytics';
 
 // Auto-detect backend URL based on environment
@@ -84,6 +85,8 @@ const App: React.FC = () => {
     }));
   };
 
+  const [newFontName, setNewFontName] = useState('');
+
   // Global Settings với giá trị mặc định tiếng Việt chuẩn
   const [globalSettings, setGlobalSettings] = useState(() => {
     // Default values
@@ -99,11 +102,17 @@ const App: React.FC = () => {
       themeColor: 'pink',
 
       // Branding
-      websiteName: 'Tiệm Hoa Cao Cấp',
+      websiteName: 'Tiệm Hoa Tươi',
       logoUrl: '',
       logoSizeDesktop: 'h-12',
       logoSizeMobile: 'h-10',
       faviconUrl: '',
+      socialShareImage: '', // NEW: Social Share Image
+
+      // Footer Settings
+      footerTitle: '', // Tiêu đề footer (nếu trống sẽ dùng websiteName)
+      footerDescription: 'Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.',
+      footerCopyright: '© 2024 Tiệm Hoa Cao Cấp. All rights reserved.',
 
       // SEO Meta Tags
       seoTitle: 'Tiệm Hoa Cao Cấp - Hoa Tươi Đẹp',
@@ -116,11 +125,24 @@ const App: React.FC = () => {
 
       // Google Fonts
       fontTitle: 'Playfair Display',
+      fontCategoryTitle: 'Playfair Display',
       fontPrice: 'Roboto',
       fontBody: 'Inter',
 
+      // Custom Fonts
+      customFonts: [] as { name: string; url: string }[],
+
       // Custom CSS
-      customCSS: ''
+      customCSS: '',
+
+      // Notifications (Marquee)
+      showNotifications: false,
+      notifications: [], // Array of strings
+      notificationSpeed: 15, // seconds
+
+      // Zalo Bot Settings
+      zaloBotToken: '',
+      zaloAdminIds: '',
     };
 
     // Load from localStorage and merge with defaults
@@ -172,6 +194,7 @@ const App: React.FC = () => {
 
   // Order Modal State
   const [orderModalProduct, setOrderModalProduct] = useState<FlowerProduct | null>(null);
+  const [showOrderTracking, setShowOrderTracking] = useState(false);
 
   // Apply Theme Color Dynamically
   useEffect(() => {
@@ -247,11 +270,14 @@ const App: React.FC = () => {
 
   // Load Google Fonts Dynamically
   useEffect(() => {
-    const fonts = [globalSettings.fontTitle, globalSettings.fontPrice, globalSettings.fontBody];
-    const uniqueFonts = [...new Set(fonts)];
+    const fonts = [globalSettings.fontTitle, globalSettings.fontCategoryTitle, globalSettings.fontPrice, globalSettings.fontBody];
+    const customFontNames = (globalSettings.customFonts || []).map(f => f.name);
+
+    // Filter out custom fonts from Google Fonts request
+    const uniqueGoogleFonts = [...new Set(fonts)].filter(f => !customFontNames.includes(f));
 
     // Create Google Fonts link
-    const fontLink = uniqueFonts.map(font => font.replace(/ /g, '+')).join('&family=');
+    const fontLink = uniqueGoogleFonts.map(font => font.replace(/ /g, '+')).join('&family=');
     const linkId = 'google-fonts-link';
 
     let link = document.getElementById(linkId) as HTMLLinkElement;
@@ -262,13 +288,42 @@ const App: React.FC = () => {
       document.head.appendChild(link);
     }
 
-    link.href = `https://fonts.googleapis.com/css2?${uniqueFonts.map(f => `family=${f.replace(/ /g, '+')}`).join('&')}&display=swap`;
+    if (uniqueGoogleFonts.length > 0) {
+      link.href = `https://fonts.googleapis.com/css2?${uniqueGoogleFonts.map(f => `family=${f.replace(/ /g, '+')}`).join('&')}&display=swap`;
+    }
+
+    // Handle Custom Fonts
+    const customFontId = 'custom-font-face';
+    let customFontStyle = document.getElementById(customFontId) as HTMLStyleElement;
+
+    if (globalSettings.customFonts && globalSettings.customFonts.length > 0) {
+      if (!customFontStyle) {
+        customFontStyle = document.createElement('style');
+        customFontStyle.id = customFontId;
+        document.head.appendChild(customFontStyle);
+      }
+
+      const fontFaces = globalSettings.customFonts.map(font => `
+        @font-face {
+          font-family: '${font.name}';
+          src: url('${font.url}') format('truetype');
+          font-weight: normal;
+          font-style: normal;
+          font-display: swap;
+        }
+      `).join('\n');
+
+      customFontStyle.textContent = fontFaces;
+    } else if (customFontStyle) {
+      customFontStyle.remove();
+    }
 
     // Apply fonts via CSS variables
     document.documentElement.style.setProperty('--font-title', globalSettings.fontTitle);
+    document.documentElement.style.setProperty('--font-category-title', globalSettings.fontCategoryTitle || globalSettings.fontTitle);
     document.documentElement.style.setProperty('--font-price', globalSettings.fontPrice);
     document.documentElement.style.setProperty('--font-body', globalSettings.fontBody);
-  }, [globalSettings.fontTitle, globalSettings.fontPrice, globalSettings.fontBody]);
+  }, [globalSettings.fontTitle, globalSettings.fontCategoryTitle, globalSettings.fontPrice, globalSettings.fontBody, globalSettings.customFonts]);
 
   // Register Service Worker for PWA Caching (DISABLED to prevent notification prompts)
   // useEffect(() => {
@@ -501,6 +556,35 @@ const App: React.FC = () => {
         }
       })
       .catch(err => console.error('❌ Lỗi auto-save:', err));
+  };
+
+  // NEW: Save Global Settings and Sync
+  const saveGlobalSettings = (newSettings: any) => {
+    setGlobalSettings(newSettings);
+    localStorage.setItem('global_settings', JSON.stringify(newSettings));
+
+    // Sync to server
+    fetch(`${BACKEND_URL}/api/database`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        products,
+        categories,
+        settings: newSettings,
+        categorySettings,
+        media: mediaMetadata,
+        zaloNumber: ZALO_NUMBER
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log('☁️ Settings saved to server!');
+        }
+      })
+      .catch(err => console.error('❌ Settings sync failed:', err));
   };
 
   const saveCategories = (newCats: string[]) => {
@@ -970,7 +1054,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-pattern pb-20">
         <header className="blur-backdrop border-b border-white/20 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-2 md:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {globalSettings.logoUrl ? (
                 <img
@@ -1020,35 +1104,35 @@ const App: React.FC = () => {
               </div>
 
               <button onClick={() => window.location.hash = ''} className="text-sm font-semibold hover:text-[var(--primary-pink)] transition-all hover:scale-105" style={{ color: 'var(--text-secondary)' }}>Xem Shop</button>
-              <button onClick={handleLogout} className="pill-button bg-gradient-pink text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink">Thoát</button>
+              <button onClick={handleLogout} className="pill-button bg-gradient-pink !text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink">Thoát</button>
             </div>
           </div>
         </header>
 
         {/* Tabs Navigation */}
-        <div className="max-w-6xl mx-auto px-6 mt-6">
-          <div className="flex gap-2 glass-strong p-2 rounded-2xl border border-white/30 inline-flex">
+        <div className="max-w-6xl mx-auto px-2 md:px-6 mt-6">
+          <div className="flex flex-wrap justify-center gap-2 glass-strong p-2 rounded-2xl border border-white/30">
             <button
               onClick={() => setActiveTab('products')}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'products'
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'products'
                 ? 'bg-gradient-pink text-white shadow-lg'
                 : 'text-neutral-600 hover:bg-white/50'
                 }`}
             >
-              📦 Quản Lý Sản Phẩm
+              📦 Sản Phẩm
             </button>
             <button
               onClick={() => setActiveTab('media')}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'media'
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'media'
                 ? 'bg-gradient-pink text-white shadow-lg'
                 : 'text-neutral-600 hover:bg-white/50'
                 }`}
             >
-              📁 Thư Viện Ảnh
+              📁 Thư Viện
             </button>
             <button
               onClick={() => setActiveTab('css')}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'css'
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'css'
                 ? 'bg-gradient-pink text-white shadow-lg'
                 : 'text-neutral-600 hover:bg-white/50'
                 }`}
@@ -1057,39 +1141,39 @@ const App: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'analytics'
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'analytics'
                 ? 'bg-gradient-pink text-white shadow-lg'
                 : 'text-neutral-600 hover:bg-white/50'
                 }`}
             >
-              📊 Bảng Tổng Quan
+              📊 Tổng Quan
             </button>
             <button
               onClick={() => setActiveTab('orders')}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'orders'
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'orders'
                 ? 'bg-gradient-pink text-white shadow-lg'
                 : 'text-neutral-600 hover:bg-white/50'
                 }`}
             >
-              📦 Quản Lý Đơn Hàng
+              📦 Đơn Hàng
             </button>
             <button
               onClick={() => setActiveTab('settings')}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'settings'
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'settings'
                 ? 'bg-gradient-pink text-white shadow-lg'
                 : 'text-neutral-600 hover:bg-white/50'
                 }`}
             >
-              ⚙️ Cài Đặt Chung
+              ⚙️ Cài Đặt
             </button>
           </div>
         </div>
 
-        <main className="max-w-6xl mx-auto p-6 space-y-8 mt-6">
+        <main className="max-w-6xl mx-auto p-2 md:p-6 space-y-8 mt-6">
           {activeTab === 'products' ? (
             <>
               {/* QUẢN LÝ DANH MỤC */}
-              <section className="glass-strong p-8 rounded-3xl border border-white/30 shadow-xl">
+              <section className="glass-strong p-2 md:p-8 rounded-3xl border border-white/30 shadow-xl">
                 <div
                   className="flex justify-between items-center mb-6 cursor-pointer group"
                   onClick={() => toggleSection('categories')}
@@ -1113,7 +1197,7 @@ const App: React.FC = () => {
 
                 {expandedSections.categories && (
                   <div className="space-y-6 animate-in fade-in duration-300">
-                    <div className="flex gap-3 mb-6">
+                    <div className="flex flex-col md:flex-row gap-3 mb-6">
                       <input
                         type="text"
                         placeholder="Tên danh mục mới (Vd: Hoa tươi 20/10)..."
@@ -1121,14 +1205,19 @@ const App: React.FC = () => {
                         value={newCategoryName}
                         onChange={e => setNewCategoryName(e.target.value)}
                       />
-                      <button onClick={addCategory} className="pill-button bg-gradient-pink text-white px-8 py-3 text-sm font-bold shadow-lg hover-glow-pink">Thêm mục</button>
+                      <button
+                        onClick={addCategory}
+                        className="pill-button bg-gradient-pink !text-white px-8 py-3 text-sm font-bold shadow-lg hover-glow-pink whitespace-nowrap self-start md:self-auto w-full md:w-auto"
+                      >
+                        Thêm mục
+                      </button>
                     </div>
 
                     {/* Preview Button */}
-                    <div className="mb-4 p-4 glass-gradient rounded-xl border border-white/40">
-                      <div className="flex items-center justify-between">
+                    <div className="mb-4 p-4 glass rounded-xl border border-white/40">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <svg className="w-5 h-5" style={{ color: 'var(--secondary-purple)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          <svg className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--secondary-purple)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                           <div>
                             <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Xem trước thứ tự danh mục</p>
                             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Thứ tự này sẽ hiển thị trên trang chủ</p>
@@ -1137,7 +1226,7 @@ const App: React.FC = () => {
                         <a
                           href="#"
                           target="_blank"
-                          className="pill-button bg-gradient-purple text-white px-4 py-2 text-xs font-bold shadow-md hover-glow-pink"
+                          className="pill-button bg-gradient-purple !text-white px-4 py-3 md:py-2 text-xs font-bold shadow-md hover-glow-pink text-center whitespace-nowrap w-full md:w-auto"
                         >
                           Mở trang chủ
                         </a>
@@ -1155,53 +1244,55 @@ const App: React.FC = () => {
                             onDragEnd={handleDragEnd}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, cat)}
-                            className={`glass p-4 rounded-xl flex items-center gap-3 text-sm font-medium group hover:glass-strong hover:scale-[1.02] transition-all cursor-move shadow-md border-white/40 ${draggedCategory === cat ? 'opacity-50 scale-95' : ''
+                            className={`glass p-3 md:p-4 rounded-xl flex items-center gap-2 md:gap-3 text-sm font-medium group hover:glass-strong hover:scale-[1.02] transition-all cursor-move shadow-md border-white/40 ${draggedCategory === cat ? 'opacity-50 scale-95' : ''
                               }`}
                           >
-                            {/* Drag Handle Icon */}
-                            <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-secondary)' }} fill="currentColor" viewBox="0 0 24 24">
+                            {/* Drag Handle Icon - Hidden on small mobile */}
+                            <svg className="w-4 h-4 flex-shrink-0 hidden sm:block" style={{ color: 'var(--text-secondary)' }} fill="currentColor" viewBox="0 0 24 24">
                               <path d="M8 5a2 2 0 100 4 2 2 0 000-4zM8 11a2 2 0 100 4 2 2 0 000-4zM8 17a2 2 0 100 4 2 2 0 000-4zM16 5a2 2 0 100 4 2 2 0 000-4zM16 11a2 2 0 100 4 2 2 0 000-4zM16 17a2 2 0 100 4 2 2 0 000-4z" />
                             </svg>
 
                             {/* Position Number */}
-                            <span className="w-8 h-8 bg-gradient-pink text-white rounded-xl flex items-center justify-center text-xs font-bold shadow-lg flex-shrink-0 glow-pink">
+                            <span className="w-6 h-6 md:w-8 md:h-8 bg-gradient-pink text-white rounded-lg md:rounded-xl flex items-center justify-center text-[10px] md:text-xs font-bold shadow-lg flex-shrink-0 glow-pink">
                               {index + 1}
                             </span>
 
                             {/* Category Name */}
-                            <span className="flex-grow font-semibold" style={{ color: 'var(--text-primary)' }}>{cat}</span>
+                            <span className="flex-grow font-semibold truncate text-sm md:text-base min-w-0" style={{ color: 'var(--text-primary)' }} title={cat}>
+                              {cat}
+                            </span>
 
                             {/* Product Count Badge */}
-                            <span className={`badge-glass px-3 py-1 text-xs font-bold flex-shrink-0 ${productCount > 0
+                            <span className={`badge-glass px-2 md:px-3 py-1 text-[10px] md:text-xs font-bold flex-shrink-0 ${productCount > 0
                               ? 'bg-gradient-soft text-green-700'
                               : 'bg-white/20'
                               }`} style={{ color: productCount > 0 ? 'var(--primary-pink)' : 'var(--text-secondary)' }}>
-                              {productCount} SP
+                              {productCount} <span className="hidden sm:inline">SP</span>
                             </span>
 
                             {/* Reorder Buttons */}
-                            <div className="flex gap-1">
+                            <div className="flex gap-0.5 md:gap-1 flex-shrink-0">
                               <button
                                 onClick={() => moveCategoryUp(index)}
                                 disabled={index === 0}
-                                className={`p-2 rounded-lg transition-all ${index === 0
+                                className={`p-1.5 md:p-2 rounded-lg transition-all ${index === 0
                                   ? 'text-neutral-200 cursor-not-allowed'
                                   : 'text-neutral-400 hover:text-blue-600 hover:bg-blue-50'
                                   }`}
                                 title="Di chuyển lên"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" /></svg>
+                                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" /></svg>
                               </button>
                               <button
                                 onClick={() => moveCategoryDown(index)}
                                 disabled={index === categories.length - 1}
-                                className={`p-2 rounded-lg transition-all ${index === categories.length - 1
+                                className={`p-1.5 md:p-2 rounded-lg transition-all ${index === categories.length - 1
                                   ? 'text-neutral-200 cursor-not-allowed'
                                   : 'text-neutral-400 hover:text-blue-600 hover:bg-blue-50'
                                   }`}
                                 title="Di chuyển xuống"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
+                                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
                               </button>
                             </div>
 
@@ -1212,7 +1303,7 @@ const App: React.FC = () => {
                                 setEditingCategory(cat);
                                 setShowCategorySettingsModal(true);
                               }}
-                              className="p-2 text-neutral-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                              className="p-1.5 md:p-2 text-neutral-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all flex-shrink-0"
                               title="Cài đặt danh mục"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1224,7 +1315,7 @@ const App: React.FC = () => {
                             {/* Delete Button */}
                             <button
                               onClick={() => deleteCategory(cat)}
-                              className="p-2 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                              className="p-1.5 md:p-2 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all flex-shrink-0"
                               title="Xóa danh mục"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2" strokeLinecap="round" /></svg>
@@ -1280,7 +1371,7 @@ const App: React.FC = () => {
                       if (categoryProducts.length === 0) return null;
 
                       return (
-                        <div key={category} className="glass-strong p-6 rounded-2xl border border-white/30 shadow-lg">
+                        <div key={category} className="glass-strong p-2 md:p-6 rounded-2xl border border-white/30 shadow-lg">
                           <div className="flex items-center justify-between mb-4">
                             <h4 className="font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                               <span className="w-2 h-2 bg-gradient-pink rounded-full glow-pink"></span>
@@ -1289,7 +1380,7 @@ const App: React.FC = () => {
                             <span className="badge-glass bg-gradient-soft text-xs font-bold" style={{ color: 'var(--primary-pink)' }}>{categoryProducts.length} sản phẩm</span>
                           </div>
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                             {categoryProducts.map(p => (
                               <div
                                 key={p.id}
@@ -1298,9 +1389,13 @@ const App: React.FC = () => {
                                 onDragEnd={handleProductDragEnd}
                                 onDragOver={handleDragOver}
                                 onDrop={(e) => handleProductDrop(e, p.id, category)}
-                                className={`relative group cursor-move ${draggedProduct === p.id ? 'opacity-50 scale-95' : ''
-                                  }`}
+                                className={`relative group cursor-move ${draggedProduct === p.id ? 'opacity-50 scale-95' : ''} ${p.isHidden ? 'opacity-60 grayscale' : ''}`}
                               >
+                                {p.isHidden && (
+                                  <div className="absolute top-2 right-2 z-10 bg-neutral-800/80 text-white px-2 py-1 rounded text-[10px] font-bold">
+                                    🙈 Đã ẩn
+                                  </div>
+                                )}
                                 <div className="absolute top-2 left-2 z-10 bg-neutral-900/70 text-white px-2 py-1 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
                                   ⋮⋮ Kéo
                                 </div>
@@ -1328,7 +1423,7 @@ const App: React.FC = () => {
                       if (uncategorizedProducts.length === 0) return null;
 
                       return (
-                        <div className="glass-strong p-6 rounded-2xl border-2 border-yellow-300/50 shadow-lg bg-yellow-50/20">
+                        <div className="glass-strong p-2 md:p-6 rounded-2xl border-2 border-yellow-300/50 shadow-lg bg-yellow-50/20">
                           <div className="flex items-center justify-between mb-4">
                             <div>
                               <h4 className="font-bold flex items-center gap-2 text-yellow-700">
@@ -1344,9 +1439,14 @@ const App: React.FC = () => {
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                             {uncategorizedProducts.map(p => (
-                              <div key={p.id} className="relative group">
+                              <div key={p.id} className={`relative group ${p.isHidden ? 'opacity-60 grayscale' : ''}`}>
+                                {p.isHidden && (
+                                  <div className="absolute top-8 right-2 z-20 bg-neutral-800/80 text-white px-2 py-1 rounded text-[10px] font-bold">
+                                    🙈 Đã ẩn
+                                  </div>
+                                )}
                                 <div className="absolute -top-2 -right-2 z-20 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
                                   ⚠️
                                 </div>
@@ -1382,14 +1482,14 @@ const App: React.FC = () => {
               </section>
             </>
           ) : activeTab === 'media' ? (
-            <section className="glass-strong p-8 rounded-3xl border border-white/30 shadow-xl">
+            <section className="glass-strong p-2 md:p-8 rounded-3xl border border-white/30 shadow-xl">
               <MediaLibrary
                 onMetadataChange={setMediaMetadata}
                 onImageDelete={handleImageDeletedFromLibrary}
               />
             </section>
           ) : activeTab === 'css' ? (
-            <section className="glass-strong p-8 rounded-3xl border border-white/30 shadow-xl">
+            <section className="glass-strong p-2 md:p-8 rounded-3xl border border-white/30 shadow-xl">
               <div className="mb-6">
                 <h3 className="text-lg font-bold serif-display gradient-text flex items-center gap-2">
                   <span className="w-1.5 h-6 bg-gradient-pink rounded-full inline-block"></span>
@@ -1401,7 +1501,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="glass p-6 rounded-2xl">
+                <div className="glass p-2 md:p-6 rounded-2xl">
                   <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                     CSS Code
                   </label>
@@ -1458,7 +1558,7 @@ const App: React.FC = () => {
           ) : activeTab === 'analytics' ? (
             <>
               {/* Analytics Dashboard Header */}
-              <section className="glass-strong p-8 rounded-3xl border border-white/30 shadow-xl">
+              <section className="glass-strong p-2 md:p-8 rounded-3xl border border-white/30 shadow-xl">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                   <div>
                     <h3 className="text-lg font-bold serif-display gradient-text flex items-center gap-2">
@@ -1471,35 +1571,36 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Analytics Actions */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap p-1.5 glass-inset gap-2">
                     <button
                       onClick={() => {
                         exportAnalytics();
                         alert('✅ Đã tải xuống file analytics!');
                       }}
-                      className="pill-button glass-pink px-4 py-2 text-sm font-bold hover:glass-strong transition-all"
+                      className="px-5 py-2.5 rounded-2xl text-xs md:text-sm font-bold transition-all bg-white/40 hover:bg-white/60 text-pink-600 shadow-sm flex items-center gap-2"
                       title="Tải xuống dữ liệu analytics dạng JSON"
                     >
-                      📥 Tải dữ liệu
+                      <span>📥</span> TẢI DỮ LIỆU
                     </button>
                     <button
                       onClick={() => {
-                        clearOldAnalytics(30);
-                        alert('✅ Đã xóa dữ liệu cũ hơn 30 ngày!');
-                        window.location.reload();
+                        if (confirm('Bạn có chắc muốn xóa dữ liệu cũ hơn 30 ngày?')) {
+                          clearOldAnalytics(30);
+                          alert('✅ Đã xóa dữ liệu cũ hơn 30 ngày!');
+                          window.location.reload();
+                        }
                       }}
-                      className="pill-button glass px-4 py-2 text-sm font-bold hover:glass-strong transition-all"
+                      className="px-5 py-2.5 rounded-2xl text-xs md:text-sm font-bold transition-all bg-white/40 hover:bg-white/60 text-gray-600 shadow-sm flex items-center gap-2"
                       title="Xóa dữ liệu cũ hơn 30 ngày"
                     >
-                      🗑️ Xóa dữ liệu cũ
+                      <span>🗑️</span> XÓA DỮ LIỆU CŨ
                     </button>
                     <button
                       onClick={() => clearAllAnalytics()}
-                      className="pill-button glass-pink px-4 py-2 text-sm font-bold hover:bg-rose-100 transition-all"
-                      style={{ color: 'var(--primary-pink)' }}
+                      className="px-5 py-2.5 rounded-2xl text-xs md:text-sm font-bold transition-all bg-rose-50/50 hover:bg-rose-100 text-rose-600 shadow-sm flex items-center gap-2"
                       title="Xóa toàn bộ dữ liệu thống kê"
                     >
-                      ⚠️ Xóa tất cả
+                      <span>⚠️</span> XÓA TẤT CẢ
                     </button>
                   </div>
                 </div>
@@ -1597,7 +1698,7 @@ const App: React.FC = () => {
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
                     />
-                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-pink"></div>
+                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-pink peer-checked:shadow-[0_0_15px_rgba(255,107,157,0.8)]"></div>
                   </label>
                 </div>
               </div>
@@ -1644,6 +1745,55 @@ const App: React.FC = () => {
                 />
               </div>
 
+              {/* Zalo Bot Configuration */}
+              <div className="glass p-6 rounded-2xl">
+                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  🤖 Cấu hình Zalo Bot (Nhận thông báo đơn hàng)
+                </label>
+                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Nhập Token và ID của Zalo OA/Bot để nhận thông báo khi có đơn hàng mới hoặc click.
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold mb-1 ml-1" style={{ color: 'var(--text-secondary)' }}>
+                      Zalo Bot Token
+                    </label>
+                    <input
+                      type="password"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-medium"
+                      placeholder="Nhập token của bot..."
+                      value={globalSettings.zaloBotToken || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, zaloBotToken: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold mb-1 ml-1" style={{ color: 'var(--text-secondary)' }}>
+                      Zalo Admin IDs (User ID người nhận)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-medium"
+                      placeholder="Ví dụ: 84888099999, 84999888777 (phân cách bằng dấu phẩy)"
+                      value={globalSettings.zaloAdminIds || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, zaloAdminIds: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                    <p className="text-[10px] mt-1 ml-1 opacity-60">
+                      * Nhập ID của người quản lý muốn nhận thông báo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Theme Color */}
               <div className="glass p-6 rounded-2xl">
                 <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
@@ -1681,6 +1831,114 @@ const App: React.FC = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Notification Marquee Settings */}
+              <div className="glass p-6 rounded-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                      📢 Thông báo chạy (Marquee)
+                    </label>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      Hiển thị dòng chữ chạy trên thanh header (chỉ trên điện thoại)
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={globalSettings.showNotifications}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, showNotifications: e.target.checked };
+                        saveGlobalSettings(newSettings);
+                      }}
+                    />
+                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-pink"></div>
+                  </label>
+                </div>
+
+                {globalSettings.showNotifications && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                    {/* Add New Notification */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Nhập nội dung thông báo..."
+                        className="glass-input flex-grow rounded-xl px-4 py-2 text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = e.currentTarget.value.trim();
+                            if (val) {
+                              const current = globalSettings.notifications || [];
+                              const newSettings = { ...globalSettings, notifications: [...current, val] };
+                              saveGlobalSettings(newSettings);
+                              e.currentTarget.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={(e) => {
+                          const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                          const val = input.value.trim();
+                          if (val) {
+                            const current = globalSettings.notifications || [];
+                            const newSettings = { ...globalSettings, notifications: [...current, val] };
+                            saveGlobalSettings(newSettings);
+                            input.value = '';
+                          }
+                        }}
+                        className="bg-gradient-pink text-white px-4 py-2 rounded-xl text-sm font-bold hover:shadow-lg transition-all"
+                      >
+                        Thêm
+                      </button>
+                    </div>
+
+                    {/* List Notifications */}
+                    <div className="space-y-2">
+                      {(globalSettings.notifications || []).map((note: string, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-white/50 rounded-xl border border-white/40">
+                          <span className="text-sm font-medium text-gray-700 truncate mr-2">{note}</span>
+                          <button
+                            onClick={() => {
+                              const current = globalSettings.notifications || [];
+                              const newNotes = current.filter((_, i) => i !== idx);
+                              const newSettings = { ...globalSettings, notifications: newNotes };
+                              saveGlobalSettings(newSettings);
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </div>
+                      ))}
+                      {(globalSettings.notifications || []).length === 0 && (
+                        <p className="text-xs text-center text-gray-400 italic py-2">Chưa có thông báo nào</p>
+                      )}
+                    </div>
+
+                    {/* Speed Control */}
+                    <div>
+                      <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                        Tốc độ chạy (giây) - Càng nhỏ càng nhanh
+                      </label>
+                      <input
+                        type="range"
+                        min="5"
+                        max="60"
+                        step="1"
+                        value={globalSettings.notificationSpeed || 15}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, notificationSpeed: parseInt(e.target.value) };
+                          saveGlobalSettings(newSettings);
+                        }}
+                        className="w-full accent-pink-500"
+                      />
+                      <div className="text-xs text-right font-bold text-pink-500">{globalSettings.notificationSpeed || 15}s</div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Branding: Logo & Website Name */}
@@ -1867,64 +2125,249 @@ const App: React.FC = () => {
               {/* Favicon Upload */}
               <div className="glass p-6 rounded-2xl">
                 <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-                  🌐 Favicon (icon tab trình duyệt)
+                  🌐 Favicon & Social Image
+                </label>
+
+                {/* Favicon */}
+                <div className="mb-8">
+                  <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                    Favicon (icon tab trình duyệt)
+                  </label>
+                  <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                    Upload ảnh nhỏ (16x16 hoặc 32x32px) để làm icon cho tab trình duyệt
+                  </p>
+
+                  {globalSettings.faviconUrl && (
+                    <div className="mb-4 flex items-center gap-4">
+                      <img
+                        src={globalSettings.faviconUrl}
+                        alt="Favicon preview"
+                        className="w-8 h-8 border-2 border-pink-200 rounded"
+                      />
+                      <button
+                        onClick={() => {
+                          const newSettings = { ...globalSettings, faviconUrl: '' };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                        className="text-xs text-rose-500 hover:text-rose-600 font-bold"
+                      >
+                        Xóa favicon
+                      </button>
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      const formData = new FormData();
+                      formData.append('image', file);
+
+                      try {
+                        const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                          method: 'POST',
+                          body: formData
+                        });
+                        const result = await response.json();
+
+                        if (result.success) {
+                          const newSettings = { ...globalSettings, faviconUrl: result.url };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                          alert('✅ Upload favicon thành công!');
+                        }
+                      } catch (error) {
+                        console.error('Upload error:', error);
+                        alert('❌ Lỗi khi upload favicon!');
+                      }
+
+                      e.target.value = '';
+                    }}
+                    className="glass-input w-full rounded-2xl px-5 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-pink file:text-white hover:file:bg-opacity-90"
+                  />
+                </div>
+
+                {/* Social Share Image */}
+                <div>
+                  <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                    Ảnh chia sẻ Social (Facebook/Zalo)
+                  </label>
+                  <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                    Ảnh sẽ hiện khi chia sẻ link website lên Facebook, Zalo (Khuyên dùng: 1200x630px)
+                  </p>
+
+                  {globalSettings.socialShareImage && (
+                    <div className="mb-4">
+                      <img
+                        src={globalSettings.socialShareImage}
+                        alt="Social preview"
+                        className="w-full max-w-[200px] h-auto border-2 border-pink-200 rounded-lg shadow-sm mb-2"
+                      />
+                      <button
+                        onClick={() => {
+                          const newSettings = { ...globalSettings, socialShareImage: '' };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                        className="text-xs text-rose-500 hover:text-rose-600 font-bold"
+                      >
+                        Xóa ảnh
+                      </button>
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      const formData = new FormData();
+                      formData.append('image', file);
+
+                      try {
+                        const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                          method: 'POST',
+                          body: formData
+                        });
+                        const result = await response.json();
+
+                        if (result.success) {
+                          const newSettings = { ...globalSettings, socialShareImage: result.url };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                          alert('✅ Upload ảnh Social thành công!');
+                        }
+                      } catch (error) {
+                        console.error('Upload error:', error);
+                        alert('❌ Lỗi khi upload ảnh!');
+                      }
+
+                      e.target.value = '';
+                    }}
+                    className="glass-input w-full rounded-2xl px-5 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-pink file:text-white hover:file:bg-opacity-90"
+                  />
+                </div>
+              </div>
+
+              {/* Custom Font Upload */}
+              <div className="glass p-6 rounded-2xl">
+                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  🔤 Quản Lý Font Tùy Chỉnh (TTF, OTF, WOFF)
                 </label>
                 <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  Upload ảnh nhỏ (16x16 hoặc 32x32px) để làm icon cho tab trình duyệt
+                  Upload nhiều font để sử dụng cho website
                 </p>
 
-                {globalSettings.faviconUrl && (
-                  <div className="mb-4 flex items-center gap-4">
-                    <img
-                      src={globalSettings.faviconUrl}
-                      alt="Favicon preview"
-                      className="w-8 h-8 border-2 border-pink-200 rounded"
-                    />
-                    <button
-                      onClick={() => {
-                        const newSettings = { ...globalSettings, faviconUrl: '' };
-                        setGlobalSettings(newSettings);
-                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
-                      }}
-                      className="text-xs text-rose-500 hover:text-rose-600 font-bold"
-                    >
-                      Xóa favicon
-                    </button>
+                {/* List of uploaded fonts */}
+                {globalSettings.customFonts && globalSettings.customFonts.length > 0 && (
+                  <div className="mb-6 space-y-3">
+                    <label className="text-xs font-bold block" style={{ color: 'var(--text-secondary)' }}>
+                      Danh sách font đã upload:
+                    </label>
+                    {globalSettings.customFonts.map((font, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-white/50 rounded-xl border border-white/60">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">Aa</span>
+                          <div>
+                            <p className="text-sm font-bold text-gray-800">{font.name}</p>
+                            <p className="text-[10px] text-gray-500 truncate max-w-[200px]">{font.url}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Bạn có chắc muốn xóa font "${font.name}"?`)) {
+                              const newFonts = globalSettings.customFonts.filter((_, i) => i !== idx);
+                              const newSettings = { ...globalSettings, customFonts: newFonts };
+                              setGlobalSettings(newSettings);
+                              localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                            }
+                          }}
+                          className="text-xs text-rose-500 hover:text-rose-700 font-bold px-3 py-1.5 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
+                {/* Upload new font form */}
+                <div className="p-4 bg-white/30 rounded-xl border border-white/40">
+                  <label className="text-xs font-bold mb-3 block text-gray-700">
+                    ➕ Thêm font mới
+                  </label>
 
-                    const formData = new FormData();
-                    formData.append('image', file);
+                  <div className="space-y-4">
+                    <div>
+                      <input
+                        type="text"
+                        className="glass-input w-full rounded-xl px-4 py-2 text-sm"
+                        placeholder="Tên font (Vd: My Font)"
+                        value={newFontName}
+                        onChange={(e) => setNewFontName(e.target.value)}
+                      />
+                    </div>
 
-                    try {
-                      const response = await fetch(`${BACKEND_URL}/api/upload`, {
-                        method: 'POST',
-                        body: formData
-                      });
-                      const result = await response.json();
+                    <div>
+                      <input
+                        type="file"
+                        accept=".ttf,.otf,.woff,.woff2"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
 
-                      if (result.success) {
-                        const newSettings = { ...globalSettings, faviconUrl: result.url };
-                        setGlobalSettings(newSettings);
-                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
-                        alert('✅ Upload favicon thành công!');
-                      }
-                    } catch (error) {
-                      console.error('Upload error:', error);
-                      alert('❌ Lỗi khi upload favicon!');
-                    }
+                          if (!newFontName.trim()) {
+                            alert('⚠️ Vui lòng nhập tên font trước khi upload!');
+                            e.target.value = '';
+                            return;
+                          }
 
-                    e.target.value = '';
-                  }}
-                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-pink file:text-white hover:file:bg-opacity-90"
-                />
+                          // Check if name exists
+                          if (globalSettings.customFonts?.some(f => f.name.toLowerCase() === newFontName.trim().toLowerCase())) {
+                            alert('⚠️ Tên font này đã tồn tại!');
+                            e.target.value = '';
+                            return;
+                          }
+
+                          const formData = new FormData();
+                          formData.append('image', file); // API expects 'image' field name
+
+                          try {
+                            const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                              method: 'POST',
+                              body: formData
+                            });
+                            const result = await response.json();
+
+                            if (result.success) {
+                              const newFont = { name: newFontName.trim(), url: result.url };
+                              const newFonts = [...(globalSettings.customFonts || []), newFont];
+                              const newSettings = { ...globalSettings, customFonts: newFonts };
+
+                              setGlobalSettings(newSettings);
+                              localStorage.setItem('global_settings', JSON.stringify(newSettings));
+
+                              setNewFontName(''); // Reset name
+                              alert('✅ Thêm font thành công!');
+                            }
+                          } catch (error) {
+                            console.error('Upload error:', error);
+                            alert('❌ Lỗi khi upload font!');
+                          }
+
+                          e.target.value = ''; // Reset file input
+                        }}
+                        className="glass-input w-full rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gradient-pink file:text-white hover:file:bg-opacity-90"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Google Fonts Selection */}
@@ -1951,6 +2394,9 @@ const App: React.FC = () => {
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
                     >
+                      {globalSettings.customFonts?.map((font, idx) => (
+                        <option key={idx} value={font.name}>{font.name} (Custom)</option>
+                      ))}
                       <option value="Playfair Display">Playfair Display (Elegant)</option>
                       <option value="Montserrat">Montserrat (Modern)</option>
                       <option value="Poppins">Poppins (Clean)</option>
@@ -1958,9 +2404,47 @@ const App: React.FC = () => {
                       <option value="Lora">Lora (Serif)</option>
                       <option value="Raleway">Raleway (Thin)</option>
                       <option value="Oswald">Oswald (Bold)</option>
+                      <option value="Dancing Script">Dancing Script (Cursive)</option>
+                      <option value="Pacifico">Pacifico (Handwritten)</option>
+                      <option value="Be Vietnam Pro">Be Vietnam Pro (Vietnamese)</option>
+                      <option value="Comfortaa">Comfortaa (Rounded)</option>
                     </select>
                     <p className="text-xs mt-1 opacity-60" style={{ fontFamily: globalSettings.fontTitle }}>
                       Preview: {globalSettings.fontTitle}
+                    </p>
+                  </div>
+
+                  {/* Font for Category Title */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Font Tiêu Đề Danh Mục
+                    </label>
+                    <select
+                      className="glass-input w-full rounded-2xl px-4 py-3 text-sm font-medium"
+                      value={globalSettings.fontCategoryTitle || globalSettings.fontTitle}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, fontCategoryTitle: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    >
+                      {globalSettings.customFonts?.map((font, idx) => (
+                        <option key={idx} value={font.name}>{font.name} (Custom)</option>
+                      ))}
+                      <option value="Playfair Display">Playfair Display (Elegant)</option>
+                      <option value="Montserrat">Montserrat (Modern)</option>
+                      <option value="Poppins">Poppins (Clean)</option>
+                      <option value="Merriweather">Merriweather (Classic)</option>
+                      <option value="Lora">Lora (Serif)</option>
+                      <option value="Raleway">Raleway (Thin)</option>
+                      <option value="Oswald">Oswald (Bold)</option>
+                      <option value="Dancing Script">Dancing Script (Cursive)</option>
+                      <option value="Pacifico">Pacifico (Handwritten)</option>
+                      <option value="Be Vietnam Pro">Be Vietnam Pro (Vietnamese)</option>
+                      <option value="Comfortaa">Comfortaa (Rounded)</option>
+                    </select>
+                    <p className="text-xs mt-1 opacity-60" style={{ fontFamily: globalSettings.fontCategoryTitle || globalSettings.fontTitle }}>
+                      Preview: {globalSettings.fontCategoryTitle || globalSettings.fontTitle}
                     </p>
                   </div>
 
@@ -1978,12 +2462,18 @@ const App: React.FC = () => {
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
                     >
+                      {globalSettings.customFonts?.map((font, idx) => (
+                        <option key={idx} value={font.name}>{font.name} (Custom)</option>
+                      ))}
                       <option value="Roboto">Roboto (Standard)</option>
                       <option value="Open Sans">Open Sans (Clean)</option>
                       <option value="Lato">Lato (Friendly)</option>
                       <option value="Source Sans Pro">Source Sans Pro (Professional)</option>
                       <option value="Nunito">Nunito (Rounded)</option>
                       <option value="Ubuntu">Ubuntu (Modern)</option>
+                      <option value="Be Vietnam Pro">Be Vietnam Pro (Vietnamese)</option>
+                      <option value="Quicksand">Quicksand (Rounded)</option>
+                      <option value="Comfortaa">Comfortaa (Soft)</option>
                     </select>
                     <p className="text-xs mt-1 opacity-60" style={{ fontFamily: globalSettings.fontPrice }}>
                       Preview: {globalSettings.fontPrice}
@@ -2004,16 +2494,86 @@ const App: React.FC = () => {
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
                     >
+                      {globalSettings.customFonts?.map((font, idx) => (
+                        <option key={idx} value={font.name}>{font.name} (Custom)</option>
+                      ))}
                       <option value="Inter">Inter (Modern)</option>
                       <option value="Roboto">Roboto (Standard)</option>
                       <option value="Open Sans">Open Sans (Readable)</option>
                       <option value="Noto Sans">Noto Sans (Universal)</option>
                       <option value="Work Sans">Work Sans (Geometric)</option>
                       <option value="DM Sans">DM Sans (Clean)</option>
+                      <option value="Be Vietnam Pro">Be Vietnam Pro (Vietnamese)</option>
+                      <option value="Nunito">Nunito (Friendly)</option>
+                      <option value="Quicksand">Quicksand (Rounded)</option>
                     </select>
                     <p className="text-xs mt-1 opacity-60" style={{ fontFamily: globalSettings.fontBody }}>
                       Preview: {globalSettings.fontBody}
                     </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Settings */}
+              <div className="glass p-6 rounded-2xl">
+                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  📝 Thông tin Footer (Chân trang)
+                </label>
+                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Tùy chỉnh nội dung hiển thị ở chân trang web
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Tiêu đề Footer (Tên Shop ở chân trang)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                      placeholder="Mặc định: Giống tên Website"
+                      value={globalSettings.footerTitle || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, footerTitle: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">* Để trống nếu muốn dùng tên Website</p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Mô tả ngắn (Giới thiệu)
+                    </label>
+                    <textarea
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                      rows={2}
+                      placeholder="Nhập mô tả ngắn về tiệm hoa..."
+                      value={globalSettings.footerDescription || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, footerDescription: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      Bản quyền (Copyright)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                      placeholder="© 2024 Tiệm Hoa Cao Cấp..."
+                      value={globalSettings.footerCopyright || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, footerCopyright: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -2179,9 +2739,9 @@ const App: React.FC = () => {
             categoryName={editingCategory}
             settings={categorySettings[editingCategory] || {
               name: editingCategory,
-              itemsPerPage: 8,
-              paginationType: 'none',
-              imageTransition: 'fade',
+              itemsPerPage: 12,
+              paginationType: 'loadmore',
+              imageTransition: 'none',
               imageInterval: 3000
             }}
             onUpdate={(updates) => updateCategorySettings(editingCategory, updates)}
@@ -2212,8 +2772,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-pattern">
       <header className="blur-backdrop fixed top-0 left-0 right-0 z-50 border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
+        <div className="max-w-7xl mx-auto px-4 lg:py-2 min-h-[64px] flex items-center justify-between">
+          <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => window.location.href = '/'}>
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <button
@@ -2248,18 +2808,96 @@ const App: React.FC = () => {
             )}
           </div>
 
-          <nav className="hidden lg:flex gap-6 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {categories.map((cat) => (
-              <a
-                key={cat}
-                href={`#${cat}`}
-                onClick={(e) => { e.preventDefault(); scrollToCategory(cat); }}
-                className="hover:text-[var(--primary-pink)] transition-all hover:scale-105 whitespace-nowrap"
+          {/* Marquee Notification - Mobile Only - Clean Style */}
+          {globalSettings.showNotifications && globalSettings.notifications && globalSettings.notifications.length > 0 && (
+            <div className="lg:hidden flex-1 overflow-hidden relative h-9 flex items-center ml-2">
+              {/* Bell Icon */}
+              <div className="flex-shrink-0 mr-1 text-pink-500 animate-bell">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              </div>
+
+              <div className="ticker-wrap">
+                <div
+                  className="animate-ticker"
+                  style={{ animationDuration: `${globalSettings.notificationSpeed || 20}s` }}
+                >
+                  {/* Render items multiple times for seamless loop */}
+                  {globalSettings.notifications.map((note, i) => (
+                    <span key={`1-${i}`} className="ticker-item leading-9">
+                      {note}
+                    </span>
+                  ))}
+                  {globalSettings.notifications.map((note, i) => (
+                    <span key={`2-${i}`} className="ticker-item leading-9">
+                      {note}
+                    </span>
+                  ))}
+                  {globalSettings.notifications.map((note, i) => (
+                    <span key={`3-${i}`} className="ticker-item leading-9">
+                      {note}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Desktop Navigation & Marquee Wrapper */}
+          <div className="hidden lg:flex flex-col items-end gap-1">
+            <nav className="flex gap-6 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {categories.map((cat) => (
+                <a
+                  key={cat}
+                  href={`#${cat}`}
+                  onClick={(e) => { e.preventDefault(); scrollToCategory(cat); }}
+                  className="hover:text-[var(--primary-pink)] transition-all hover:scale-105 whitespace-nowrap"
+                >
+                  {categorySettings[cat]?.displayName || cat}
+                </a>
+              ))}
+              <button
+                onClick={() => setShowOrderTracking(true)}
+                className="hover:text-[var(--primary-pink)] transition-all hover:scale-105 whitespace-nowrap flex items-center gap-1 ml-4 pl-6 border-l border-gray-200"
               >
-                {categorySettings[cat]?.displayName || cat}
-              </a>
-            ))}
-          </nav>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                Tra cứu đơn hàng
+              </button>
+            </nav>
+
+            {/* Desktop Marquee Notification */}
+            {globalSettings.showNotifications && globalSettings.notifications && globalSettings.notifications.length > 0 && (
+              <div className="w-[400px] xl:w-[500px] overflow-hidden relative h-6 flex items-center mt-1">
+                {/* Bell Icon */}
+                <div className="flex-shrink-0 mr-2 text-pink-500 animate-bell">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                </div>
+
+                <div className="ticker-wrap">
+                  <div
+                    className="animate-ticker"
+                    style={{ animationDuration: `${globalSettings.notificationSpeed || 20}s` }}
+                  >
+                    {/* Render items multiple times for seamless loop */}
+                    {globalSettings.notifications.map((note, i) => (
+                      <span key={`d1-${i}`} className="ticker-item text-xs leading-6">
+                        {note}
+                      </span>
+                    ))}
+                    {globalSettings.notifications.map((note, i) => (
+                      <span key={`d2-${i}`} className="ticker-item text-xs leading-6">
+                        {note}
+                      </span>
+                    ))}
+                    {globalSettings.notifications.map((note, i) => (
+                      <span key={`d3-${i}`} className="ticker-item text-xs leading-6">
+                        {note}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -2270,27 +2908,49 @@ const App: React.FC = () => {
           <div className="absolute inset-0 modal-backdrop-glass transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
 
           {/* Drawer */}
-          <div className="absolute top-0 left-0 bottom-0 w-[280px] glass-strong shadow-2xl p-6 flex flex-col animate-in slide-in-from-left duration-300">
-            <div className="flex justify-center items-center mb-8 pb-4 border-b border-white/20 relative">
-              <span className="font-bold serif-display text-lg gradient-text">{globalSettings.websiteName}</span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="absolute right-0 p-2 glass rounded-full hover:bg-white/30 transition-all" style={{ color: 'var(--text-secondary)' }}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          {/* Drawer */}
+          <div className="absolute top-0 left-0 bottom-0 w-[300px] bg-[var(--surface-color)] shadow-2xl p-6 flex flex-col animate-in slide-in-from-left duration-300 border-r border-white/40">
+            <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200/50">
+              <span className="font-bold serif-display text-xl gradient-text w-3/4 leading-tight">{globalSettings.websiteName}</span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-200/50 transition-all text-gray-500 hover:text-rose-500"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
 
-            <div className="flex flex-col gap-2 overflow-y-auto">
-              <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>Danh mục sản phẩm</div>
+            <div className="flex flex-col gap-3 overflow-y-auto pr-2 pb-20 custom-scrollbar">
+              <div className="text-[10px] font-black uppercase tracking-widest mb-1 text-gray-400 pl-2">Danh mục sản phẩm</div>
               {categories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => scrollToCategory(cat)}
-                  className="text-left py-3 px-4 rounded-xl font-semibold glass hover:bg-gradient-soft hover:text-[var(--primary-pink)] transition-all flex justify-between items-center group"
+                  className="text-left py-4 px-5 rounded-2xl font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group"
                   style={{ color: 'var(--text-primary)' }}
                 >
                   {categorySettings[cat]?.displayName || cat}
-                  <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                  <svg className="w-4 h-4 text-gray-400 group-hover:text-[var(--primary-pink)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                 </button>
               ))}
+
+              <div className="my-2 border-t border-gray-200/50"></div>
+
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setShowOrderTracking(true);
+                }}
+                className="text-left py-4 px-5 rounded-2xl font-bold bg-gradient-to-r from-pink-50 to-white border border-pink-100 shadow-sm text-pink-600 hover:shadow-md hover:scale-[1.02] transition-all flex justify-between items-center group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                  </div>
+                  Tra cứu đơn hàng
+                </div>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -2309,9 +2969,9 @@ const App: React.FC = () => {
 
           const settings = categorySettings[category] || {
             name: category,
-            itemsPerPage: 8,
-            paginationType: 'none' as PaginationType,
-            imageTransition: 'fade' as ImageTransitionEffect
+            itemsPerPage: 12,
+            paginationType: 'loadmore' as PaginationType,
+            imageTransition: 'none' as ImageTransitionEffect
           };
 
           const currentPage = categoryPages[category] || 1;
@@ -2361,13 +3021,21 @@ const App: React.FC = () => {
         />
       )}
 
-      <footer className="bg-neutral-50 border-t border-neutral-200 py-12">
+      {/* Order Tracking Modal */}
+      <OrderTrackingModal
+        isOpen={showOrderTracking}
+        onClose={() => setShowOrderTracking(false)}
+      />
+
+      <footer className="bg-neutral-50 border-t border-neutral-200 py-4">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h4 className="font-bold text-xl mb-3 serif text-rose-600">{globalSettings.websiteName}</h4>
+          <h4 className="font-bold text-xl mb-3 serif text-rose-600">{globalSettings.footerTitle || globalSettings.websiteName}</h4>
           <p className="text-neutral-500 text-sm leading-relaxed max-w-2xl mx-auto">
-            Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.
+            {globalSettings.footerDescription || 'Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.'}
           </p>
-          <p className="text-neutral-400 text-xs mt-6">© 2024 {globalSettings.websiteName}. All rights reserved.</p>
+          <p className="text-neutral-400 text-xs mt-6">
+            {globalSettings.footerCopyright || `© ${new Date().getFullYear()} ${globalSettings.websiteName}. All rights reserved.`}
+          </p>
         </div>
       </footer>
 

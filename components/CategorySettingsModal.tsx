@@ -58,7 +58,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="sticky top-0 bg-white border-b border-neutral-100 px-8 py-6 flex items-center justify-between rounded-t-3xl z-10">
+                <div className="sticky top-0 bg-white border-b border-neutral-100 px-4 py-4 md:px-8 md:py-6 flex items-center justify-between rounded-t-3xl z-10">
                     <div>
                         <h3 className="text-2xl font-bold serif flex items-center gap-2">
                             ⚙️ Cài đặt danh mục
@@ -78,7 +78,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                 </div>
 
                 {/* Body */}
-                <div className="p-8 space-y-6">
+                <div className="p-2 md:p-8 space-y-6">
                     {/* Rename Button */}
                     <div className="glass-gradient p-4 rounded-2xl border border-white/40">
                         <div className="flex items-center justify-between">
@@ -95,7 +95,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                                     e.stopPropagation();
                                     onRename();
                                 }}
-                                className="pill-button bg-gradient-pink text-white px-4 py-2 text-xs font-bold shadow-md hover-glow-pink"
+                                className="pill-button bg-gradient-to-r from-cyan-400 to-blue-500 text-white px-6 py-2 text-xs font-bold shadow-md hover:shadow-cyan-200"
                             >
                                 Đổi tên
                             </button>
@@ -103,7 +103,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                     </div>
 
                     {/* Items Per Page */}
-                    <div className="glass p-6 rounded-2xl">
+                    <div className="glass p-2 md:p-6 rounded-2xl">
                         <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                             📊 Số lượng sản phẩm hiển thị
                         </label>
@@ -127,7 +127,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                     </div>
 
                     {/* Pagination Type */}
-                    <div className="glass p-6 rounded-2xl">
+                    <div className="glass p-2 md:p-6 rounded-2xl">
                         <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                             📄 Phương thức phân trang
                         </label>
@@ -147,7 +147,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                     </div>
 
                     {/* Image Transition Effect */}
-                    <div className="glass p-6 rounded-2xl">
+                    <div className="glass p-2 md:p-6 rounded-2xl">
                         <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                             ✨ Hiệu ứng chuyển đổi ảnh
                         </label>
@@ -156,7 +156,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                         </p>
                         <select
                             className="glass-input w-full rounded-2xl px-4 py-3 text-sm font-semibold"
-                            value={settings.imageTransition || 'fade'}
+                            value={settings.imageTransition || 'none'}
                             onChange={(e) => onUpdate({ imageTransition: e.target.value as ImageTransitionEffect })}
                         >
                             {Object.entries(groupedOptions).map(([group, options]) => (
@@ -172,7 +172,7 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                     </div>
 
                     {/* Image Interval (Speed) */}
-                    <div className="glass p-6 rounded-2xl">
+                    <div className="glass p-2 md:p-6 rounded-2xl">
                         <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                             ⏱️ Tốc độ chạy ảnh
                         </label>

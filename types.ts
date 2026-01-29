@@ -13,6 +13,7 @@ export interface ProductVariant {
   id: string; // Unique variant ID
   name: string; // Variant name (vd: "Màu Đỏ", "Màu Vàng", "Size L")
   sku?: string; // Variant-specific SKU (nếu không có thì dùng SKU sản phẩm mẹ)
+  isHidden?: boolean; // NEW: Hide this variant
 }
 
 export interface FlowerProduct {
@@ -26,6 +27,7 @@ export interface FlowerProduct {
   categories?: string[]; // NEW: Multiple categories support
   sku?: string; // NEW: Product SKU/Code (SKU sản phẩm mẹ)
   variants?: ProductVariant[]; // NEW: List of product variants
+  isHidden?: boolean; // NEW: Hide this product
   switchInterval?: number; // Time in milliseconds for image slider (deprecated - use category settings)
   aspectRatio?: string; // Aspect ratio for images: '1/1', '3/4', '4/3', '16/9'
   order?: number; // Order within category for sorting
@@ -138,6 +140,15 @@ export interface Order {
   variantId?: string;
   variantName?: string;
   variantSKU?: string;
+
+  // Card/Banner info (optional)
+  isCard?: boolean;
+  cardType?: 'card' | 'banner';
+  cardContent?: string;
+
+  // Delivery info
+  deliveryMode?: 'instant' | 'scheduled';
+  deliveryTime?: string;
 
   // Additional info
   note?: string;
