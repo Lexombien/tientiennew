@@ -1,80 +1,71 @@
 @echo off
 setlocal EnableDelayedExpansion
+chcp 65001 >nul
 
 REM ===============================
 REM  CAU HINH
 REM ===============================
-:: Set remote URL moi
 set REMOTE_URL=https://github.com/Lexombien/tientiennew.git
 
 :: Chuyen den thu muc chua file bat nay
 cd /d "%~dp0"
 
-echo ===============================
+echo.
+echo ============================================
 echo   DONG BO GITHUB: %REMOTE_URL%
-echo ===============================
+echo ============================================
+echo.
 
 REM ===============================
 REM  INIT GIT NEU CHUA CO
 REM ===============================
 if not exist .git (
-    echo [1/5] Khoi tao Git...
+    echo [1/4] Khoi tao Git...
     git init
     git branch -M main
-    git remote add origin !REMOTE_URL!
+    git remote add origin %REMOTE_URL%
 ) else (
-    echo [1/5] Git da ton tai, cap nhat Remote...
-    git remote set-url origin !REMOTE_URL!
+    echo [1/4] Cap nhat Remote URL...
+    git remote set-url origin %REMOTE_URL%
 )
 
 REM ===============================
-REM  LAY THOI GIAN DE COMMIT
+REM  THEM TAT CA FILE
 REM ===============================
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
-set y=%datetime:~0,4%
-set m=%datetime:~4,2%
-set d=%datetime:~6,2%
-set hh=%datetime:~8,2%
-set mm=%datetime:~10,2%
-set ss=%datetime:~12,2%
-
-set commit_msg=Auto sync %d%-%m%-%y% %hh%:%mm%:%ss%
-
-REM ===============================
-REM  THEM TAT CA FILE (BAO GOM XOA/MOI)
-REM ===============================
-echo [2/5] Them file vao git...
+echo [2/4] Them file vao git...
 git add -A
 
 REM ===============================
 REM  COMMIT
 REM ===============================
-echo [3/5] Commit thay doi...
+echo [3/4] Kiem tra thay doi...
 git diff --cached --quiet
 if %errorlevel%==0 (
-    echo -> Khong co file nao thay doi.
-    :: Neu met muon force push ke ca ko co thay doi thi bo comment dong duoi
-    :: goto PUSH
+    echo ... Khong co file nao thay doi.
+    goto PUSH
 )
 
-git commit -m "%commit_msg%"
+echo [3/4] Commit thay doi...
+:: Tao message don gian de tranh loi format thoi gian
+git commit -m "Auto sync %date% %time%"
 
 :PUSH
 REM ===============================
 REM  PUSH LEN GITHUB
 REM ===============================
-echo [4/5] Day len GitHub...
+echo [4/4] Day len GitHub...
 git push -u origin main
 
 if %errorlevel% neq 0 (
     echo.
-    echo ❌ LOI: Khong day duoc len GitHub.
-    echo 1. Kiem tra mang.
-    echo 2. Kiem tra quyen truy cap (ban da dang nhap git chua?).
+    echo [!] LOI: Khong day duoc len GitHub.
+    echo 1. Kiem tra ket noi mang.
+    echo 2. Kiem tra quyen truy cap GitHub của bạn.
     echo.
 ) else (
     echo.
-    echo ✅ DONG BO THANH CONG!
+    echo [OK] DONG BO THANH CONG!
 )
 
+echo.
 pause
