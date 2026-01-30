@@ -153,6 +153,14 @@ export interface Order {
   // Additional info
   note?: string;
 
+  // Payment info
+  shippingFee: number;
+  totalPrice: number;
+  paymentMethod: 'cod' | 'transfer';
+  couponCode?: string;
+  discountAmount?: number;
+  productImage?: string;
+
   // Admin notes
   adminNotes?: string;
 }

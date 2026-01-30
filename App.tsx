@@ -14,12 +14,14 @@ import ProductFormModal from './components/ProductFormModal';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import OrdersManagement from './components/OrdersManagement';
 import OrderTrackingModal from './components/OrderTrackingModal';
+import ShippingFeesManager from './components/ShippingFeesManager';
 import { loadAnalyticsData, trackPageView, trackProductClick, exportAnalytics, clearAllAnalytics, clearOldAnalytics } from './utils/analytics';
 
 // Auto-detect backend URL based on environment
 // Development: localhost or LAN IP (192.168.x.x, 10.x.x.x, etc.)
 // Production: deployed with Nginx proxy
 const isDevelopment = window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
   window.location.hostname.match(/^192\.168\./) ||
   window.location.hostname.match(/^10\./) ||
   window.location.hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./); // Private IP ranges
@@ -47,8 +49,8 @@ const App: React.FC = () => {
   const [draggedProduct, setDraggedProduct] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  // NEW: admin tabs - EXPANDED with 'orders' and 'settings'
-  const [activeTab, setActiveTab] = useState<'products' | 'media' | 'css' | 'analytics' | 'orders' | 'settings'>('products');
+  // NEW: admin tabs - EXPANDED with 'orders', 'settings', and 'shipping'
+  const [activeTab, setActiveTab] = useState<'products' | 'media' | 'css' | 'analytics' | 'orders' | 'settings' | 'shipping'>('products');
 
   // NEW: Global Media Metadata (SEO)
   const [mediaMetadata, setMediaMetadata] = useState<Record<string, { alt?: string, title?: string, description?: string }>>({});
@@ -143,6 +145,13 @@ const App: React.FC = () => {
       // Zalo Bot Settings
       zaloBotToken: '',
       zaloAdminIds: '',
+
+      // NEW: Holiday/Busy Mode Settings
+      holidayMode: false,
+      holidayInterval: 120, // default 2 hours (120 minutes)
+
+      // NEW: Coupon Settings
+      coupons: [] as { code: string; discountPercent: number }[],
     };
 
     // Load from localStorage and merge with defaults
@@ -170,7 +179,7 @@ const App: React.FC = () => {
     isOpen: boolean;
     productTitle?: string;
     productSKU?: string;
-    variants?: ReturnType<typeof products>[number]['variants'];
+    variants?: FlowerProduct['variants'];
   }>({
     images: [],
     index: 0,
@@ -590,6 +599,19 @@ const App: React.FC = () => {
   const saveCategories = (newCats: string[]) => {
     setCategories(newCats);
     localStorage.setItem('categories_data', JSON.stringify(newCats));
+
+    // Sync to server
+    fetch(`${BACKEND_URL}/api/database`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        products,
+        categories: newCats,
+        settings: globalSettings,
+        categorySettings,
+        zaloNumber: ZALO_NUMBER
+      })
+    }).catch(err => console.error('Categories sync failed:', err));
   };
 
   const handleAddOrUpdateProduct = (productOrEvent: React.FormEvent | FlowerProduct) => {
@@ -693,10 +715,22 @@ const App: React.FC = () => {
     }
   };
 
-  // NEW: Category Settings Functions
   const saveCategorySettings = (newSettings: Record<string, CategorySettings>) => {
     setCategorySettings(newSettings);
     localStorage.setItem('category_settings', JSON.stringify(newSettings));
+
+    // Sync to server
+    fetch(`${BACKEND_URL}/api/database`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        products,
+        categories,
+        settings: globalSettings,
+        categorySettings: newSettings,
+        zaloNumber: ZALO_NUMBER
+      })
+    }).catch(err => console.error('Category settings sync failed:', err));
   };
 
   const updateCategorySettings = (categoryName: string, updates: Partial<CategorySettings>) => {
@@ -723,23 +757,59 @@ const App: React.FC = () => {
   const renameCategoryInSettings = (oldName: string, newName: string) => {
     if (oldName === newName) return;
 
-    // Update category list
+    // 1. Prepare new data
     const newCategories = categories.map(c => c === oldName ? newName : c);
-    saveCategories(newCategories);
 
-    // Update category settings
-    const newSettings = { ...categorySettings };
-    if (newSettings[oldName]) {
-      newSettings[newName] = { ...newSettings[oldName], name: newName };
-      delete newSettings[oldName];
-      saveCategorySettings(newSettings);
+    const newCategorySettings = { ...categorySettings };
+    if (newCategorySettings[oldName]) {
+      newCategorySettings[newName] = { ...newCategorySettings[oldName], name: newName };
+      delete newCategorySettings[oldName];
     }
 
-    // Update products
-    const updatedProducts = products.map(p =>
-      p.category === oldName ? { ...p, category: newName } : p
-    );
-    saveProducts(updatedProducts);
+    const updatedProducts = products.map(p => {
+      let updated = { ...p };
+      let changed = false;
+      if (p.category === oldName) {
+        updated.category = newName;
+        changed = true;
+      }
+      if (p.categories && p.categories.includes(oldName)) {
+        updated.categories = p.categories.map(c => c === oldName ? newName : c);
+        changed = true;
+      }
+      return changed ? updated : p;
+    });
+
+    // 2. Update local state
+    setCategories(newCategories);
+    setCategorySettings(newCategorySettings);
+    setProducts(updatedProducts);
+
+    // 3. Update localStorage
+    localStorage.setItem('categories_data', JSON.stringify(newCategories));
+    localStorage.setItem('category_settings', JSON.stringify(newCategorySettings));
+    localStorage.setItem('flowers_data', JSON.stringify(updatedProducts));
+
+    // 4. BIG SYNC: Send everything to server at once to ensure consistency
+    fetch(`${BACKEND_URL}/api/database`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        products: updatedProducts,
+        categories: newCategories,
+        settings: globalSettings,
+        categorySettings: newCategorySettings,
+        zaloNumber: ZALO_NUMBER
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log('✅ Rename sync successful');
+          setLastSyncTime(new Date().toLocaleString('vi-VN'));
+        }
+      })
+      .catch(err => console.error('Rename sync failed:', err));
   };
 
   // Pagination helpers
@@ -1165,6 +1235,15 @@ const App: React.FC = () => {
                 }`}
             >
               ⚙️ Cài Đặt
+            </button>
+            <button
+              onClick={() => setActiveTab('shipping')}
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'shipping'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                : 'text-neutral-600 hover:bg-white/50'
+                }`}
+            >
+              💰 Phí Ship
             </button>
           </div>
         </div>
@@ -2122,6 +2201,148 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* Holiday/Busy Mode Settings */}
+              <div className="glass p-6 rounded-2xl border-2 border-orange-200/50">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-bold mb-1 text-orange-700">
+                      🎉 Chế độ Bận / Ngày Lễ (14/2, 8/3...)
+                    </label>
+                    <p className="text-xs text-orange-600/80">
+                      Khi bật, khách chỉ có thể chọn giờ theo khoảng cách cố định (vd: 2 tiếng/lần) để shop dễ xử lý đơn.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={globalSettings.holidayMode || false}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, holidayMode: e.target.checked };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-red-500"></div>
+                  </label>
+                </div>
+
+                {globalSettings.holidayMode && (
+                  <div className="animate-in slide-in-from-top-2 duration-300 space-y-4 pt-2 border-t border-orange-100">
+                    <label className="block text-xs font-bold text-orange-800 ml-1">Khoảng cách giữa các khung giờ (phút)</label>
+                    <div className="flex gap-3 items-center">
+                      <select
+                        className="glass-input flex-grow rounded-2xl px-5 py-3 text-sm font-semibold border-orange-200"
+                        value={globalSettings.holidayInterval || 120}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, holidayInterval: parseInt(e.target.value) };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                      >
+                        <option value="60">60 phút (Mỗi 1 tiếng)</option>
+                        <option value="90">90 phút (Mỗi 1.5 tiếng)</option>
+                        <option value="120">120 phút (Mỗi 2 tiếng - Khuyên dùng)</option>
+                        <option value="180">180 phút (Mỗi 3 tiếng)</option>
+                        <option value="240">240 phút (Mỗi 4 tiếng)</option>
+                      </select>
+                      <div className="bg-orange-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm">
+                        {globalSettings.holidayInterval || 120} PHÚT
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-orange-500 italic ml-1">
+                      💡 Vd: Nếu chọn 120 phút, khách sẽ chọn: 08:00, 10:00, 12:00...
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* NEW: Coupon Management Settings */}
+              <div className="glass p-6 rounded-2xl border-2 border-indigo-200/50">
+                <label className="block text-sm font-bold mb-1 text-indigo-700">
+                  🎫 Quản lý Mã giảm giá (Coupons)
+                </label>
+                <p className="text-xs text-indigo-600/80 mb-4">
+                  Tạo các mã khuyến mãi (giảm % trên tiền sản phẩm) để tặng cho khách hàng VIP hoặc khách cũ.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      type="text"
+                      id="newCouponCode"
+                      placeholder="Mã (Vd: KHACHVIP)"
+                      className="glass-input flex-grow rounded-xl px-4 py-2 text-sm font-bold uppercase"
+                    />
+                    <input
+                      type="number"
+                      id="newCouponPercent"
+                      placeholder="% giảm"
+                      className="glass-input w-24 rounded-xl px-4 py-2 text-sm font-bold"
+                      min="1"
+                      max="100"
+                    />
+                    <button
+                      onClick={() => {
+                        const codeInput = document.getElementById('newCouponCode') as HTMLInputElement;
+                        const percentInput = document.getElementById('newCouponPercent') as HTMLInputElement;
+                        const code = codeInput.value.trim().toUpperCase();
+                        const percent = parseInt(percentInput.value);
+
+                        if (code && percent > 0 && percent <= 100) {
+                          const current = (globalSettings as any).coupons || [];
+                          if (current.some((c: any) => c.code === code)) {
+                            alert('❌ Mã này đã tồn tại!');
+                            return;
+                          }
+                          const newSettings = { ...globalSettings, coupons: [...current, { code, discountPercent: percent }] };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                          codeInput.value = '';
+                          percentInput.value = '';
+                          alert('✅ Đã thêm mã giảm giá!');
+                        } else {
+                          alert('❌ Vui lòng nhập đầy đủ mã và tỷ lệ % hợp lệ!');
+                        }
+                      }}
+                      className="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-sm"
+                    >
+                      Thêm mã
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 mt-2">
+                    {((globalSettings as any).coupons || []).map((coupon: { code: string, discountPercent: number }, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-white/50 rounded-xl border border-indigo-100">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">🎫</span>
+                          <div>
+                            <span className="text-sm font-black text-indigo-700">{coupon.code}</span>
+                            <span className="ml-2 text-xs font-bold text-emerald-600">Giảm {coupon.discountPercent}%</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Xóa mã "${coupon.code}"?`)) {
+                              const newCoupons = (globalSettings as any).coupons.filter((_: any, i: number) => i !== idx);
+                              const newSettings = { ...globalSettings, coupons: newCoupons };
+                              setGlobalSettings(newSettings);
+                              localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                            }
+                          }}
+                          className="text-rose-500 hover:text-rose-700 p-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                    {((globalSettings as any).coupons || []).length === 0 && (
+                      <p className="text-xs text-center text-gray-400 italic py-2">Chưa có mã giảm giá nào</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Favicon Upload */}
               <div className="glass p-6 rounded-2xl">
                 <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
@@ -2700,6 +2921,11 @@ const App: React.FC = () => {
                 💡 <span className="font-semibold">Lưu ý:</span> Thay đổi sẽ được lưu tự động và áp dụng ngay lập tức.
               </div>
             </div>
+          ) : activeTab === 'shipping' ? (
+            <>
+              {/* Shipping Fees Management */}
+              <ShippingFeesManager backendUrl={BACKEND_URL} />
+            </>
           ) : null}
         </main>
 

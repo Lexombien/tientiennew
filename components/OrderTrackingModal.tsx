@@ -15,6 +15,13 @@ interface Order {
   isGift: boolean;
   deliveryMode: string;
   deliveryTime?: string;
+  // Payment info
+  shippingFee: number;
+  totalPrice: number;
+  paymentMethod: 'cod' | 'transfer';
+  couponCode?: string;
+  discountAmount?: number;
+  productImage?: string;
 }
 
 interface OrderTrackingModalProps {
@@ -28,6 +35,19 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Lấy Zalo Link từ settings
+  const [zaloLink, setZaloLink] = useState('https://zalo.me/0900000000');
+
+  React.useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem('global_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        if (parsed.zaloLink) setZaloLink(parsed.zaloLink);
+      }
+    } catch (e) { }
+  }, []);
 
   if (!isOpen) return null;
 
@@ -94,13 +114,13 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white/90 backdrop-blur-xl w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slideUp">
-        
+
         {/* Header */}
         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white/50">
           <h2 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
             📦 Tra cứu đơn hàng
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
           >
@@ -112,7 +132,7 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
 
         {/* Body */}
         <div className="p-6 overflow-y-auto custom-scrollbar">
-          
+
           {/* Search Form */}
           <form onSubmit={handleSearch} className="mb-8">
             <div className="flex gap-3">
@@ -169,26 +189,20 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                     </div>
                     {getStatusBadge(order.status)}
                   </div>
-                  
+
                   <div className="flex gap-4">
-                    {/* Placeholder image if no image available, usually backend doesn't store image URL directly in order but productId. 
-                        In this simple version we might just show a placeholder or try to find product image if we had access to product list.
-                        For now, let's use a generic flower icon or placeholder. 
-                        Wait, the prompt asked for "Product image (left)". 
-                        The order data has `productName` but not `productImage`. 
-                        However, the backend `newOrder` object doesn't seem to save the image URL explicitly.
-                        It saves `productId`. I might need to fetch product details or just show a default image.
-                        Actually, let's check if `newOrder` saves `productImage`? No it doesn't.
-                        But wait, the user wants to see the image.
-                        I should probably update the backend to save `productImage` in the order, OR
-                        I can just show a placeholder for now since I can't easily change *existing* orders to have images.
-                        But for *new* orders I can.
-                        Let's just use a placeholder for now to be safe, or if I have a list of products I could look it up, but I don't have the full product list here.
-                    */}
-                    <div className="w-20 h-20 bg-pink-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                       <span className="text-3xl">🌸</span>
+                    <div className="w-20 h-20 bg-pink-50 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-pink-100">
+                      {order.productImage ? (
+                        <img
+                          src={order.productImage}
+                          alt={order.productName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-3xl">🌸</span>
+                      )}
                     </div>
-                    
+
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-800 line-clamp-2">{order.productName}</h4>
                       {order.variantName && (
@@ -201,9 +215,45 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-sm">
-                     <span className="text-gray-500">Tổng tiền:</span>
-                     <span className="font-bold text-lg text-gray-800">{formatPrice(order.productPrice)}</span>
+                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Giá sản phẩm:</span>
+                      <span>{formatPrice(order.productPrice)}</span>
+                    </div>
+
+                    {order.discountAmount !== undefined && order.discountAmount > 0 ? (
+                      <div className="flex justify-between text-xs text-emerald-600 font-bold">
+                        <span>Giảm giá {order.couponCode ? `(${order.couponCode})` : ''}:</span>
+                        <span>-{formatPrice(order.discountAmount)}</span>
+                      </div>
+                    ) : null}
+
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Phí vận chuyển:</span>
+                      <span>{formatPrice(order.shippingFee || 0)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-100">
+                      <span className="font-bold text-gray-800 text-sm">Tổng cộng:</span>
+                      <span className="font-black text-rose-600 text-lg">
+                        {formatPrice(order.totalPrice || (order.productPrice + (order.shippingFee || 0) - (order.discountAmount || 0)))}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Zalo Contact Button */}
+                  <div className="mt-4">
+                    <a
+                      href={`${zaloLink}?text=${encodeURIComponent(`Chào Shop, mình muốn sửa thông tin cho đơn hàng ${order.orderNumber}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all border border-blue-200"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12c0 6.627-5.373 12-12 12S0 18.627 0 12 5.373 0 12 0s12 5.373 12 12z" />
+                      </svg>
+                      NHẮN ZALO SỬA THÔNG TIN
+                    </a>
                   </div>
                 </div>
               ))}

@@ -34,6 +34,97 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
   const [deliveryTime, setDeliveryTime] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  // Address configuration - HCM or Other Province
+  const [isHCMAddress, setIsHCMAddress] = useState(true); // Mặc định là HCM
+  const [district, setDistrict] = useState(''); // Quận được chọn
+  const [shippingFee, setShippingFee] = useState(0); // Phí ship realtime
+  const [shippingFees, setShippingFees] = useState<Record<string, number>>({}); // Bảng phí ship từ DB
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'transfer'>('transfer'); // Phương thức thanh toán mặc định là chuyển khoản
+  const [busyInterval, setBusyInterval] = useState(30); // NEW: Interval thời gian (mặc định 30ph)
+
+  // Coupon states
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string, percent: number } | null>(null);
+  const [couponError, setCouponError] = useState('');
+
+  // Danh sách các quận ở TP.HCM
+  const HCM_DISTRICTS = [
+    'Quận 1', 'Quận 2', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 'Quận 7', 'Quận 8', 'Quận 9', 'Quận 10',
+    'Quận 11', 'Quận 12', 'Quận Bình Tán', 'Quận Bình Thạnh', 'Quận Gò Vấp', 'Quận Phú Nhuận',
+    'Quận Tân Bình', 'Quận Tân Phú', 'Quận Thủ Đức', 'Huyện Bình Chánh', 'Huyện Cần Giờ',
+    'Huyện Củ Chi', 'Huyện Hóc Môn', 'Huyện Nhà Bè'
+  ];
+
+  const DEFAULT_SHIPPING_FEE = 50000; // Phí ship mặc định cho tỉnh khác
+
+  // Load shipping fees từ database
+  useEffect(() => {
+    const loadShippingFees = async () => {
+      try {
+        const backendUrl = window.location.hostname === 'localhost'
+          ? `http://${window.location.hostname}:3001`
+          : '';
+        const response = await fetch(`${backendUrl}/api/shipping-fees`);
+        if (response.ok) {
+          const data = await response.json();
+          setShippingFees(data.fees || {});
+          // Update default shipping fee nếu có
+          if (data.defaultShippingFee) {
+            setShippingFee(prev => !isHCMAddress && !district ? data.defaultShippingFee : prev);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading shipping fees:', error);
+      }
+    };
+    loadShippingFees();
+
+    // Load busy mode interval from settings
+    try {
+      const savedSettings = localStorage.getItem('global_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        if (parsed.holidayMode) {
+          setBusyInterval(parsed.holidayInterval || 120);
+        } else {
+          setBusyInterval(30);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading busy interval:', e);
+    }
+  }, []);
+
+  // Tính phí ship realtime khi chọn quận hoặc toggle HCM
+  useEffect(() => {
+    const calculateFee = async () => {
+      if (isHCMAddress && district) {
+        // Lấy phí từ database, nếu không có thì dùng default
+        const fee = shippingFees[district] || DEFAULT_SHIPPING_FEE;
+        setShippingFee(fee);
+      } else if (!isHCMAddress) {
+        // Tỉnh khác: Load từ DB hoặc dùng default
+        try {
+          const backendUrl = window.location.hostname === 'localhost'
+            ? `http://${window.location.hostname}:3001`
+            : '';
+          const response = await fetch(`${backendUrl}/api/shipping-fees`);
+          if (response.ok) {
+            const data = await response.json();
+            setShippingFee(data.defaultShippingFee || DEFAULT_SHIPPING_FEE);
+          } else {
+            setShippingFee(DEFAULT_SHIPPING_FEE);
+          }
+        } catch (error) {
+          setShippingFee(DEFAULT_SHIPPING_FEE);
+        }
+      } else {
+        // Chưa chọn quận
+        setShippingFee(0);
+      }
+    };
+    calculateFee();
+  }, [isHCMAddress, district, shippingFees]);
 
   // Get Zalo link from localStorage or use default
   const getZaloLink = () => {
@@ -91,12 +182,47 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
+  // Tính toán giảm giá
+  const discountAmount = appliedCoupon ? Math.floor(product.salePrice * (appliedCoupon.percent / 100)) : 0;
+  const finalTotalPrice = product.salePrice + shippingFee - discountAmount;
+
+  const handleApplyCoupon = () => {
+    setCouponError('');
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+
+    try {
+      const savedSettings = localStorage.getItem('global_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        const coupons = parsed.coupons || [];
+        const found = coupons.find((c: any) => c.code === code);
+
+        if (found) {
+          setAppliedCoupon({ code: found.code, percent: found.discountPercent });
+          setCouponInput('');
+        } else {
+          setCouponError('❌ Mã giảm giá không hợp lệ!');
+          setAppliedCoupon(null);
+        }
+      }
+    } catch (e) {
+      console.error('Error applying coupon:', e);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
     if (!formData.name || !formData.phone || !formData.address) {
       setSubmitMessage('Vui lòng điền đầy đủ thông tin người nhận!');
+      return;
+    }
+
+    // Validate district for HCM address
+    if (isHCMAddress && !district) {
+      setSubmitMessage('Vui lòng chọn Quận/Huyện tại TP.HCM!');
       return;
     }
 
@@ -122,6 +248,9 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
           customerPhone: formData.phone,
           customerAddress: formData.address,
           note: formData.note,
+          // Thông tin địa chỉ HCM
+          isHCMAddress,
+          district: isHCMAddress ? district : undefined,
           // Thông tin người tặng (nếu có)
           isGift: isGiftMode,
           senderName: isGiftMode ? formData.senderName : undefined,
@@ -140,7 +269,16 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
           cardContent: isCardOption ? cardContent : undefined,
           // Thông tin giao hàng
           deliveryMode,
-          deliveryTime: deliveryMode === 'scheduled' ? deliveryTime : undefined
+          deliveryTime: deliveryMode === 'scheduled' ? deliveryTime : undefined,
+          // Thông tin thanh toán
+          paymentMethod,
+          shippingFee,
+          totalPrice: finalTotalPrice,
+          couponCode: appliedCoupon?.code,
+          discountAmount: discountAmount,
+          productImage: (product.imagesWithMetadata && product.imagesWithMetadata.length > 0)
+            ? product.imagesWithMetadata[0].url
+            : (product.images?.[0] || '')
         })
       });
 
@@ -315,8 +453,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       <label
                         key={variant.id}
                         className={`relative cursor-pointer rounded-xl border-2 p-3 transition-all ${selectedVariant === variant.id
-                            ? 'border-pink-500 bg-pink-50/50'
-                            : 'border-gray-100 hover:border-pink-200 bg-white'
+                          ? 'border-pink-500 bg-pink-50/50'
+                          : 'border-gray-100 hover:border-pink-200 bg-white'
                           }`}
                       >
                         <input
@@ -396,6 +534,41 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                     />
                   </div>
 
+                  {/* HCM / Other Province Toggle */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between cursor-pointer" onClick={() => {
+                      setIsHCMAddress(!isHCMAddress);
+                      if (!isHCMAddress) setDistrict(''); // Reset district when switching to HCM
+                    }}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </div>
+                        <span className="text-sm font-bold text-blue-700">Giao hàng tại TP.HCM</span>
+                      </div>
+                      <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isHCMAddress ? 'bg-blue-500' : 'bg-gray-300'}`}>
+                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isHCMAddress ? 'translate-x-6' : ''}`} />
+                      </div>
+                    </div>
+
+                    {/* District Selector (Only for HCM) */}
+                    {isHCMAddress && (
+                      <div className="animate-fadeIn">
+                        <select
+                          value={district}
+                          onChange={(e) => setDistrict(e.target.value)}
+                          className="w-full px-4 py-3.5 bg-white border border-blue-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-medium text-gray-700"
+                          required={isHCMAddress}
+                        >
+                          <option value="">-- Chọn Quận/Huyện --</option>
+                          {HCM_DISTRICTS.map((dist) => (
+                            <option key={dist} value={dist}>{dist}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Address Input */}
                   <div className="relative group">
                     <div className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-pink-500 transition-colors">
@@ -406,7 +579,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none resize-none"
                       rows={2}
-                      placeholder="Địa chỉ giao hàng (Số nhà, đường...)"
+                      placeholder={isHCMAddress ? "Địa chỉ chi tiết (Số nhà, đường, phường...)" : "Địa chỉ đầy đủ (Số nhà, đường, phường, quận/huyện, tỉnh/thành phố)"}
                       required
                     />
                   </div>
@@ -466,8 +639,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                           type="button"
                           onClick={() => setCardType('card')}
                           className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${cardType === 'card'
-                              ? 'bg-amber-500 text-white border-amber-500'
-                              : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                            ? 'bg-amber-500 text-white border-amber-500'
+                            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
                             }`}
                         >
                           ✉️ Thiệp chúc mừng
@@ -476,8 +649,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                           type="button"
                           onClick={() => setCardType('banner')}
                           className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${cardType === 'banner'
-                              ? 'bg-amber-500 text-white border-amber-500'
-                              : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                            ? 'bg-amber-500 text-white border-amber-500'
+                            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
                             }`}
                         >
                           🚩 Bảng chữ (Banner)
@@ -521,7 +694,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       onChange={(date) => setDeliveryTime(date)}
                       showTimeSelect
                       timeFormat="HH:mm"
-                      timeIntervals={30}
+                      timeIntervals={busyInterval}
                       timeCaption="Giờ"
                       dateFormat="dd/MM/yyyy HH:mm"
                       renderCustomHeader={({
@@ -551,6 +724,114 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                     />
                   </div>
                 )}
+
+                {/* Coupon Section */}
+                <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
+                      <span className="text-lg">🎫</span> Bạn có mã giảm giá?
+                    </span>
+                    {appliedCoupon && (
+                      <button
+                        onClick={() => setAppliedCoupon(null)}
+                        className="text-[10px] text-rose-500 font-bold hover:underline"
+                      >
+                        Gỡ mã
+                      </button>
+                    )}
+                  </div>
+                  {!appliedCoupon ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        placeholder="Nhập mã (Vd: KHACHVIP)"
+                        className="flex-grow px-3 py-2 bg-white border border-indigo-200 rounded-lg text-xs font-bold uppercase focus:border-indigo-500 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-all"
+                      >
+                        Áp dụng
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                      <span className="text-xs font-bold text-emerald-700">✅ Đã áp dụng: {appliedCoupon.code}</span>
+                      <span className="text-xs font-black text-emerald-600">-{appliedCoupon.percent}%</span>
+                    </div>
+                  )}
+                  {couponError && <p className="text-[10px] text-rose-500 mt-1 font-bold">{couponError}</p>}
+                </div>
+
+                {/* Shipping Fee & Payment Method Section */}
+                <div className="space-y-3">
+                  {/* Payment Method Selection */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('transfer')}
+                      className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'transfer'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-100 bg-white text-gray-500 hover:border-blue-200'}`}
+                    >
+                      <span className="text-lg mb-1">🏦</span>
+                      <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Chuyển khoản trước</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('cod')}
+                      className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'cod'
+                        ? 'border-pink-500 bg-pink-50 text-pink-700'
+                        : 'border-gray-100 bg-white text-gray-500 hover:border-pink-200'}`}
+                    >
+                      <span className="text-lg mb-1">🤝</span>
+                      <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Nhận hàng thanh toán (COD)</span>
+                    </button>
+                  </div>
+
+                  {/* Compact Shipping Fee & Total */}
+                  <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>Giá gốc:</span>
+                        <span>{formatPrice(product.salePrice)}</span>
+                      </div>
+
+                      {appliedCoupon && discountAmount > 0 && (
+                        <div className="flex justify-between text-xs text-emerald-600 font-bold">
+                          <span>Giảm giá ({appliedCoupon.code}):</span>
+                          <span>-{formatPrice(discountAmount)}</span>
+                        </div>
+                      )}
+
+                      {(shippingFee > 0 || !isHCMAddress) && (
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            <span>Phí ship ({isHCMAddress && district ? district : 'Tỉnh khác'}):</span>
+                          </div>
+                          <span>{formatPrice(shippingFee)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-200/60">
+                      <span className="text-sm font-bold text-gray-800">Tổng cộng:</span>
+                      <span className="text-lg font-black text-pink-600" style={{ fontFamily: 'var(--font-price)' }}>
+                        {formatPrice(finalTotalPrice)}
+                      </span>
+                    </div>
+
+                    {isHCMAddress && !district && (
+                      <p className="text-[10px] text-pink-500 text-center italic mt-1">
+                        💡 Vui lòng chọn quận để tính phí ship & tổng tiền
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Note */}
                 <div className="relative group">

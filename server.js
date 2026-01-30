@@ -32,17 +32,74 @@ const HOST = '0.0.0.0'; // Bind tất cả IP để tránh lỗi kết nối t�
 const USE_DYNAMIC_HOST = !process.env.HOST;
 
 
-// Cấu hình CORS chi tiết hơn
+// Cấu hình CORS (Đã fix lỗi wildcard *)
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'x-bot-api-secret-token']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-bot-api-secret-token'],
+    credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
 
-// Endpoint kiểm tra kết nối
-app.get('/api/ping', (req, res) => {
-    res.json({ success: true, message: 'Server is running' });
+// LOGGING MIDDLEWARE để biết có request nào đang đến không
+app.use((req, res, next) => {
+    if (req.url.includes('/api/')) {
+        console.log(`📡 [${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+    }
+    next();
+});
+
+// Tạo folder uploads nếu chưa có (giống WordPress /wp-content/uploads)
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Database file (lưu products, categories, settings giống WordPress database)
+const dbFile = path.join(__dirname, 'database.json');
+if (!fs.existsSync(dbFile)) {
+    fs.writeFileSync(dbFile, JSON.stringify({
+        products: [],
+        categories: [],
+        settings: {},
+        categorySettings: {},
+        media: {}, // Storage for image SEO metadata: { filename: { alt, title, description } }
+        zaloNumber: '',
+        orders: [] // NEW: Order management
+    }, null, 2));
+}
+
+// ==================== SHIPPING FEES APIs (URGENT FIX) ====================
+app.get('/api/shipping-fees', (req, res) => {
+    try {
+        console.log('📥 GET /api/shipping-fees request received');
+        const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+        const fees = db.shippingFees || {};
+        const defaultShippingFee = db.defaultShippingFee || 50000;
+        res.json({ success: true, fees, defaultShippingFee });
+    } catch (error) {
+        console.error('❌ Lỗi lấy shipping fees:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.put('/api/shipping-fees', (req, res) => {
+    try {
+        console.log('📥 PUT /api/shipping-fees request received');
+        const { fees, defaultShippingFee } = req.body;
+        if (!fees || typeof fees !== 'object') {
+            return res.status(400).json({ success: false, message: 'Invalid fees data' });
+        }
+        const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+        db.shippingFees = fees;
+        if (defaultShippingFee !== undefined) db.defaultShippingFee = Number(defaultShippingFee);
+        fs.writeFileSync(dbFile, JSON.stringify(db, null, 2));
+        console.log('💾 Shipping fees updated in database');
+        res.json({ success: true, message: 'Cập nhật thành công!', fees: db.shippingFees, defaultShippingFee: db.defaultShippingFee });
+    } catch (error) {
+        console.error('❌ Lỗi cập nhật shipping fees:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 // ==================== AUTHENTICATION API ====================
@@ -73,25 +130,8 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// Tạo folder uploads nếu chưa có (giống WordPress /wp-content/uploads)
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
-// Database file (lưu products, categories, settings giống WordPress database)
-const dbFile = path.join(__dirname, 'database.json');
-if (!fs.existsSync(dbFile)) {
-    fs.writeFileSync(dbFile, JSON.stringify({
-        products: [],
-        categories: [],
-        settings: {},
-        categorySettings: {},
-        media: {}, // Storage for image SEO metadata: { filename: { alt, title, description } }
-        zaloNumber: '',
-        orders: [] // NEW: Order management
-    }, null, 2));
-}
+// ==================== DATABASE API ====================
 
 
 
@@ -120,7 +160,7 @@ app.get('/api/database', (req, res) => {
 app.post('/api/database', (req, res) => {
     try {
         const newData = req.body;
-        
+
         // Read current database to preserve fields not sent by frontend (like orders)
         let currentDb = {};
         if (fs.existsSync(dbFile)) {
@@ -151,7 +191,7 @@ app.post('/api/database', (req, res) => {
                     const regex = new RegExp(`<meta name="${name}" content="[^"]*">`, 'g');
                     indexContent = indexContent.replace(regex, `<meta name="${name}" content="${content}">`);
                 };
-                
+
                 const replaceProperty = (property, content) => {
                     const regex = new RegExp(`<meta property="${property}" content="[^"]*">`, 'g');
                     indexContent = indexContent.replace(regex, `<meta property="${property}" content="${content}">`);
@@ -167,7 +207,7 @@ app.post('/api/database', (req, res) => {
                     replaceProperty('og:description', s.seoDescription);
                     replaceProperty('twitter:description', s.seoDescription);
                 }
-                
+
                 if (s.seoKeywords) {
                     replaceMeta('keywords', s.seoKeywords);
                 }
@@ -590,7 +630,7 @@ const getZaloConfig = () => {
         // Prioritize Database settings, fallback to Environment variables
         const botToken = settings.zaloBotToken || process.env.BOT_TOKEN || '';
         const ownerIdsString = settings.zaloAdminIds || process.env.OWNER_ZALO_ID || '';
-        
+
         return {
             botToken: botToken,
             ownerIds: ownerIdsString
@@ -680,6 +720,9 @@ app.post('/api/submit-order', async (req, res) => {
             customerPhone,
             customerAddress,
             note,
+            // Thông tin địa chỉ HCM
+            isHCMAddress,
+            district,
             // Thông tin quà tặng
             isGift,
             senderName,
@@ -694,7 +737,14 @@ app.post('/api/submit-order', async (req, res) => {
             cardContent,
             // Thông tin giao hàng
             deliveryMode,
-            deliveryTime
+            deliveryTime,
+            // Thông tin thanh toán
+            paymentMethod,
+            shippingFee,
+            totalPrice,
+            couponCode,
+            discountAmount,
+            productImage
         } = req.body;
 
         const time = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
@@ -710,7 +760,14 @@ app.post('/api/submit-order', async (req, res) => {
         // ===== THÔNG TIN NGƯỜI NHẬN =====
         message += `👤 Người nhận: ${customerName}\n`;
         message += `📞 SĐT nhận: ${customerPhone}\n`;
-        message += `📍 Địa chỉ: ${customerAddress}\n`;
+
+        // Hiển thị địa chỉ với thông tin quận (nếu là HCM)
+        if (isHCMAddress && district) {
+            message += `📍 Quận/Huyện: ${district}\n`;
+            message += `🏠 Địa chỉ: ${customerAddress}\n`;
+        } else {
+            message += `📍 Địa chỉ: ${customerAddress}\n`;
+        }
 
         // Separator nếu có người tặng
         if (isGift && senderName && senderPhone) {
@@ -722,7 +779,6 @@ app.post('/api/submit-order', async (req, res) => {
         // ===== SEPARATOR TRƯỚC THÔNG TIN ĐƠN HÀNG =====
         message += `\n━━━━━━━━━━━━━━\n\n`;
 
-        // ===== THÔNG TIN ĐƠN HÀNG =====
         message += `📦 Sản phẩm: ${productName}\n`;
 
         // Thông tin biến thể (nếu có) ← NEW
@@ -733,31 +789,44 @@ app.post('/api/submit-order', async (req, res) => {
             message += `🏷️ SKU: ${variantSKU}\n`;
         }
 
-        message += `💰 Giá: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(productPrice)}\n`;
+        // Tạm thời ẩn giá lẻ ở đây để gom xuống phần THANH TOÁN cho đẹp
+        // message += `💰 Giá: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(productPrice)}\n`;
         // BỎ dòng Mã SP
         if (note) message += `📝 Ghi chú: ${note}\n`;
 
         // Thông tin thiệp/bảng chữ (nếu có)
         if (isCard) {
-             const typeName = cardType === 'banner' ? 'Bảng chữ (Banner)' : 'Thiệp nhỏ';
-             message += `✍️ ${typeName}: ${cardContent}\n`;
+            const typeName = cardType === 'banner' ? 'Bảng chữ (Banner)' : 'Thiệp nhỏ';
+            message += `✍️ ${typeName}: ${cardContent}\n`;
         }
 
         // Thông tin giao hàng
         if (deliveryMode === 'scheduled' && deliveryTime) {
-             const date = new Date(deliveryTime);
-             const formattedDate = date.toLocaleString('vi-VN', {
-                 timeZone: 'Asia/Ho_Chi_Minh',
-                 hour: '2-digit',
-                 minute: '2-digit',
-                 day: '2-digit',
-                 month: '2-digit',
-                 year: 'numeric'
-             });
-             message += `🕒 Hẹn giao: ${formattedDate}\n`;
+            const date = new Date(deliveryTime);
+            const formattedDate = date.toLocaleString('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            message += `🕒 Hẹn giao: ${formattedDate}\n`;
         } else {
-             message += `⚡ Giao hàng: Giao liền (Càng sớm càng tốt)\n`;
+            message += `⚡ Giao hàng: Giao liền (Càng sớm càng tốt)\n`;
         }
+
+        // Thông tin thanh toán ← NEW
+        const methodText = paymentMethod === 'transfer' ? 'Chuyển khoản' : 'Thanh toán khi nhận hàng (COD)';
+        message += `💳 Thanh toán: ${methodText}\n`;
+        message += `💰 Giá gốc: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(productPrice)}\n`;
+
+        if (couponCode) {
+            message += `🎫 Mã giảm giá: ${couponCode} (-${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountAmount)})\n`;
+        }
+
+        message += `🚚 Phí ship: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shippingFee)}\n`;
+        message += `💵 TỔNG CỘNG: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalPrice)}\n`;
 
         message += `\n⏰ Thời gian: ${time}`;
 
@@ -778,6 +847,8 @@ app.post('/api/submit-order', async (req, res) => {
             customerName,
             customerPhone,
             customerAddress,
+            isHCMAddress,
+            district,
             isGift,
             senderName,
             senderPhone,
@@ -792,7 +863,14 @@ app.post('/api/submit-order', async (req, res) => {
             cardContent,
             deliveryMode,
             deliveryTime,
-            note
+            note,
+            // Thông tin thanh toán
+            paymentMethod,
+            shippingFee,
+            totalPrice,
+            couponCode,
+            discountAmount,
+            productImage
         };
 
         db.orders.unshift(newOrder); // Thêm vào đầu array
@@ -856,6 +934,7 @@ app.post('/api/submit-order', async (req, res) => {
     }
 });
 
+
 // ==================== ORDER MANAGEMENT APIs ====================
 
 // GET: Get all orders
@@ -874,7 +953,7 @@ app.get('/api/orders', (req, res) => {
 
         if (phone) {
             // Normalize phone for comparison (remove spaces, dots, etc if needed, but simple includes/exact match is okay for now)
-            filteredOrders = filteredOrders.filter(order => 
+            filteredOrders = filteredOrders.filter(order =>
                 (order.customerPhone && order.customerPhone.includes(phone)) ||
                 (order.senderPhone && order.senderPhone.includes(phone))
             );
@@ -959,12 +1038,13 @@ app.delete('/api/orders/:id', (req, res) => {
 // ==================== HEALTH CHECK ====================
 
 app.get('/api/health', (req, res) => {
+    const { botToken, ownerIds } = getZaloConfig();
     res.json({
         status: 'OK',
         message: 'Server đang chạy!',
         uploadsFolder: uploadsDir,
-        zaloBotConfigured: !!(BOT_TOKEN && OWNER_ZALO_IDS.length > 0),
-        ownerCount: OWNER_ZALO_IDS.length
+        zaloBotConfigured: !!(botToken && ownerIds.length > 0),
+        ownerCount: ownerIds.length
     });
 });
 
