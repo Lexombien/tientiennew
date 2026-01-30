@@ -79,6 +79,29 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
 
                 {/* Body */}
                 <div className="p-2 md:p-8 space-y-6">
+                    {/* Show/Hide Toggle */}
+                    <div className="glass p-2 md:p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <label className="block text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                                {settings.isHidden ? '🙈 Danh mục đang ẩn' : '👁️ Danh mục đang hiện'}
+                            </label>
+                            <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                {settings.isHidden
+                                    ? 'Danh mục này sẽ không xuất hiện trên trang chủ'
+                                    : 'Danh mục này đang hiển thị công khai trên trang chủ'}
+                            </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={!settings.isHidden}
+                                onChange={(e) => onUpdate({ isHidden: !e.target.checked })}
+                            />
+                            <div className="w-14 h-7 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-pink shadow-inner"></div>
+                        </label>
+                    </div>
+
                     {/* Rename Button */}
                     <div className="glass-gradient p-4 rounded-2xl border border-white/40">
                         <div className="flex items-center justify-between">

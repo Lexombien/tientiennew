@@ -616,13 +616,15 @@ const App: React.FC = () => {
 
   // Hàm helper dùng chung để lọc sản phẩm theo danh mục (hỗ trợ cả multi-category)
   const getProductsInCategory = (categoryName: string, productList: FlowerProduct[]) => {
+    const target = categoryName.trim().toLowerCase();
     return productList.filter(f => {
-      // Ưu tiên kiểm tra mảng categories (hỗ trợ đa danh mục)
-      if (f.categories && f.categories.length > 0) {
-        return f.categories.some(c => c.trim().toLowerCase() === categoryName.trim().toLowerCase());
-      }
-      // Phụ trợ: kiểm tra trường category đơn lẻ (tương thích ngược)
-      return f.category?.trim().toLowerCase() === categoryName.trim().toLowerCase();
+      // Kiểm tra trong trường category đơn lẻ (tương thích ngược)
+      const inPrimary = f.category?.trim().toLowerCase() === target;
+
+      // Kiểm tra trong mảng categories (hỗ trợ đa danh mục)
+      const inMulti = f.categories?.some(c => c.trim().toLowerCase() === target);
+
+      return inPrimary || inMulti;
     });
   };
 
@@ -803,6 +805,11 @@ const App: React.FC = () => {
 
       return changed ? updated : p;
     });
+
+    // Cập nhật cả Display Name nếu nó đang trùng với tên cũ
+    if (newCategorySettings[newName] && (!newCategorySettings[newName].displayName || newCategorySettings[newName].displayName === oldName)) {
+      newCategorySettings[newName].displayName = newName;
+    }
 
     // 2. Update local state
     setCategories(newCategories);
@@ -1338,7 +1345,8 @@ const App: React.FC = () => {
 
                     <div className="space-y-2">
                       {categories.map((cat, index) => {
-                        const productCount = products.filter(p => p.category === cat).length;
+                        const categoryProducts = getProductsInCategory(cat, products);
+                        const productCount = categoryProducts.length;
                         return (
                           <div
                             key={cat}
@@ -1361,9 +1369,14 @@ const App: React.FC = () => {
                             </span>
 
                             {/* Category Name */}
-                            <span className="flex-grow font-semibold truncate text-sm md:text-base min-w-0" style={{ color: 'var(--text-primary)' }} title={cat}>
-                              {cat}
-                            </span>
+                            <div className="flex-grow min-w-0">
+                              <span className="font-semibold truncate text-sm md:text-base block" style={{ color: 'var(--text-primary)' }} title={cat}>
+                                {cat}
+                              </span>
+                              {categorySettings[cat]?.isHidden && (
+                                <span className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter">🙈 Đã ẩn khỏi trang chủ</span>
+                              )}
+                            </div>
 
                             {/* Product Count Badge */}
                             <span className={`badge-glass px-2 md:px-3 py-1 text-[10px] md:text-xs font-bold flex-shrink-0 ${productCount > 0
@@ -2056,7 +2069,7 @@ const App: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-medium"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
                       placeholder="Vd: Floral Essence"
                       value={globalSettings.websiteName}
                       onChange={(e) => {
@@ -3094,16 +3107,18 @@ const App: React.FC = () => {
           {/* Desktop Navigation & Marquee Wrapper */}
           <div className="hidden lg:flex flex-col items-end gap-1">
             <nav className="flex gap-6 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {categories.map((cat) => (
-                <a
-                  key={cat}
-                  href={`#${cat}`}
-                  onClick={(e) => { e.preventDefault(); scrollToCategory(cat); }}
-                  className="hover:text-[var(--primary-pink)] transition-all hover:scale-105 whitespace-nowrap"
-                >
-                  {categorySettings[cat]?.displayName || cat}
-                </a>
-              ))}
+              {categories
+                .filter(cat => !categorySettings[cat]?.isHidden) // Lọc danh mục không bị ẩn
+                .map((cat) => (
+                  <a
+                    key={cat}
+                    href={`#${cat}`}
+                    onClick={(e) => { e.preventDefault(); scrollToCategory(cat); }}
+                    className="hover:text-[var(--primary-pink)] transition-all hover:scale-105 whitespace-nowrap"
+                  >
+                    {categorySettings[cat]?.displayName || cat}
+                  </a>
+                ))}
               <button
                 onClick={() => setShowOrderTracking(true)}
                 className="hover:text-[var(--primary-pink)] transition-all hover:scale-105 whitespace-nowrap flex items-center gap-1 ml-4 pl-6 border-l border-gray-200"
@@ -3171,17 +3186,19 @@ const App: React.FC = () => {
 
             <div className="flex flex-col gap-3 overflow-y-auto pr-2 pb-20 custom-scrollbar">
               <div className="text-[10px] font-black uppercase tracking-widest mb-1 text-gray-400 pl-2">Danh mục sản phẩm</div>
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => scrollToCategory(cat)}
-                  className="text-left py-4 px-5 rounded-2xl font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {categorySettings[cat]?.displayName || cat}
-                  <svg className="w-4 h-4 text-gray-400 group-hover:text-[var(--primary-pink)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                </button>
-              ))}
+              {categories
+                .filter(cat => !categorySettings[cat]?.isHidden) // Lọc danh mục không bị ẩn
+                .map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => scrollToCategory(cat)}
+                    className="text-left py-4 px-5 rounded-2xl font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {categorySettings[cat]?.displayName || cat}
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-[var(--primary-pink)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                  </button>
+                ))}
 
               <div className="my-2 border-t border-gray-200/50"></div>
 
@@ -3207,6 +3224,9 @@ const App: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8 mt-16">
         {categories.map((category) => {
+          // Skip hidden categories
+          if (categorySettings[category]?.isHidden) return null;
+
           // Sử dụng hàm helper dùng chung để đảm bảo đồng bộ với Admin
           const categoryProducts = getProductsInCategory(category, products);
 

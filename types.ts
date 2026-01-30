@@ -70,6 +70,7 @@ export interface CategorySettings {
   paginationType: PaginationType; // Pagination method
   imageTransition?: ImageTransitionEffect; // Default transition for category
   imageInterval?: number; // Time in milliseconds for image slider (default for all products in this category)
+  isHidden?: boolean; // NEW: Ẩn/hiện danh mục trên trang chủ
 }
 
 export interface AppState {
