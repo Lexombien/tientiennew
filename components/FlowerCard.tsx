@@ -157,11 +157,10 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
           )}
         </div>
 
-        {/* Discount Badge - Animated Neumorphism Style */}
+        {/* Discount Badge - Compact Animated Style */}
         {!isAdmin && product.originalPrice > product.salePrice && (
-          <div className="absolute top-3 left-3 z-20 flex items-center justify-center">
-            <div className="badge-shimmer text-white px-3 py-1.5 rounded-2xl text-[10px] md:text-xs font-black shadow-[4px_4px_10px_rgba(0,0,0,0.3),-2px_-2px_6px_rgba(255,255,255,0.3)] border border-white/20 flex items-center gap-1.5 transform transition-transform group-hover:scale-110">
-              <span className="relative z-10 text-[10px]">🔥</span>
+          <div className="absolute top-2 left-2 z-20 flex items-center justify-center">
+            <div className="badge-shimmer text-white px-2 py-0.5 md:px-2.5 md:py-1 rounded-full text-[9px] md:text-[11px] font-black shadow-[2px_2px_8px_rgba(0,0,0,0.3)] border border-white/20 transform transition-transform group-hover:scale-105">
               <span className="relative z-10">
                 -{Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100)}%
               </span>
