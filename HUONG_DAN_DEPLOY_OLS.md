@@ -16,6 +16,58 @@ Tài liệu này hướng dẫn cách đưa website lên mạng chạy trên VPS
 ### 2. Thực hiện trên VPS
 Mở SSH (Terminal) và chạy lần lượt các lệnh sau:
 
+
+
+
+
+//////////////////////////////////
+
+# 1. Vào đúng thư mục
+cd /usr/local/lsws/hoasaphcm.vn/html
+
+# 2. Tạm thời "giấu" 2 file quan trọng đi
+mv .htaccess .htaccess_ssl_bak
+mv index.php index.php_bak
+
+# 3. Kéo code từ GitHub (Dùng git init để lách thư mục không trống)
+git init
+git remote add origin https://github.com/Lexombien/tientiennew.git
+git fetch --all
+git reset --hard origin/main
+
+# 4. Trả lại file SSL xịn của bạn (Dán đè lên file mẫu của GitHub)
+mv .htaccess_ssl_bak .htaccess
+
+//////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 **Bước 1: Vào thư mục chứa web (Ví dụ: hoasaphcm.vn)**
 ```bash
 cd /usr/local/lsws/hoasaphcm.vn/html
