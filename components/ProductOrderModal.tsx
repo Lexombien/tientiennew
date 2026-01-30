@@ -513,7 +513,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
                       placeholder={isGiftMode ? "Tên người nhận" : "Họ tên của bạn"}
                       required
                     />
@@ -528,7 +528,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
                       placeholder={isGiftMode ? "SĐT người nhận" : "Số điện thoại của bạn"}
                       required
                     />
@@ -557,7 +557,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         <select
                           value={district}
                           onChange={(e) => setDistrict(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white border border-blue-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-medium text-gray-700"
+                          className="w-full px-4 py-3.5 bg-white border border-blue-200 rounded-xl md:text-sm text-base focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-medium text-gray-700"
                           required={isHCMAddress}
                         >
                           <option value="">-- Chọn Quận/Huyện --</option>
@@ -577,7 +577,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                     <textarea
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none resize-none"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none resize-none"
                       rows={2}
                       placeholder={isHCMAddress ? "Địa chỉ chi tiết (Số nhà, đường, phường...)\n(Ưu tiên địa chỉ cũ để dễ book ship)" : "Địa chỉ đầy đủ (Số nhà, đường, phường, quận/huyện, tỉnh/thành phố)"}
                       required
@@ -597,7 +597,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         type="text"
                         value={formData.senderName}
                         onChange={(e) => setFormData({ ...formData, senderName: e.target.value })}
-                        className="w-full pl-12 pr-4 py-3 bg-white border border-purple-200 rounded-xl text-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-3 bg-white border border-purple-200 rounded-xl md:text-sm text-base focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none"
                         placeholder="Tên của bạn"
                         required={isGiftMode}
                       />
@@ -610,7 +610,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         type="tel"
                         value={formData.senderPhone}
                         onChange={(e) => setFormData({ ...formData, senderPhone: e.target.value })}
-                        className="w-full pl-12 pr-4 py-3 bg-white border border-purple-200 rounded-xl text-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-3 bg-white border border-purple-200 rounded-xl md:text-sm text-base focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none"
                         placeholder="SĐT của bạn"
                         required={isGiftMode}
                       />
@@ -659,7 +659,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       <textarea
                         value={cardContent}
                         onChange={(e) => setCardContent(e.target.value)}
-                        className="w-full p-3 bg-white border border-amber-200 rounded-xl text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none"
+                        className="w-full p-3 bg-white border border-amber-200 rounded-xl md:text-sm text-base focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none"
                         rows={2}
                         placeholder={cardType === 'card' ? "Nội dung lời chúc trên thiệp..." : "Nội dung in trên bảng chữ..."}
                       />
@@ -716,7 +716,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       )}
                       locale="vi"
                       placeholderText="Chọn ngày giờ giao hàng..."
-                      className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
+                      className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
                       required={deliveryMode === 'scheduled'}
                       minDate={new Date()}
                       withPortal
@@ -747,7 +747,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
                         placeholder="Nhập mã (Vd: KHACHVIP)"
-                        className="flex-grow px-3 py-2 bg-white border border-indigo-200 rounded-lg text-xs font-bold uppercase focus:border-indigo-500 outline-none"
+                        className="flex-grow px-3 py-2 bg-white border border-indigo-200 rounded-lg md:text-xs text-base font-bold uppercase focus:border-indigo-500 outline-none"
                       />
                       <button
                         type="button"
@@ -841,7 +841,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   <textarea
                     value={formData.note}
                     onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
+                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
                     rows={2}
                     placeholder="Ghi chú thêm (Lời chúc, lưu ý giao hàng...)"
                   />
