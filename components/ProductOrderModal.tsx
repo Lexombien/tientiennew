@@ -781,6 +781,23 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         ))}
                       </div>
                     )}
+
+                    {/* NEW: Holiday Policy explanation */}
+                    {globalSettings?.holidayTimeBlockMode && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-fadeIn">
+                        <div className="flex items-start gap-2 text-amber-800">
+                          <span className="text-sm mt-0.5">📢</span>
+                          <p className="text-[11px] font-bold leading-relaxed">
+                            Do ngày Lễ đơn hàng nhiều, Shop xin phép <span className="text-red-600 underline">không thể hẹn chính xác giờ giao</span>.
+                          </p>
+                        </div>
+                        <div className="pl-6 space-y-1.5 text-[10.5px] text-amber-700 font-medium italic leading-snug">
+                          <p>• Shop cam kết sẽ giao trong khung giờ Buổi bạn đã chọn.</p>
+                          <p>• Shipper sẽ gọi điện trước cho người nhận: Nếu người nhận đồng ý sẽ tiến hành giao ngay.</p>
+                          <p>• Trường hợp người nhận bận, shop sẽ sắp xếp giao lại theo thời gian thuận tiện nhất của người nhận.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
