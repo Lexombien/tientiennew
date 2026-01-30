@@ -389,24 +389,40 @@ input.glass-input::placeholder {
   animation: pulse-glow 2s infinite;
 }
 
-/* Shimmer (restored) */
-@keyframes shimmer {
+@keyframes shimmer-rotate {
   0% {
-    background-position: -1000px 0;
+    background-position: 0% 50%;
   }
-
+  50% {
+    background-position: 100% 50%;
+  }
   100% {
-    background-position: 1000px 0;
+    background-position: 0% 50%;
   }
 }
 
-.shimmer {
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.5) 50%,
-      rgba(255, 255, 255, 0) 100%);
-  background-size: 1000px 100%;
-  animation: shimmer 3s infinite;
+.badge-shimmer {
+  background: linear-gradient(-45deg, #ff3e9d, #ff6b9d, #bd5fff, #ff8a5b);
+  background-size: 400% 400%;
+  animation: shimmer-rotate 3s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-shimmer::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent 30%
+  );
+  animation: spin 4s linear infinite;
+  z-index: 1;
 }
 
 /* Gradient Border (Stub for compatibility) */

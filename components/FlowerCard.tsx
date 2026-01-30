@@ -157,12 +157,14 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
           )}
         </div>
 
-        {/* Discount Badge - Neumorphism Style */}
+        {/* Discount Badge - Animated Neumorphism Style */}
         {!isAdmin && product.originalPrice > product.salePrice && (
           <div className="absolute top-3 left-3 z-20 flex items-center justify-center">
-            <div className="bg-rose-500 text-white px-3 py-1.5 rounded-2xl text-[10px] md:text-xs font-black shadow-[4px_4px_10px_rgba(0,0,0,0.2),-2px_-2px_6px_rgba(255,255,255,0.3)] border border-rose-400/30 flex items-center gap-1 transform transition-transform group-hover:scale-110">
-              <span className="text-[10px]">🔥</span>
-              -{Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100)}%
+            <div className="badge-shimmer text-white px-3 py-1.5 rounded-2xl text-[10px] md:text-xs font-black shadow-[4px_4px_10px_rgba(0,0,0,0.3),-2px_-2px_6px_rgba(255,255,255,0.3)] border border-white/20 flex items-center gap-1.5 transform transition-transform group-hover:scale-110">
+              <span className="relative z-10 text-[10px]">🔥</span>
+              <span className="relative z-10">
+                -{Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100)}%
+              </span>
             </div>
           </div>
         )}
