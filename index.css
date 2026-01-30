@@ -475,14 +475,14 @@ input.glass-input::placeholder {
 @keyframes showHide {
 
   0%,
-  39% {
+  49% {
     opacity: 0;
     transform: scale(0.5);
     visibility: hidden;
   }
 
-  45%,
-  94% {
+  55%,
+  95% {
     opacity: 1;
     transform: scale(1);
     visibility: visible;
@@ -496,7 +496,7 @@ input.glass-input::placeholder {
 }
 
 .animate-show-hide {
-  animation: showHide 5s ease-in-out infinite;
+  animation: showHide 10s ease-in-out infinite;
 }
 
 /* Hover-glow-pink (Restored for button compatibility) */
