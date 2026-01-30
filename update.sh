@@ -8,44 +8,56 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${BLUE}====================================================${NC}"
-echo -e "${BLUE}    🚀 ĐANG CẬP NHẬT TÍNH NĂNG MỚI LÊN VPS...      ${NC}"
+echo -e "${BLUE}    🚀 BẮT ĐẦU CẬP NHẬT TÍNH NĂNG MỚI LÊN VPS...   ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
-# 0. Cấu hình Git an toàn (Sửa lỗi ownership nếu có)
+# 0. Sửa lỗi Quyền sở hữu Git (Dubious Ownership)
+echo -e "${YELLOW}[1/7] Cấu hình quyền hạn Git...${NC}"
 git config --global --add safe.directory $(pwd)
 
-# 1. Kéo code từ GitHub
-echo -e "\n${YELLOW}[1/6] Đang lấy code mới nhất từ GitHub...${NC}"
+# 1. Sao lưu file .htaccess (Cấu hình SSL quan trọng)
+echo -e "${YELLOW}[2/7] Đang bảo vệ cấu hình SSL (.htaccess)...${NC}"
+if [ -f ".htaccess" ]; then
+    cp .htaccess .htaccess_production_bak
+fi
+
+# 2. Kéo code mới nhất từ GitHub
+echo -e "${YELLOW}[3/7] Đang lấy code mới nhất từ GitHub...${NC}"
 git fetch --all
 git reset --hard origin/main
 git pull origin main
 
-# 2. Xóa sạch folder build cũ
-echo -e "\n${YELLOW}[2/6] Dọn dẹp bản build cũ...${NC}"
+# 3. Khôi phục lại file SSL sau khi kéo code
+if [ -f ".htaccess_production_bak" ]; then
+    mv .htaccess_production_bak .htaccess
+    echo -e "✅ Đã khôi phục cấu hình SSL."
+fi
+
+# 4. Cài đặt thư viện & Sửa lỗi quyền thực thi
+echo -e "${YELLOW}[4/7] Cài đặt thư viện & Cấp quyền thực thi...${NC}"
+npm install --legacy-peer-deps --quiet
+# Sửa lỗi "vite: Permission denied"
+chmod -R 755 node_modules/.bin
+
+# 5. Build lại giao diện Front-end
+echo -e "${YELLOW}[5/7] Đang đóng gói giao diện mới (Build)...${NC}"
 rm -rf dist
-
-# 3. Cài đặt dependencies
-echo -e "\n${YELLOW}[3/6] Đang cài đặt/cập nhật thư viện...${NC}"
-npm install --legacy-peer-deps
-# Đảm bảo Sharp tương thích với Linux VPS
-npm install --os=linux --cpu=x64 sharp --quiet
-
-# 4. Build lại giao diện mới
-echo -e "\n${YELLOW}[4/6] Đang Build lại giao diện web (Vite)...${NC}"
 npm run build
 
-# 5. Khởi động lại hệ thống
-echo -e "\n${YELLOW}[5/6] Đang khởi động lại PM2 & Web Server...${NC}"
-# Khởi động lại backend
+# 6. Khởi động lại Backend (PM2)
+echo -e "${YELLOW}[6/7] Đang khởi động lại Backend...${NC}"
 pm2 restart all --update-env || pm2 start server.js --name web-backend
-# Khởi động lại OpenLiteSpeed
+pm2 save
+
+# 7. Khởi động lại Web Server (OpenLiteSpeed)
+echo -e "${YELLOW}[7/7] Đang khởi động lại Web Server...${NC}"
 if [ -f "/usr/local/lsws/bin/lswsctrl" ]; then
     /usr/local/lsws/bin/lswsctrl restart > /dev/null
 fi
 
-# 6. Hoàn tất
+# HOÀN TẤT
 echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}   ✅ CẬP NHẬT THÀNH CÔNG!                          ${NC}"
-echo -e "${GREEN}   👉 LƯU Ý: Hãy nhấn Ctrl + F5 trên trình duyệt    ${NC}"
-echo -e "${GREEN}   để xóa cache và thấy giao diện mới nhất.         ${NC}"
+echo -e "${GREEN}   👉 Hãy nhấn Ctrl + F5 trên trình duyệt để thấy   ${NC}"
+echo -e "${GREEN}   tính năng mới.                                   ${NC}"
 echo -e "${GREEN}====================================================${NC}"
