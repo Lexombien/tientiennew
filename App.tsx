@@ -775,8 +775,20 @@ const App: React.FC = () => {
     const newCategories = categories.map(c => c === oldName ? newName : c);
 
     const newCategorySettings = { ...categorySettings };
-    if (newCategorySettings[oldName]) {
-      newCategorySettings[newName] = { ...newCategorySettings[oldName], name: newName };
+
+    // Ép buộc cập nhật hoặc tạo mới settings cho tên mới
+    newCategorySettings[newName] = {
+      ...(newCategorySettings[oldName] || {
+        itemsPerPage: 12,
+        paginationType: 'loadmore',
+        imageTransition: 'none'
+      }),
+      name: newName,
+      displayName: newName // Ép buộc tên hiển thị mới phải bằng tên vừa đổi
+    };
+
+    // Xóa bỏ settings của tên cũ để tránh rác dữ liệu
+    if (oldName !== newName) {
       delete newCategorySettings[oldName];
     }
 
@@ -805,11 +817,6 @@ const App: React.FC = () => {
 
       return changed ? updated : p;
     });
-
-    // Cập nhật cả Display Name nếu nó đang trùng với tên cũ
-    if (newCategorySettings[newName] && (!newCategorySettings[newName].displayName || newCategorySettings[newName].displayName === oldName)) {
-      newCategorySettings[newName].displayName = newName;
-    }
 
     // 2. Update local state
     setCategories(newCategories);
@@ -3191,7 +3198,10 @@ const App: React.FC = () => {
                 .map(cat => (
                   <button
                     key={cat}
-                    onClick={() => scrollToCategory(cat)}
+                    onClick={() => {
+                      scrollToCategory(cat);
+                      setIsMobileMenuOpen(false); // Close menu after clicking category
+                    }}
                     className="text-left py-4 px-5 rounded-2xl font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group"
                     style={{ color: 'var(--text-primary)' }}
                   >

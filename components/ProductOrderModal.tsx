@@ -388,12 +388,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
         <div className="overflow-y-auto flex-1 scrollbar-hide">
           <div className="p-5 space-y-6">
 
-            {/* Gallery - Modern Swipe Style */}
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 group">
+            {/* Gallery - Flexible Height Style */}
+            <div className="relative rounded-2xl overflow-hidden bg-gray-50 group min-h-[250px] flex items-center justify-center">
               <img
                 src={imagesToDisplay[currentImageIndex].url}
                 alt={imagesToDisplay[currentImageIndex].alt}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-auto max-h-[70vh] object-contain transition-transform duration-500 group-hover:scale-105"
               />
 
               {/* Navigation Arrows (Overlay) */}
@@ -493,7 +493,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
                   </div>
-                  <span className="text-sm font-bold text-purple-700">Gửi tặng người thân?</span>
+                  <span className="text-sm font-bold text-purple-700">Gửi tặng người thương ❤️</span>
                 </div>
                 <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isGiftMode ? 'bg-purple-500' : 'bg-gray-300'}`}>
                   <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isGiftMode ? 'translate-x-6' : ''}`} />
@@ -544,7 +544,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </div>
-                        <span className="text-sm font-bold text-blue-700">Giao hàng tại TP.HCM</span>
+                        <span className="text-sm font-bold text-blue-700">{isHCMAddress ? 'Giao hàng tại TP.HCM' : 'Giao hàng toàn quốc'}</span>
                       </div>
                       <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isHCMAddress ? 'bg-blue-500' : 'bg-gray-300'}`}>
                         <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isHCMAddress ? 'translate-x-6' : ''}`} />
@@ -579,7 +579,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none resize-none"
                       rows={2}
-                      placeholder={isHCMAddress ? "Địa chỉ chi tiết (Số nhà, đường, phường...)" : "Địa chỉ đầy đủ (Số nhà, đường, phường, quận/huyện, tỉnh/thành phố)"}
+                      placeholder={isHCMAddress ? "Địa chỉ chi tiết (Số nhà, đường, phường...)\n(Ưu tiên địa chỉ cũ để dễ book ship)" : "Địa chỉ đầy đủ (Số nhà, đường, phường, quận/huyện, tỉnh/thành phố)"}
                       required
                     />
                   </div>
