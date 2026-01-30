@@ -157,6 +157,13 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
           )}
         </div>
 
+        {/* Discount Badge */}
+        {!isAdmin && product.originalPrice > product.salePrice && (
+          <div className="absolute top-2 left-2 z-20 bg-gradient-to-r from-rose-600 to-pink-500 text-white px-2.5 py-1 rounded-full text-[10px] md:text-xs font-black shadow-lg shadow-rose-500/30">
+            -{Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100)}%
+          </div>
+        )}
+
         {isAdmin && (
           <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[1px]">
             <button
