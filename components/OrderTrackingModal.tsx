@@ -23,6 +23,13 @@ interface Order {
   discountAmount?: number;
   productImage?: string;
   note?: string;
+  // Bổ sung các trường thiếu
+  district?: string;
+  isCard?: boolean;
+  cardType?: 'card' | 'banner';
+  cardContent?: string;
+  senderName?: string;
+  senderPhone?: string;
 }
 
 interface OrderTrackingModalProps {
@@ -240,34 +247,83 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                     </button>
 
                     {expandedOrders[order.id] && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-xl space-y-2 animate-fadeIn border border-gray-100 text-left">
-                        <div className="grid grid-cols-2 gap-y-2">
-                          <div>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Ngày đặt:</p>
-                            <p className="text-xs font-medium text-gray-700">{formatDate(order.createdAt)}</p>
+                      <div className="mt-3 p-4 bg-gray-50 rounded-2xl space-y-3 animate-fadeIn border border-gray-100 text-left">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Thời gian & Hình thức */}
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Ngày đặt</p>
+                              <p className="text-sm font-bold text-gray-700">{formatDate(order.createdAt)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Hình thức</p>
+                              <p className="text-sm font-bold text-gray-700">{order.isGift ? '🎁 Gửi tặng' : '🏠 Tự nhận'}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Hình thức:</p>
-                            <p className="text-xs font-medium text-gray-700">{order.isGift ? '🎁 Gửi tặng' : '🏠 Tự nhận'}</p>
-                          </div>
-                          <div className="col-span-2 border-t border-gray-200/50 pt-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Thông tin người nhận:</p>
-                            <p className="text-xs font-medium text-gray-700">{order.customerName} - {order.customerPhone}</p>
-                          </div>
-                          <div className="col-span-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Địa chỉ giao:</p>
-                            <p className="text-xs font-medium text-gray-700">{order.customerAddress}</p>
-                          </div>
-                          <div className="col-span-2 border-t border-gray-200/50 pt-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Thời gian & Ghi chú:</p>
-                            <p className="text-xs font-medium text-gray-700">
-                              🕒 {order.deliveryMode === 'scheduled' ? `Hẹn giờ: ${order.deliveryTime}` : 'Giao ngay'}
-                            </p>
-                            {/* @ts-ignore */}
+
+                          {/* Thời gian giao & Ghi chú */}
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Thời gian giao</p>
+                              <p className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                                {order.deliveryMode === 'scheduled' ? (
+                                  <>
+                                    <span className="text-pink-500">🕒</span>
+                                    {order.deliveryTime ? (
+                                      new Date(order.deliveryTime).toLocaleString('vi-VN', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric'
+                                      })
+                                    ) : 'Hẹn giờ'}
+                                  </>
+                                ) : (
+                                  <><span className="text-blue-500">⚡</span> Giao ngay</>
+                                )}
+                              </p>
+                            </div>
                             {order.note && (
-                              <p className="text-xs text-gray-500 mt-1 italic">" {order.note} "</p>
+                              <div>
+                                <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Ghi chú</p>
+                                <p className="text-xs text-gray-600 italic">"{order.note}"</p>
+                              </div>
                             )}
                           </div>
+
+                          {/* Thông tin người nhận */}
+                          <div className="col-span-1 sm:col-span-2 pt-3 border-t border-gray-200/60">
+                            <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1.5">Thông tin người nhận</p>
+                            <p className="text-sm font-bold text-gray-800">{order.customerName}</p>
+                            <p className="text-sm text-gray-600">{order.customerPhone}</p>
+                            <div className="mt-1.5 p-2 bg-white rounded-lg border border-gray-100">
+                              {order.district && (
+                                <p className="text-[10px] text-pink-600 font-black mb-0.5">📍 {order.district}</p>
+                              )}
+                              <p className="text-xs text-gray-700 leading-relaxed font-medium">{order.customerAddress}</p>
+                            </div>
+                          </div>
+
+                          {/* Thông tin người tặng (C-Người tặng) */}
+                          {order.isGift && (order.senderName || order.senderPhone) && (
+                            <div className="col-span-1 sm:col-span-2 pt-3 border-t border-gray-200/60">
+                              <p className="text-[10px] text-purple-500 uppercase font-black tracking-widest mb-1">💝 Người tặng</p>
+                              <p className="text-sm font-bold text-gray-800">{order.senderName || 'N/A'} - {order.senderPhone || 'N/A'}</p>
+                            </div>
+                          )}
+
+                          {/* Thông tin thiệp / bảng chữ */}
+                          {order.isCard && (
+                            <div className="col-span-1 sm:col-span-2 pt-3 border-t border-gray-200/60">
+                              <p className="text-[10px] text-blue-600 uppercase font-black tracking-widest mb-1">
+                                {order.cardType === 'banner' ? '✍️ Nội dung Bảng chữ (Banner)' : '✍️ Lời chúc trên Thiệp'}
+                              </p>
+                              <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                                <p className="text-sm text-blue-900 font-medium italic">"{order.cardContent || 'Chưa nhập nội dung'}"</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
