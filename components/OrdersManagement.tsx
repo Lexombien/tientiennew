@@ -496,7 +496,8 @@ const OrdersManagement: React.FC = () => {
                                     {selectedOrder.deliveryMode === 'scheduled' && selectedOrder.deliveryTime && (
                                         <p className="mt-1">
                                             <span className="font-semibold">Thời gian: </span>
-                                            {new Date(selectedOrder.deliveryTime).toLocaleString('vi-VN')}
+                                            {new Date(selectedOrder.deliveryTime).toLocaleDateString('vi-VN')}
+                                            {selectedOrder.deliverySession ? ` - Buổi ${selectedOrder.deliverySession}` : ` ${new Date(selectedOrder.deliveryTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`}
                                         </p>
                                     )}
                                 </div>

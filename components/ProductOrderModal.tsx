@@ -241,6 +241,18 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
       return;
     }
 
+    // NEW: Validation for Delivery Time & Session
+    if (deliveryMode === 'scheduled') {
+      if (!deliveryTime) {
+        setSubmitMessage('Vui lòng chọn ngày giao hàng!');
+        return;
+      }
+      if (globalSettings?.holidayTimeBlockMode && !deliverySession) {
+        setSubmitMessage('Vui lòng chọn Buổi giao hàng (Sáng/Trưa/Chiều/Tối)!');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setSubmitMessage('');
 
@@ -792,9 +804,9 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                           </p>
                         </div>
                         <div className="pl-6 space-y-1.5 text-[10.5px] text-amber-700 font-medium italic leading-snug">
-                          <p>• Shop cam kết sẽ giao trong khung giờ Buổi bạn đã chọn.</p>
+                          <p>• Shop sẽ cố gắng giao trong khung giờ Buổi bạn đã chọn.</p>
                           <p>• Shipper sẽ gọi điện trước cho người nhận: Nếu người nhận đồng ý sẽ tiến hành giao ngay.</p>
-                          <p>• Trường hợp người nhận bận, shop sẽ sắp xếp giao lại theo thời gian thuận tiện nhất của người nhận.</p>
+                          <p>• Trường hợp người nhận bận hoặc chưa thuận tiện, shop sẽ sắp xếp phối hợp giao lại theo ý người nhận.</p>
                         </div>
                       </div>
                     )}

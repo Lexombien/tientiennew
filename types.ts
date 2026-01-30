@@ -126,6 +126,8 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  isHCMAddress?: boolean;
+  district?: string;
 
   // Gift info (optional)
   isGift?: boolean;
@@ -150,6 +152,7 @@ export interface Order {
   // Delivery info
   deliveryMode?: 'instant' | 'scheduled';
   deliveryTime?: string;
+  deliverySession?: string; // NEW: Thông tin buổi giao hàng (Sáng/Trưa/Chiều/Tối)
 
   // Additional info
   note?: string;

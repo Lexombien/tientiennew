@@ -1,36 +1,5 @@
 import React, { useState } from 'react';
-import { FlowerProduct } from '../types';
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  createdAt: number;
-  status: string;
-  customerName: string;
-  customerPhone: string;
-  customerAddress: string;
-  productName: string;
-  productPrice: number;
-  variantName?: string;
-  isGift: boolean;
-  deliveryMode: string;
-  deliveryTime?: string;
-  // Payment info
-  shippingFee: number;
-  totalPrice: number;
-  paymentMethod: 'cod' | 'transfer';
-  couponCode?: string;
-  discountAmount?: number;
-  productImage?: string;
-  note?: string;
-  // Bổ sung các trường thiếu
-  district?: string;
-  isCard?: boolean;
-  cardType?: 'card' | 'banner';
-  cardContent?: string;
-  senderName?: string;
-  senderPhone?: string;
-}
+import { FlowerProduct, Order } from '../types';
 
 interface OrderTrackingModalProps {
   isOpen: boolean;
@@ -270,13 +239,14 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                                   <>
                                     <span className="text-pink-500">🕒</span>
                                     {order.deliveryTime ? (
-                                      new Date(order.deliveryTime).toLocaleString('vi-VN', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric'
-                                      })
+                                      <>
+                                        {new Date(order.deliveryTime).toLocaleDateString('vi-VN', {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric'
+                                        })}
+                                        {order.deliverySession ? ` - Buổi ${order.deliverySession}` : ` ${new Date(order.deliveryTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`}
+                                      </>
                                     ) : 'Hẹn giờ'}
                                   </>
                                 ) : (

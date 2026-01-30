@@ -876,6 +876,7 @@ app.post('/api/submit-order', async (req, res) => {
             cardContent,
             deliveryMode,
             deliveryTime,
+            deliverySession, // NEW: Lưu thông tin buổi giao hàng
             note,
             // Thông tin thanh toán
             paymentMethod,
