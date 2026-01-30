@@ -3293,6 +3293,7 @@ const App: React.FC = () => {
           product={orderModalProduct}
           onClose={() => setOrderModalProduct(null)}
           mediaMetadata={mediaMetadata}
+          onImageClick={openLightbox}
         />
       )}
 

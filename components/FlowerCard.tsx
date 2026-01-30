@@ -212,10 +212,10 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
 
       </div>
 
-      {/* Info Section - Click to Zalo */}
+      {/* Info Section - Click to Order Modal */}
       <div
         className={`p-3 md:p-4 flex flex-col flex-grow ${!isAdmin ? 'cursor-pointer hover:bg-pink-50/50 transition-colors' : ''}`}
-        onClick={!isAdmin ? handleZaloRedirect : undefined}
+        onClick={!isAdmin ? (e) => onOrderClick ? onOrderClick(product) : handleZaloRedirect(e) : undefined}
       >
         <h3
           className={`font-semibold mb-2 line-clamp-2 leading-snug group-hover:text-[var(--primary-pink)] transition-colors ${isAdmin ? 'text-xs md:text-base' : 'text-sm md:text-base'}`}

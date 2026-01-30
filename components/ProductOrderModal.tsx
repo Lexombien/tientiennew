@@ -11,9 +11,10 @@ interface ProductOrderModalProps {
   product: FlowerProduct;
   onClose: () => void;
   mediaMetadata?: Record<string, { alt?: string, title?: string, description?: string }>;
+  onImageClick?: (images: { url: string, alt: string }[], index: number, productInfo?: any) => void;
 }
 
-const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose, mediaMetadata = {} }) => {
+const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose, mediaMetadata = {}, onImageClick }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGiftMode, setIsGiftMode] = useState(false); // Tặng người khác mode
   const [showSuccessScreen, setShowSuccessScreen] = useState(false); // Success screen
@@ -388,41 +389,62 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
         <div className="overflow-y-auto flex-1 scrollbar-hide">
           <div className="p-5 space-y-6">
 
-            {/* Gallery - Flexible Height Style */}
-            <div className="relative rounded-2xl overflow-hidden bg-gray-50 group min-h-[250px] flex items-center justify-center">
-              <img
-                src={imagesToDisplay[currentImageIndex].url}
-                alt={imagesToDisplay[currentImageIndex].alt}
-                className="w-full h-auto max-h-[70vh] object-contain transition-transform duration-500 group-hover:scale-105"
-              />
+            {/* Fixed Square Gallery for Compact Design */}
+            <div className="space-y-2">
+              <div
+                className="relative aspect-square rounded-3xl overflow-hidden bg-gray-50 group cursor-zoom-in shadow-inner border border-gray-100"
+                onClick={() => {
+                  if (onImageClick) {
+                    onImageClick(imagesToDisplay, currentImageIndex, {
+                      title: product.title,
+                      sku: product.sku,
+                      variants: product.variants
+                    });
+                  }
+                }}
+              >
+                {imagesToDisplay.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={img.url}
+                    alt={img.alt}
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out group-hover:scale-110 ${idx === currentImageIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                  />
+                ))}
 
-              {/* Navigation Arrows (Overlay) */}
-              {imagesToDisplay.length > 1 && (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prev) => (prev - 1 + imagesToDisplay.length) % imagesToDisplay.length); }}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 backdrop-blur-md text-white hover:bg-white/50 transition-all flex items-center justify-center"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prev) => (prev + 1) % imagesToDisplay.length); }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 backdrop-blur-md text-white hover:bg-white/50 transition-all flex items-center justify-center"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                  </button>
+                {/* Navigation Arrows (Overlay) */}
+                {imagesToDisplay.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prev) => (prev - 1 + imagesToDisplay.length) % imagesToDisplay.length); }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white transition-all flex items-center justify-center z-10"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prev) => (prev + 1) % imagesToDisplay.length); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white transition-all flex items-center justify-center z-10"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+                    </button>
 
-                  {/* Indicators */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {imagesToDisplay.map((_, idx) => (
-                      <div
-                        key={idx}
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/50'}`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
+                    {/* Dots indicator */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                      {imagesToDisplay.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-5 bg-white shadow-md' : 'w-1.5 bg-white/40'}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-400 text-center font-medium italic animate-pulse">
+                🔍 Click vào ảnh để xem ảnh đầy đủ
+              </p>
             </div>
 
             {/* Product Title & Price (Moved below Image) */}
