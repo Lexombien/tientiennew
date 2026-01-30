@@ -738,6 +738,7 @@ app.post('/api/submit-order', async (req, res) => {
             // Thông tin giao hàng
             deliveryMode,
             deliveryTime,
+            deliverySession, // NEW
             // Thông tin thanh toán
             paymentMethod,
             shippingFee,
@@ -803,15 +804,27 @@ app.post('/api/submit-order', async (req, res) => {
         // Thông tin giao hàng
         if (deliveryMode === 'scheduled' && deliveryTime) {
             const date = new Date(deliveryTime);
-            const formattedDate = date.toLocaleString('vi-VN', {
-                timeZone: 'Asia/Ho_Chi_Minh',
-                hour: '2-digit',
-                minute: '2-digit',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-            message += `🕒 Hẹn giao: ${formattedDate}\n`;
+            if (deliverySession) {
+                // If there's a session, just show date + session
+                const formattedDate = date.toLocaleDateString('vi-VN', {
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                message += `🕒 Hẹn giao: ${formattedDate} - Buổi ${deliverySession}\n`;
+            } else {
+                // Normal mode: show date + time
+                const formattedDate = date.toLocaleString('vi-VN', {
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                message += `🕒 Hẹn giao: ${formattedDate}\n`;
+            }
         } else {
             message += `⚡ Giao hàng: Giao liền (Càng sớm càng tốt)\n`;
         }

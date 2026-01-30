@@ -12,9 +12,10 @@ interface ProductOrderModalProps {
   onClose: () => void;
   mediaMetadata?: Record<string, { alt?: string, title?: string, description?: string }>;
   onImageClick?: (images: { url: string, alt: string }[], index: number, productInfo?: any) => void;
+  globalSettings?: any;
 }
 
-const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose, mediaMetadata = {}, onImageClick }) => {
+const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose, mediaMetadata = {}, onImageClick, globalSettings }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGiftMode, setIsGiftMode] = useState(false); // Tặng người khác mode
   const [showSuccessScreen, setShowSuccessScreen] = useState(false); // Success screen
@@ -42,6 +43,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
   const [shippingFees, setShippingFees] = useState<Record<string, number>>({}); // Bảng phí ship từ DB
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'transfer'>('transfer'); // Phương thức thanh toán mặc định là chuyển khoản
   const [busyInterval, setBusyInterval] = useState(30); // NEW: Interval thời gian (mặc định 30ph)
+  const [deliverySession, setDeliverySession] = useState<string | null>(null); // NEW: Khung giờ buổi (Sáng/Trưa/Chiều/Tối)
 
   // 🆕 Tự động chuyển sang Chuyển khoản khi bật chế độ Gửi tặng
   useEffect(() => {
@@ -58,7 +60,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
   // Danh sách các quận ở TP.HCM
   const HCM_DISTRICTS = [
     'Quận 1', 'Quận 2', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 'Quận 7', 'Quận 8', 'Quận 9', 'Quận 10',
-    'Quận 11', 'Quận 12', 'Quận Bình Tán', 'Quận Bình Thạnh', 'Quận Gò Vấp', 'Quận Phú Nhuận',
+    'Quận 11', 'Quận 12', 'Quận Bình Tân', 'Quận Bình Thạnh', 'Quận Gò Vấp', 'Quận Phú Nhuận',
     'Quận Tân Bình', 'Quận Tân Phú', 'Quận Thủ Đức', 'Huyện Bình Chánh', 'Huyện Cần Giờ',
     'Huyện Củ Chi', 'Huyện Hóc Môn', 'Huyện Nhà Bè'
   ];
@@ -278,6 +280,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
           // Thông tin giao hàng
           deliveryMode,
           deliveryTime: deliveryMode === 'scheduled' ? deliveryTime : undefined,
+          deliverySession: deliveryMode === 'scheduled' ? deliverySession : undefined,
           // Thông tin thanh toán
           paymentMethod,
           shippingFee,
@@ -717,40 +720,67 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 </div>
 
                 {deliveryMode === 'scheduled' && (
-                  <div className="animate-fadeIn">
-                    <DatePicker
-                      selected={deliveryTime}
-                      onChange={(date) => setDeliveryTime(date)}
-                      showTimeSelect
-                      timeFormat="HH:mm"
-                      timeIntervals={busyInterval}
-                      timeCaption="Giờ"
-                      dateFormat="dd/MM/yyyy HH:mm"
-                      renderCustomHeader={({
-                        date,
-                        decreaseMonth,
-                        increaseMonth,
-                        prevMonthButtonDisabled,
-                        nextMonthButtonDisabled,
-                      }) => (
-                        <div className="custom-datepicker-header">
-                          <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                  <div className="animate-fadeIn space-y-4">
+                    {/* Date Selection */}
+                    <div className="relative">
+                      <DatePicker
+                        selected={deliveryTime}
+                        onChange={(date) => setDeliveryTime(date)}
+                        showTimeSelect={!globalSettings?.holidayTimeBlockMode}
+                        timeFormat="HH:mm"
+                        timeIntervals={busyInterval}
+                        timeCaption="Giờ"
+                        dateFormat={globalSettings?.holidayTimeBlockMode ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm"}
+                        renderCustomHeader={({
+                          date,
+                          decreaseMonth,
+                          increaseMonth,
+                          prevMonthButtonDisabled,
+                          nextMonthButtonDisabled,
+                        }) => (
+                          <div className="custom-datepicker-header">
+                            <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <span className="font-bold text-gray-800">Tháng {date.getMonth() + 1}, {date.getFullYear()}</span>
+                            <button onClick={increaseMonth} disabled={nextMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                          </div>
+                        )}
+                        locale="vi"
+                        placeholderText={globalSettings?.holidayTimeBlockMode ? "Chọn ngày giao hàng..." : "Chọn ngày giờ giao hàng..."}
+                        className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
+                        required={deliveryMode === 'scheduled'}
+                        minDate={new Date()}
+                        withPortal
+                        onFocus={(e) => e.target.blur()} // Prevent keyboard on mobile
+                      />
+                    </div>
+
+                    {/* NEW: Session Selection for Holiday Mode */}
+                    {globalSettings?.holidayTimeBlockMode && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { id: 'morning', label: 'Sáng', range: '8h-11h', icon: '🌅' },
+                          { id: 'noon', label: 'Trưa', range: '11h-13h', icon: '☀️' },
+                          { id: 'afternoon', label: 'Chiều', range: '13h-18h', icon: '🌇' },
+                          { id: 'evening', label: 'Tối', range: '18h-23h', icon: '🌙' }
+                        ].map((session) => (
+                          <button
+                            key={session.id}
+                            type="button"
+                            onClick={() => setDeliverySession(`${session.label} (${session.range})`)}
+                            className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${deliverySession?.includes(session.label)
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-100 bg-white text-gray-500 hover:border-orange-200'}`}
+                          >
+                            <span className="text-sm mb-0.5">{session.icon} {session.label}</span>
+                            <span className="text-[10px] opacity-60 font-bold">{session.range}</span>
                           </button>
-                          <span className="font-bold text-gray-800">Tháng {date.getMonth() + 1}, {date.getFullYear()}</span>
-                          <button onClick={increaseMonth} disabled={nextMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                          </button>
-                        </div>
-                      )}
-                      locale="vi"
-                      placeholderText="Chọn ngày giờ giao hàng..."
-                      className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
-                      required={deliveryMode === 'scheduled'}
-                      minDate={new Date()}
-                      withPortal
-                      onFocus={(e) => e.target.blur()} // Prevent keyboard on mobile
-                    />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -149,6 +149,7 @@ const App: React.FC = () => {
       // NEW: Holiday/Busy Mode Settings
       holidayMode: false,
       holidayInterval: 120, // default 2 hours (120 minutes)
+      holidayTimeBlockMode: false, // NEW: Chọn buổi (Sáng, Trưa, Chiều, Tối)
 
       // NEW: Coupon Settings
       coupons: [] as { code: string; discountPercent: number }[],
@@ -2270,8 +2271,33 @@ const App: React.FC = () => {
                   </label>
                 </div>
 
-                {globalSettings.holidayMode && (
-                  <div className="animate-in slide-in-from-top-2 duration-300 space-y-4 pt-2 border-t border-orange-100">
+                {/* Time Block Mode Toggle */}
+                <div className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl border border-purple-100 mt-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-bold mb-1 text-purple-700">
+                      🕒 Chế độ giao theo Buổi (Sáng/Trưa/Chiều/Tối)
+                    </label>
+                    <p className="text-xs text-purple-600/80">
+                      Dùng cho ngày đại lễ (14/2, 8/3). Khách chỉ chọn Buổi, không chọn giờ chính xác.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={globalSettings.holidayTimeBlockMode || false}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, holidayTimeBlockMode: e.target.checked };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                    />
+                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-500 peer-checked:to-pink-500"></div>
+                  </label>
+                </div>
+
+                {globalSettings.holidayMode && !globalSettings.holidayTimeBlockMode && (
+                  <div className="animate-in slide-in-from-top-2 duration-300 space-y-4 pt-2 border-t border-orange-100 mt-4">
                     <label className="block text-xs font-bold text-orange-800 ml-1">Khoảng cách giữa các khung giờ (phút)</label>
                     <div className="flex gap-3 items-center">
                       <select
@@ -3294,6 +3320,7 @@ const App: React.FC = () => {
           onClose={() => setOrderModalProduct(null)}
           mediaMetadata={mediaMetadata}
           onImageClick={openLightbox}
+          globalSettings={globalSettings}
         />
       )}
 
