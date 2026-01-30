@@ -157,9 +157,9 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
           )}
         </div>
 
-        {/* Discount Badge - Neon Spin Style (Inspired by Rude Robin) */}
+        {/* Discount Badge - Neon Spin Style with Periodic Visibility */}
         {!isAdmin && product.originalPrice > product.salePrice && (
-          <div className="absolute top-2 left-2 z-20">
+          <div className="absolute top-2 left-2 z-20 animate-show-hide">
             <div className="badge-neon-spin">
               <span className="badge-content">
                 -{Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100)}%

@@ -472,6 +472,33 @@ input.glass-input::placeholder {
   }
 }
 
+@keyframes showHide {
+
+  0%,
+  39% {
+    opacity: 0;
+    transform: scale(0.5);
+    visibility: hidden;
+  }
+
+  45%,
+  94% {
+    opacity: 1;
+    transform: scale(1);
+    visibility: visible;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+    visibility: hidden;
+  }
+}
+
+.animate-show-hide {
+  animation: showHide 5s ease-in-out infinite;
+}
+
 /* Hover-glow-pink (Restored for button compatibility) */
 .hover-glow-pink:hover {
   box-shadow: 0 0 20px rgba(255, 107, 157, 0.6);
