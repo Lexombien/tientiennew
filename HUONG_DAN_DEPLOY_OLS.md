@@ -16,22 +16,39 @@ Tài liệu này hướng dẫn cách đưa website lên mạng chạy trên VPS
 ### 2. Thực hiện trên VPS
 Mở SSH (Terminal) và chạy lần lượt các lệnh sau:
 
-**Bước 1: Vào thư mục chứa web**
+**Bước 1: Vào thư mục chứa web (Ví dụ: hoasaphcm.vn)**
 ```bash
-cd /usr/local/lsws/lemyloi.work.gd/html
-# Thay 'lemyloi.work.gd' bằng tên miền thực của bạn
+cd /usr/local/lsws/hoasaphcm.vn/html
 ```
 
-**Bước 2: Xóa file rác và lấy code về**
+**Bước 2: Sao lưu SSL và Lấy code mới**
+Nếu bạn đã có SSL (file `.htaccess` quan trọng), hãy làm theo cách này để không bị mất:
 ```bash
-rm -rf * .[^.]*  # Xóa sạch file cũ
+# 1. Tạm thời giấu file cấu hình SSL đi
+mv .htaccess .htaccess_ssl_bak 2>/dev/null
+
+# 2. Xóa các file cũ (trừ file bak vừa tạo)
+rm -rf * .[^.]* 2>/dev/null
+mv .htaccess_ssl_bak .htaccess
+
+# 3. Clone code từ GitHub vào thư mục hiện tại
 git clone https://github.com/Lexombien/tientiennew.git .
 ```
 
-**Bước 3: Chạy Script cài đặt "Thần thánh"**
+**Bước 3: Chạy Script cài đặt thông minh**
+Lệnh này sẽ cài đặt NodeJS, Backend, Build giao diện và cấu hình Server:
 ```bash
 bash ols-install.sh
 ```
+
+**Lưu ý quan trọng khi chạy Script:**
+Khi Script hỏi về SSL, hãy chọn như sau:
+*   Nếu đã có SSL rồi: Nhấn **n** (No) hoặc **u** (Update - chỉ cập nhật cấu hình vào vhost).
+*   Nếu chưa có SSL: Nhấn **y** (Yes) để cài mới.
+
+**Bước 4: Kiểm tra kết quả**
+*   Truy cập: `https://tenmien.com`
+*   Nếu thấy lỗi 404 hoặc 403, hãy vào Admin (`/admin`) nhấn **Lưu** một lần để tạo lại dữ liệu.
 
 ### 3. Nhập thông tin
 Script sẽ hỏi bạn vài câu đơn giản:

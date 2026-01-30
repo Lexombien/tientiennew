@@ -88,19 +88,34 @@ pm2 start server.js --name "web-backend"
 pm2 save
 pm2 startup | grep "sudo" | bash 2>/dev/null
 
-# 9. CÀI ĐẶT SSL TỰ ĐỘNG (XÁC THỰC CỨNG)
-echo -e "\n${PURPLE}Step 7: CÀI ĐẶT SSL (HTTPS) TỰ ĐỘNG...${NC}"
-echo -e "⏳ Đang tạm dừng OLS để xác thực cổng 80..."
-"$OLS_ROOT/bin/lswsctrl" stop > /dev/null
-
-# Dùng standalone mode để lấy SSL một cách tin cậy nhất
-certbot certonly --standalone -d "$DOMAIN_NAME" --non-interactive --agree-tos --email admin@$DOMAIN_NAME --quiet
+# 9. CÀI ĐẶT SSL TỰ ĐỘNG (TÙY CHỌN)
+echo -e "\n${YELLOW}[3/3] CẤU HÌNH SSL (HTTPS)${NC}"
+read -p "👉 Bạn có muốn cài đặt SSL mới không? (y/n/u - y: Cài mới, n: Bỏ qua, u: Chỉ cập nhật cấu hình cũ): " INSTALL_SSL
+INSTALL_SSL=${INSTALL_SSL:-y}
 
 SSL_KEY="/etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem"
 SSL_CERT="/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem"
+SSL_CFG=""
+REDIRECT_CFG=""
 
-if [ -f "$SSL_KEY" ]; then
-    echo -e "${GREEN}✅ Thành công! Đã cấp chứng chỉ SSL cho $DOMAIN_NAME.${NC}"
+if [[ "$INSTALL_SSL" == "y" || "$INSTALL_SSL" == "Y" ]]; then
+    echo -e "\n${PURPLE}Step 7: ĐANG CÀI ĐẶT SSL (HTTPS) TỰ ĐỘNG...${NC}"
+    echo -e "⏳ Đang tạm dừng OLS để xác thực cổng 80..."
+    "$OLS_ROOT/bin/lswsctrl" stop > /dev/null
+
+    # Dùng standalone mode để lấy SSL một cách tin cậy nhất
+    certbot certonly --standalone -d "$DOMAIN_NAME" --non-interactive --agree-tos --email admin@$DOMAIN_NAME --quiet
+
+    if [ -f "$SSL_KEY" ]; then
+        echo -e "${GREEN}✅ Thành công! Đã cấp chứng chỉ SSL cho $DOMAIN_NAME.${NC}"
+    else
+        echo -e "${RED}❌ Thất bại: Không lấy được SSL. Kiểm tra lại DNS trỏ về IP VPS chưa?${NC}"
+    fi
+    "$OLS_ROOT/bin/lswsctrl" start > /dev/null
+fi
+
+# Cấu hình chuỗi SSL cho VHost nếu file tồn tại (áp dụng cho cả 'y' thành công và 'u')
+if [[ "$INSTALL_SSL" != "n" && -f "$SSL_KEY" ]]; then
     SSL_CFG="
 vhssl  {
   keyFile                 $SSL_KEY
@@ -116,14 +131,7 @@ RewriteCond %{SERVER_PORT} 80
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 END_REWRITE
 }"
-else
-    echo -e "${RED}❌ Thất bại: Không lấy được SSL. Kiểm tra lại DNS trỏ về IP VPS chưa?${NC}"
-    SSL_CFG=""
-    REDIRECT_CFG=""
 fi
-
-echo -e "⏳ Đang khởi động lại OLS..."
-"$OLS_ROOT/bin/lswsctrl" start > /dev/null
 
 # 10. GHI CẤU HÌNH VHOST VÀO OPENLITESPEED
 echo -e "\n${PURPLE}Step 8: Cập nhật cấu hình OpenLiteSpeed...${NC}"
