@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Màu sắc cho thông báo
+# Màu sắc thông báo
 GREEN='\033[0;32m'
-BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m'
@@ -12,61 +12,57 @@ echo -e "${BLUE}====================================================${NC}"
 echo -e "${BLUE}    🚀 BẮT ĐẦU CẬP NHẬT TÍNH NĂNG MỚI LÊN VPS...   ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
-# 0. Sửa lỗi Quyền sở hữu Git
+# 0. Sửa lỗi quyền Git
 git config --global --add safe.directory $(pwd)
 
-# 1. SAO LƯU CẤU HÌNH SSL TRÊN VPS (CỰC KỲ QUAN TRỌNG)
-echo -e "${YELLOW}[1/7] Đang bảo vệ cấu hình SSL & Web server...${NC}"
+# 1. BẢO VỆ SSL TRÊN VPS (CỰC KỲ QUAN TRỌNG)
+echo -e "${YELLOW}[1/7] Đang bảo vệ cấu hình SSL từ VPS...${NC}"
 if [ -f ".htaccess" ]; then
-    cp .htaccess .htaccess_ssl_vps_bak
-    echo -e "✅ Đã tạm giữ cấu hình SSL của VPS."
+    cp .htaccess .htaccess_ssl_vps_safe
+    echo -e "✅ Đã đóng băng cấu hình SSL."
 fi
 
-# 2. Kéo code mới nhất từ GitHub
-echo -e "${YELLOW}[2/7] Đang lấy code mới nhất từ GitHub...${NC}"
+# 2. LẤY CODE MỚI NHẤT
+echo -e "${YELLOW}[2/7] Đang kéo code mới nhất từ GitHub...${NC}"
 git fetch --all
 git reset --hard origin/main
 git pull origin main
 
-# 3. KHÔI PHỤC CẤU HÌNH SSL CỦA VPS (Ghi đè hoàn toàn file từ GitHub)
-if [ -f ".htaccess_ssl_vps_bak" ]; then
-    mv .htaccess_ssl_vps_bak .htaccess
-    echo -e "✅ Đã khôi phục cấu hình SSL nguyên bản của VPS (Bỏ qua file GitHub)."
+# 3. KHÔI PHỤC SSL (Ghi đè file GitHub)
+if [ -f ".htaccess_ssl_vps_safe" ]; then
+    mv .htaccess_ssl_vps_safe .htaccess
+    echo -e "✅ Đã khôi phục cấu hình SSL nguyên bản của VPS."
 fi
 
-# 4. Cài đặt thư viện & Sửa lỗi quyền thực thi
-echo -e "${YELLOW}[3/7] Cài đặt thư viện & Cấp quyền thực thi...${NC}"
+# 4. FIX LỖI QUYỀN THỰC THI (FIX EACCES ESBUILD)
+echo -e "${YELLOW}[3/7] Đang cài đặt thư viện & Mở khóa quyền thực thi...${NC}"
 npm install --legacy-peer-deps --quiet
-chmod -R 755 node_modules/.bin
-chmod +x node_modules/vite/bin/vite.js 2>/dev/null
+# Cấp quyền thực thi mạnh mẽ cho toàn bộ thư mục node_modules để tránh lỗi EACCES
+chmod -R +x node_modules
+echo -e "✅ Đã mở khóa bộ máy Build (Esbuild/Vite)."
 
-# 5. Build lại giao diện Front-end
+# 5. BUILD GIAO DIỆN (Dừng nếu lỗi)
 echo -e "${YELLOW}[4/7] Đang đóng gói giao diện mới (Build)...${NC}"
 rm -rf dist
 if ! ./node_modules/.bin/vite build; then
-    echo -e "${RED}❌ LỖI: Build không thành công. Hệ thống vẫn giữ bản cũ.${NC}"
+    echo -e "${RED}❌ LỖI: Build thất bại do quyền hạn hoặc lỗi code!${NC}"
     exit 1
 fi
 
-# 6. Khởi động lại Backend (PM2)
-echo -e "${YELLOW}[5/7] Đang khởi động lại Backend...${NC}"
+# 6. KHỞI ĐỘNG LẠI HỆ THỐNG
+echo -e "${YELLOW}[5/7] Đang khởi động lại Backend & Web Server...${NC}"
 pm2 restart web-backend --update-env || pm2 start server.js --name web-backend
 pm2 save
+/usr/local/lsws/bin/lswsctrl restart > /dev/null
 
-# 7. Khởi động lại Web Server (OpenLiteSpeed)
-echo -e "${YELLOW}[6/7] Đang khởi động lại Web Server...${NC}"
-if [ -f "/usr/local/lsws/bin/lswsctrl" ]; then
-    /usr/local/lsws/bin/lswsctrl restart > /dev/null
-fi
-
-# 8. HIỂN THỊ TRẠNG THÁI
+# 7. HIỂN THỊ TRẠNG THÁI (URL, UPLOAD, ZALO BOT)
 echo -e "\n${CYAN}====================================================${NC}"
-echo -e "${CYAN}    📡 TRẠNG THÁI HỆ THỐNG HIỆN TẠI                ${NC}"
+echo -e "${CYAN}    📡 ĐANG KIỂM TRA TRẠNG THÁI HỆ THỐNG...        ${NC}"
 echo -e "${CYAN}====================================================${NC}"
 sleep 1
-timeout 5s pm2 logs web-backend --lines 20 --raw
+timeout 7s pm2 logs web-backend --lines 25 --raw
 
 echo -e "\n${GREEN}====================================================${NC}"
-echo -e "${GREEN}   ✅ CẬP NHẬT THÀNH CÔNG & ĐÃ GIỮ LẠI SSL!         ${NC}"
-echo -e "${GREEN}   👉 Nhấn Ctrl + F5 để xem thay đổi.               ${NC}"
+echo -e "${GREEN}   ✨ CHÚC MỪNG! WEBSITE ĐÃ CẬP NHẬT THÀNH CÔNG ✨   ${NC}"
+echo -e "${GREEN}   🔒 SSL CỦA BẠN VẪN AN TOÀN TUYỆT ĐỐI.            ${NC}"
 echo -e "${GREEN}====================================================${NC}"
