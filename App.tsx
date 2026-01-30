@@ -614,6 +614,18 @@ const App: React.FC = () => {
     }).catch(err => console.error('Categories sync failed:', err));
   };
 
+  // Hàm helper dùng chung để lọc sản phẩm theo danh mục (hỗ trợ cả multi-category)
+  const getProductsInCategory = (categoryName: string, productList: FlowerProduct[]) => {
+    return productList.filter(f => {
+      // Ưu tiên kiểm tra mảng categories (hỗ trợ đa danh mục)
+      if (f.categories && f.categories.length > 0) {
+        return f.categories.some(c => c.trim().toLowerCase() === categoryName.trim().toLowerCase());
+      }
+      // Phụ trợ: kiểm tra trường category đơn lẻ (tương thích ngược)
+      return f.category?.trim().toLowerCase() === categoryName.trim().toLowerCase();
+    });
+  };
+
   const handleAddOrUpdateProduct = (productOrEvent: React.FormEvent | FlowerProduct) => {
     // Support both old form event and new direct product parameter
     let productToSave: FlowerProduct;
@@ -769,14 +781,26 @@ const App: React.FC = () => {
     const updatedProducts = products.map(p => {
       let updated = { ...p };
       let changed = false;
-      if (p.category === oldName) {
+      const oldLower = oldName.trim().toLowerCase();
+
+      // Update single category
+      if (p.category?.trim().toLowerCase() === oldLower) {
         updated.category = newName;
         changed = true;
       }
-      if (p.categories && p.categories.includes(oldName)) {
-        updated.categories = p.categories.map(c => c === oldName ? newName : c);
+
+      // Update multiple categories array
+      if (p.categories && p.categories.some(c => c.trim().toLowerCase() === oldLower)) {
+        updated.categories = p.categories.map(c =>
+          c.trim().toLowerCase() === oldLower ? newName : c
+        );
+        changed = true;
+      } else if (p.category?.trim().toLowerCase() === oldLower && (!p.categories || p.categories.length === 0)) {
+        // Nếu không có categories nhưng category lại khớp, thì tạo luôn categories cho sp đó
+        updated.categories = [newName];
         changed = true;
       }
+
       return changed ? updated : p;
     });
 
@@ -1443,8 +1467,7 @@ const App: React.FC = () => {
                   <div className="space-y-8">
                     {/* Products with valid categories */}
                     {categories.map((category) => {
-                      const categoryProducts = products
-                        .filter(p => p.category === category)
+                      const categoryProducts = getProductsInCategory(category, products)
                         .sort((a, b) => (a.order || 0) - (b.order || 0));
 
                       if (categoryProducts.length === 0) return null;
@@ -3184,13 +3207,9 @@ const App: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8 mt-16">
         {categories.map((category) => {
-          // Support both old single category and new multiple categories
-          const categoryProducts = products.filter(f => {
-            if (f.categories && f.categories.length > 0) {
-              return f.categories.includes(category);
-            }
-            return f.category === category;
-          });
+          // Sử dụng hàm helper dùng chung để đảm bảo đồng bộ với Admin
+          const categoryProducts = getProductsInCategory(category, products);
+
           if (categoryProducts.length === 0) return null;
 
           const settings = categorySettings[category] || {
