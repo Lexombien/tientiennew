@@ -129,21 +129,19 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
                         const displaySKU = variant.sku || productSKU;
 
                         return (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                <div className="flex items-center gap-2 text-white/90">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[10px] font-medium opacity-70">🎨</span>
-                                        <span className="text-[11px] md:text-xs font-bold whitespace-nowrap">{variant.name}</span>
+                            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 shadow-lg animate-in fade-in duration-500 whitespace-nowrap">
+                                <div className="flex items-center gap-1.5 text-white/80">
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-[9px] font-bold">{variant.name}</span>
                                     </div>
 
-                                    {/* Subtle Divider */}
-                                    {displaySKU && <div className="w-px h-3 bg-white/20"></div>}
+                                    {/* Tiny Divider */}
+                                    {displaySKU && <div className="w-px h-2 bg-white/20"></div>}
 
-                                    {/* SKU with smaller font */}
+                                    {/* SKU - Single line */}
                                     {displaySKU && (
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-[10px] font-medium opacity-50">#</span>
-                                            <span className="text-[11px] md:text-xs font-medium tracking-tight opacity-80">{displaySKU}</span>
+                                        <div className="flex items-center gap-0.5">
+                                            <span className="text-[9px] opacity-60 font-medium">{displaySKU}</span>
                                         </div>
                                     )}
                                 </div>

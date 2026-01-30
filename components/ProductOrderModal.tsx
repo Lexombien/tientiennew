@@ -43,6 +43,13 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'transfer'>('transfer'); // Phương thức thanh toán mặc định là chuyển khoản
   const [busyInterval, setBusyInterval] = useState(30); // NEW: Interval thời gian (mặc định 30ph)
 
+  // 🆕 Tự động chuyển sang Chuyển khoản khi bật chế độ Gửi tặng
+  useEffect(() => {
+    if (isGiftMode) {
+      setPaymentMethod('transfer');
+    }
+  }, [isGiftMode]);
+
   // Coupon states
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string, percent: number } | null>(null);
@@ -791,28 +798,40 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 {/* Shipping Fee & Payment Method Section */}
                 <div className="space-y-3">
                   {/* Payment Method Selection */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('transfer')}
-                      className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'transfer'
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-100 bg-white text-gray-500 hover:border-blue-200'}`}
-                    >
-                      <span className="text-lg mb-1">🏦</span>
-                      <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Chuyển khoản trước</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('cod')}
-                      className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'cod'
-                        ? 'border-pink-500 bg-pink-50 text-pink-700'
-                        : 'border-gray-100 bg-white text-gray-500 hover:border-pink-200'}`}
-                    >
-                      <span className="text-lg mb-1">🤝</span>
-                      <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Nhận hàng thanh toán (COD)</span>
-                    </button>
-                  </div>
+                  {!isGiftMode ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('transfer')}
+                        className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'transfer'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-100 bg-white text-gray-500 hover:border-blue-200'}`}
+                      >
+                        <span className="text-lg mb-1">🏦</span>
+                        <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Chuyển khoản trước</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('cod')}
+                        className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'cod'
+                          ? 'border-pink-500 bg-pink-50 text-pink-700'
+                          : 'border-gray-100 bg-white text-gray-500 hover:border-pink-200'}`}
+                      >
+                        <span className="text-lg mb-1">🤝</span>
+                        <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Nhận hàng thanh toán (COD)</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-blue-50 border-2 border-blue-500 rounded-xl flex flex-col items-center justify-center animate-fadeIn">
+                      <div className="flex items-center gap-2 text-blue-700 mb-1">
+                        <span className="text-lg">🏦</span>
+                        <span className="text-xs font-black uppercase tracking-tight">Chuyển khoản trước</span>
+                      </div>
+                      <p className="text-[10px] text-blue-600 font-bold italic">
+                        💝 Đối với đơn hàng gửi tặng, vui lòng thanh toán trước
+                      </p>
+                    </div>
+                  )}
 
                   {/* Compact Shipping Fee & Total */}
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
