@@ -22,6 +22,7 @@ interface Order {
   couponCode?: string;
   discountAmount?: number;
   productImage?: string;
+  note?: string;
 }
 
 interface OrderTrackingModalProps {
@@ -35,6 +36,14 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+
+  const toggleOrder = (orderId: string) => {
+    setExpandedOrders(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
 
   // Lấy Zalo Link từ settings
   const [zaloLink, setZaloLink] = useState('https://zalo.me/0900000000');
@@ -62,6 +71,7 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
     setError('');
     setHasSearched(false);
     setOrders([]);
+    setExpandedOrders({});
 
     try {
       const response = await fetch(`/api/orders?phone=${encodeURIComponent(phone)}`);
@@ -213,6 +223,54 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                         <div className="font-bold text-pink-600">{formatPrice(order.productPrice)}</div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Toggle View Details */}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => toggleOrder(order.id)}
+                      className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-pink-600 transition-colors w-full justify-center group"
+                    >
+                      {expandedOrders[order.id] ? (
+                        <>Ẩn chi tiết đặt hàng <svg className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" /></svg></>
+                      ) : (
+                        <>Xem chi tiết đặt hàng <svg className="w-4 h-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg></>
+                      )}
+                    </button>
+
+                    {expandedOrders[order.id] && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-xl space-y-2 animate-fadeIn border border-gray-100 text-left">
+                        <div className="grid grid-cols-2 gap-y-2">
+                          <div>
+                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Ngày đặt:</p>
+                            <p className="text-xs font-medium text-gray-700">{formatDate(order.createdAt)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Hình thức:</p>
+                            <p className="text-xs font-medium text-gray-700">{order.isGift ? '🎁 Gửi tặng' : '🏠 Tự nhận'}</p>
+                          </div>
+                          <div className="col-span-2 border-t border-gray-200/50 pt-2">
+                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Thông tin người nhận:</p>
+                            <p className="text-xs font-medium text-gray-700">{order.customerName} - {order.customerPhone}</p>
+                          </div>
+                          <div className="col-span-2">
+                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Địa chỉ giao:</p>
+                            <p className="text-xs font-medium text-gray-700">{order.customerAddress}</p>
+                          </div>
+                          <div className="col-span-2 border-t border-gray-200/50 pt-2">
+                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Thời gian & Ghi chú:</p>
+                            <p className="text-xs font-medium text-gray-700">
+                              🕒 {order.deliveryMode === 'scheduled' ? `Hẹn giờ: ${order.deliveryTime}` : 'Giao ngay'}
+                            </p>
+                            {/* @ts-ignore */}
+                            {order.note && (
+                              <p className="text-xs text-gray-500 mt-1 italic">" {order.note} "</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
