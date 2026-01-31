@@ -803,8 +803,15 @@ input.glass-input::placeholder {
   display: flex;
   align-items: center;
   position: relative;
-  height: 64px;
-  /* Increased from 48px */
+  height: 44px;
+  /* Default for Mobile */
+}
+
+@media (min-width: 1024px) {
+  .logo-loader {
+    height: 64px;
+    /* Increased for Desktop */
+  }
 }
 
 .logo-loader svg {
@@ -815,7 +822,6 @@ input.glass-input::placeholder {
   font-family: 'Playfair Display', serif;
   font-weight: 900;
   font-size: 40px;
-  /* Increased for better visibility */
   letter-spacing: 1px;
   fill: none;
 }

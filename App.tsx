@@ -3096,80 +3096,82 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-pattern">
       <header className="blur-backdrop fixed top-0 left-0 right-0 z-50 border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 lg:py-2 min-h-[64px] flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => window.location.href = '/'}>
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden">
-              <button
-                onClick={(e) => { e.stopPropagation(); setIsMobileMenuOpen(true); }}
-                className="p-2 -ml-2 text-neutral-600 hover:text-rose-500 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-              </button>
+        <div className="max-w-7xl mx-auto px-4 lg:py-2 flex flex-col lg:flex-row lg:items-center justify-between min-h-[64px]">
+          <div className="flex items-center justify-between w-full lg:w-auto shrink-0 py-1 lg:py-0" onClick={() => window.location.href = '/'}>
+            <div className="flex items-center gap-2 cursor-pointer">
+              {/* Mobile Menu Button */}
+              <div className="lg:hidden">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setIsMobileMenuOpen(true); }}
+                  className="p-2 -ml-2 text-neutral-600 hover:text-rose-500 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </button>
+              </div>
+
+              {globalSettings.useImageLogo && globalSettings.logoUrl ? (
+                <div className="flex items-center">
+                  <img
+                    src={globalSettings.logoUrl}
+                    alt={globalSettings.websiteName}
+                    className={`w-auto object-contain hidden sm:block ${globalSettings.logoSizeDesktop}`}
+                  />
+                  <img
+                    src={globalSettings.logoUrl}
+                    alt={globalSettings.websiteName}
+                    className={`w-auto object-contain sm:hidden ${globalSettings.logoSizeMobile}`}
+                  />
+                </div>
+              ) : (
+                <div className="logo-loader">
+                  <svg className="absolute" width="0" height="0">
+                    <defs>
+                      <linearGradient id="b" x1="0" y1="62" x2="0" y2="2" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#973BED"></stop>
+                        <stop offset="1" stopColor="#007CFF"></stop>
+                      </linearGradient>
+                      <linearGradient id="c" x1="0" y1="64" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#FFC800"></stop>
+                        <stop offset="1" stopColor="#F0F"></stop>
+                        <animateTransform
+                          attributeName="gradientTransform"
+                          type="rotate"
+                          values="0 32 32;-270 32 32;-540 32 32;-810 32 32;-1080 32 32"
+                          dur="8s"
+                          repeatCount="indefinite"
+                        />
+                      </linearGradient>
+                      <linearGradient id="d" x1="0" y1="62" x2="0" y2="2" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#00E0ED"></stop>
+                        <stop offset="1" stopColor="#00DA72"></stop>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  <svg viewBox="0 0 380 70" className="h-full w-auto">
+                    <text
+                      x="0"
+                      y="50"
+                      className="logo-text-path dash gradient-c"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      pathLength="360"
+                    >
+                      HOASAPHCM.VN
+                    </text>
+                  </svg>
+                </div>
+              )}
             </div>
-
-            {globalSettings.useImageLogo && globalSettings.logoUrl ? (
-              <div className="flex items-center">
-                <img
-                  src={globalSettings.logoUrl}
-                  alt={globalSettings.websiteName}
-                  className={`w-auto object-contain hidden sm:block ${globalSettings.logoSizeDesktop}`}
-                />
-                <img
-                  src={globalSettings.logoUrl}
-                  alt={globalSettings.websiteName}
-                  className={`w-auto object-contain sm:hidden ${globalSettings.logoSizeMobile}`}
-                />
-              </div>
-            ) : (
-              <div className="logo-loader">
-                <svg className="absolute" width="0" height="0">
-                  <defs>
-                    <linearGradient id="b" x1="0" y1="62" x2="0" y2="2" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#973BED"></stop>
-                      <stop offset="1" stopColor="#007CFF"></stop>
-                    </linearGradient>
-                    <linearGradient id="c" x1="0" y1="64" x2="0" y2="0" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#FFC800"></stop>
-                      <stop offset="1" stopColor="#F0F"></stop>
-                      <animateTransform
-                        attributeName="gradientTransform"
-                        type="rotate"
-                        values="0 32 32;-270 32 32;-540 32 32;-810 32 32;-1080 32 32"
-                        dur="8s"
-                        repeatCount="indefinite"
-                      />
-                    </linearGradient>
-                    <linearGradient id="d" x1="0" y1="62" x2="0" y2="2" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#00E0ED"></stop>
-                      <stop offset="1" stopColor="#00DA72"></stop>
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                <svg viewBox="0 0 380 70" className="h-full w-auto">
-                  <text
-                    x="0"
-                    y="50"
-                    className="logo-text-path dash gradient-c"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    pathLength="360"
-                  >
-                    HOASAPHCM.VN
-                  </text>
-                </svg>
-              </div>
-            )}
           </div>
 
-          {/* Marquee Notification - Mobile Only - Clean Style */}
+          {/* Marquee Notification - Mobile Only - New Stacked Style */}
           {globalSettings.showNotifications && globalSettings.notifications && globalSettings.notifications.length > 0 && (
-            <div className="lg:hidden flex-1 overflow-hidden relative h-9 flex items-center ml-2">
+            <div className="lg:hidden w-full overflow-hidden relative h-8 flex items-center border-t border-white/10 bg-black/5 rounded-lg mb-1">
               {/* Bell Icon */}
-              <div className="flex-shrink-0 mr-1 text-pink-500 animate-bell">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              <div className="flex-shrink-0 mx-2 text-pink-500 animate-bell">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               </div>
 
               <div className="ticker-wrap">
