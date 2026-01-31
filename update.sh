@@ -49,6 +49,15 @@ if ! ./node_modules/.bin/vite build; then
     exit 1
 fi
 
+# Wait for build to complete and verify dist/index.html exists
+echo -e "${YELLOW}⏳ Đang chờ build hoàn tất...${NC}"
+sleep 2
+if [ ! -f "dist/index.html" ]; then
+    echo -e "${RED}❌ LỖI: dist/index.html không được tạo ra sau khi build!${NC}"
+    exit 1
+fi
+echo -e "✅ Build hoàn tất, dist/index.html đã sẵn sàng."
+
 # 6. KHỞI ĐỘNG LẠI HỆ THỐNG
 echo -e "${YELLOW}[5/7] Đang khởi động lại Backend & Web Server...${NC}"
 pm2 restart web-backend --update-env || pm2 start server.js --name web-backend
