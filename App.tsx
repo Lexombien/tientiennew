@@ -1174,17 +1174,17 @@ const App: React.FC = () => {
                   className={`w-auto object-contain ${globalSettings.logoSizeDesktop}`}
                 />
               ) : (
-                <div className="logo-loader !h-8 grayscale">
-                  <svg viewBox="0 0 240 60" className="h-full w-auto">
+                <div className="logo-loader !h-10 grayscale">
+                  <svg viewBox="0 0 320 70" className="h-full w-auto">
                     <text
                       x="0"
-                      y="45"
+                      y="50"
                       className="logo-text-path dash gradient-c"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       pathLength="360"
-                      style={{ fontSize: '36px' }}
+                      style={{ fontSize: '42px' }}
                     >
                       HOASAPHCM.VN
                     </text>
@@ -3147,12 +3147,12 @@ const App: React.FC = () => {
                   </defs>
                 </svg>
 
-                <svg viewBox="0 0 320 60" className="h-full w-auto">
+                <svg viewBox="0 0 380 70" className="h-full w-auto">
                   <text
                     x="0"
-                    y="45"
+                    y="50"
                     className="logo-text-path dash gradient-c"
-                    strokeWidth="2"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     pathLength="360"
@@ -3272,17 +3272,17 @@ const App: React.FC = () => {
               {globalSettings.useImageLogo && globalSettings.logoUrl ? (
                 <img src={globalSettings.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
               ) : (
-                <div className="logo-loader !h-8">
-                  <svg viewBox="0 0 240 60" className="h-full w-auto">
+                <div className="logo-loader !h-10">
+                  <svg viewBox="0 0 320 70" className="h-full w-auto">
                     <text
                       x="0"
-                      y="45"
+                      y="50"
                       className="logo-text-path dash gradient-c"
-                      strokeWidth="2.5"
+                      strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       pathLength="360"
-                      style={{ fontSize: '32px' }}
+                      style={{ fontSize: '42px' }}
                     >
                       HOASAPHCM.VN
                     </text>
