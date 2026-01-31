@@ -1184,7 +1184,9 @@ const App: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <h1 className="text-xl font-bold serif-display gradient-text italic">{globalSettings.websiteName || 'Admin Dashboard'}</h1>
+                  <h1 className="text-xl font-bold serif-display leading-tight">
+                    <span className="wicked-text" data-text={globalSettings.websiteName}>{globalSettings.websiteName || 'Admin Dashboard'}</span>
+                  </h1>
                 </div>
               )}
             </div>
@@ -3153,8 +3155,8 @@ const App: React.FC = () => {
 
                 {/* Branding Text */}
                 <div className="flex flex-col">
-                  <h1 className="text-base sm:text-lg font-black tracking-tight gradient-text uppercase serif-display leading-tight">
-                    <span className="premium-text-animate">{globalSettings.websiteName}</span>
+                  <h1 className="text-base sm:text-lg font-black tracking-tight uppercase serif-display leading-tight">
+                    <span className="wicked-text" data-text={globalSettings.websiteName}>{globalSettings.websiteName}</span>
                   </h1>
                   <span className="text-[7px] sm:text-[8px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none mt-0.5 whitespace-nowrap">
                     Luxury Soap Flowers
@@ -3283,7 +3285,7 @@ const App: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-bold serif-display text-base gradient-text leading-tight">{globalSettings.websiteName}</span>
+                    <span className="wicked-text text-base leading-tight" data-text={globalSettings.websiteName}>{globalSettings.websiteName}</span>
                     <span className="text-[6px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none">Luxury Soap Flowers</span>
                   </div>
                 </div>
