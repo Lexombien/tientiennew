@@ -1224,6 +1224,21 @@ const App: React.FC = () => {
                 )}
               </div>
 
+              {/* Clear Cache Button */}
+              <button
+                onClick={() => {
+                  if (confirm('🔄 Xóa cache và tải lại dữ liệu từ server?\n\nĐiều này sẽ làm mới toàn bộ cài đặt (bao gồm SEO).')) {
+                    localStorage.clear();
+                    window.location.reload();
+                  }
+                }}
+                className="text-xs font-bold px-3 py-2 bg-orange-500/20 hover:bg-orange-500/30 rounded-xl border border-orange-500/30 hover:border-orange-500/50 transition-all"
+                style={{ color: '#f97316' }}
+                title="Xóa cache localStorage và tải lại từ server"
+              >
+                🔄 Clear Cache
+              </button>
+
               <button onClick={() => window.location.hash = ''} className="text-sm font-semibold hover:text-[var(--primary-pink)] transition-all hover:scale-105" style={{ color: 'var(--text-secondary)' }}>Xem Shop</button>
               <button onClick={handleLogout} className="pill-button bg-gradient-pink !text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink">Thoát</button>
             </div>
