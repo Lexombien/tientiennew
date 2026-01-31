@@ -181,11 +181,24 @@ app.post('/api/database', (req, res) => {
         // ==================== AUTO-UPDATE INDEX.HTML ====================
         // Update index.html meta tags to prevent flickering
         if (updatedDb.settings) {
+            const sourceIndexFile = path.join(__dirname, 'index.html');
+            const distIndexFile = path.join(__dirname, 'dist', 'index.html');
+            const distDir = path.join(__dirname, 'dist');
+
+            // Ensure dist directory exists
+            if (!fs.existsSync(distDir)) {
+                fs.mkdirSync(distDir, { recursive: true });
+                console.log('📁 Created dist/ directory');
+            }
+
+            // Copy source index.html to dist if not exists
+            if (fs.existsSync(sourceIndexFile) && !fs.existsSync(distIndexFile)) {
+                fs.copyFileSync(sourceIndexFile, distIndexFile);
+                console.log('📋 Copied index.html to dist/');
+            }
+
             // Update both source and built index.html
-            const indexFiles = [
-                path.join(__dirname, 'index.html'),           // Source file (for dev)
-                path.join(__dirname, 'dist', 'index.html')    // Built file (for production)
-            ];
+            const indexFiles = [sourceIndexFile, distIndexFile];
 
             indexFiles.forEach(indexFile => {
                 if (!fs.existsSync(indexFile)) {
