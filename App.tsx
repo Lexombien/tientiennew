@@ -104,8 +104,9 @@ const App: React.FC = () => {
       themeColor: 'pink',
 
       // Branding
-      websiteName: 'Tiệm Hoa Tươi',
+      websiteName: 'HoasapHCM.vn',
       logoUrl: '',
+      useImageLogo: false, // NEW: Toggle between Image and Text logo
       logoSizeDesktop: 'h-12',
       logoSizeMobile: 'h-10',
       faviconUrl: '',
@@ -2089,8 +2090,28 @@ const App: React.FC = () => {
                   </div>
 
                   <div>
+                    <div className="flex items-center justify-between mb-3 p-3 bg-pink-50 rounded-xl border border-pink-100">
+                      <div>
+                        <label className="text-xs font-bold block text-pink-700">Hiển thị Logo bằng Hình ảnh</label>
+                        <p className="text-[10px] text-pink-600">Bật để dùng ảnh đã upload, tắt sẽ dùng chữ nghệ thuật.</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={globalSettings.useImageLogo || false}
+                          onChange={(e) => {
+                            const newSettings = { ...globalSettings, useImageLogo: e.target.checked };
+                            setGlobalSettings(newSettings);
+                            localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                          }}
+                        />
+                        <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-500"></div>
+                      </label>
+                    </div>
+
                     <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
-                      Upload Logo
+                      Cài đặt Hình ảnh Logo
                     </label>
                     <div className="space-y-3">
                       {globalSettings.logoUrl && (
@@ -2127,7 +2148,7 @@ const App: React.FC = () => {
                             const result = await response.json();
 
                             if (result.success) {
-                              const newSettings = { ...globalSettings, logoUrl: result.url };
+                              const newSettings = { ...globalSettings, logoUrl: result.url, useImageLogo: true };
                               setGlobalSettings(newSettings);
                               localStorage.setItem('global_settings', JSON.stringify(newSettings));
                               alert('✅ Upload logo thành công!');
@@ -3103,14 +3124,16 @@ const App: React.FC = () => {
                 {/* Glass Cover Layer */}
                 <div className="premium-logo-glass">
                   <div className="premium-logo-content">
-                    {globalSettings.logoUrl ? (
+                    {globalSettings.useImageLogo && globalSettings.logoUrl ? (
                       <img
                         src={globalSettings.logoUrl}
                         alt={globalSettings.websiteName}
                         className="w-full h-full object-contain"
                       />
                     ) : (
-                      <span className="text-white text-xl font-black italic select-none">H</span>
+                      <span className="text-white text-xl font-black italic select-none">
+                        {globalSettings.websiteName?.charAt(0) || 'H'}
+                      </span>
                     )}
                   </div>
                   {/* Shimmering Light Effect */}
@@ -3121,8 +3144,14 @@ const App: React.FC = () => {
               {/* Branding Text */}
               <div className="flex flex-col">
                 <h1 className="text-base sm:text-lg font-black tracking-tight gradient-text uppercase serif-display leading-tight">
-                  <span className="hidden sm:inline">{globalSettings.websiteName}</span>
-                  <span className="sm:hidden">{globalSettings.websiteName?.split(' ')[0]}</span>
+                  {globalSettings.useImageLogo ? (
+                    <>
+                      <span className="hidden sm:inline">{globalSettings.websiteName}</span>
+                      <span className="sm:hidden">{globalSettings.websiteName?.split(' ')[0]}</span>
+                    </>
+                  ) : (
+                    <span className="premium-text-animate">{globalSettings.websiteName}</span>
+                  )}
                 </h1>
                 <span className="text-[7px] sm:text-[8px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none mt-0.5 whitespace-nowrap">
                   Luxury Soap Flowers
@@ -3240,10 +3269,12 @@ const App: React.FC = () => {
                 <div className="premium-logo-container !w-10 !h-10 !rounded-xl">
                   <div className="premium-logo-glass !rounded-[10px]">
                     <div className="premium-logo-content">
-                      {globalSettings.logoUrl ? (
+                      {globalSettings.useImageLogo && globalSettings.logoUrl ? (
                         <img src={globalSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                       ) : (
-                        <span className="text-white text-base font-black italic">H</span>
+                        <span className="text-white text-base font-black italic">
+                          {globalSettings.websiteName?.charAt(0) || 'H'}
+                        </span>
                       )}
                     </div>
                   </div>
