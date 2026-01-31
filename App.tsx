@@ -1805,6 +1805,7 @@ const App: React.FC = () => {
                           setGlobalSettings(newSettings);
                           localStorage.setItem('global_settings', JSON.stringify(newSettings));
                         }}
+                        onBlur={() => saveGlobalSettings(globalSettings)}
                       />
                     </div>
                   )}
@@ -1856,6 +1857,7 @@ const App: React.FC = () => {
                     setGlobalSettings(newSettings);
                     localStorage.setItem('global_settings', JSON.stringify(newSettings));
                   }}
+                  onBlur={() => saveGlobalSettings(globalSettings)}
                 />
               </div>
 
@@ -1877,57 +1879,10 @@ const App: React.FC = () => {
                     setGlobalSettings(newSettings);
                     localStorage.setItem('global_settings', JSON.stringify(newSettings));
                   }}
+                  onBlur={() => saveGlobalSettings(globalSettings)}
                 />
               </div>
 
-              {/* Zalo Bot Configuration */}
-              <div className="glass p-6 rounded-2xl">
-                <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
-                  🤖 Cấu hình Zalo Bot (Nhận thông báo đơn hàng)
-                </label>
-                <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  Nhập Token và ID của Zalo OA/Bot để nhận thông báo khi có đơn hàng mới hoặc click.
-                </p>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold mb-1 ml-1" style={{ color: 'var(--text-secondary)' }}>
-                      Zalo Bot Token
-                    </label>
-                    <input
-                      type="password"
-                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-medium"
-                      placeholder="Nhập token của bot..."
-                      value={globalSettings.zaloBotToken || ''}
-                      onChange={(e) => {
-                        const newSettings = { ...globalSettings, zaloBotToken: e.target.value };
-                        setGlobalSettings(newSettings);
-                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold mb-1 ml-1" style={{ color: 'var(--text-secondary)' }}>
-                      Zalo Admin IDs (User ID người nhận)
-                    </label>
-                    <input
-                      type="text"
-                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-medium"
-                      placeholder="Ví dụ: 84888099999, 84999888777 (phân cách bằng dấu phẩy)"
-                      value={globalSettings.zaloAdminIds || ''}
-                      onChange={(e) => {
-                        const newSettings = { ...globalSettings, zaloAdminIds: e.target.value };
-                        setGlobalSettings(newSettings);
-                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
-                      }}
-                    />
-                    <p className="text-[10px] mt-1 ml-1 opacity-60">
-                      * Nhập ID của người quản lý muốn nhận thông báo.
-                    </p>
-                  </div>
-                </div>
-              </div>
 
               {/* Theme Color */}
               <div className="glass p-6 rounded-2xl">
@@ -2097,6 +2052,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
 
@@ -2857,6 +2813,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                     <p className="text-[10px] text-neutral-400 mt-1">* Để trống nếu muốn dùng tên Website</p>
                   </div>
@@ -2875,6 +2832,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
 
@@ -2892,6 +2850,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
                 </div>
@@ -2921,6 +2880,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
 
@@ -2938,6 +2898,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
 
@@ -2955,6 +2916,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
                 </div>
@@ -2987,6 +2949,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
 
@@ -3005,6 +2968,7 @@ const App: React.FC = () => {
                         setGlobalSettings(newSettings);
                         localStorage.setItem('global_settings', JSON.stringify(newSettings));
                       }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                     <p className="text-[10px] text-neutral-400 mt-2">
                       * Nhập nhiều ID ngăn cách bằng dấu phẩy để gửi cho nhiều người.

@@ -188,13 +188,26 @@ app.post('/api/database', (req, res) => {
 
                 // Helper to replace content in meta tags
                 const replaceMeta = (name, content) => {
-                    const regex = new RegExp(`<meta name="${name}" content="[^"]*">`, 'g');
-                    indexContent = indexContent.replace(regex, `<meta name="${name}" content="${content}">`);
+                    // Flexible regex for different attribute orders and formatting
+                    const regex = new RegExp(`<meta\\s+[^>]*name=["']${name}["'][^>]*content=["'][^"']*["'][^>]*>`, 'gi');
+                    const regexRev = new RegExp(`<meta\\s+[^>]*content=["'][^"']*["'][^>]*name=["']${name}["'][^>]*>`, 'gi');
+
+                    if (regex.test(indexContent)) {
+                        indexContent = indexContent.replace(regex, `<meta name="${name}" content="${content}">`);
+                    } else if (regexRev.test(indexContent)) {
+                        indexContent = indexContent.replace(regexRev, `<meta name="${name}" content="${content}">`);
+                    }
                 };
 
                 const replaceProperty = (property, content) => {
-                    const regex = new RegExp(`<meta property="${property}" content="[^"]*">`, 'g');
-                    indexContent = indexContent.replace(regex, `<meta property="${property}" content="${content}">`);
+                    const regex = new RegExp(`<meta\\s+[^>]*property=["']${property}["'][^>]*content=["'][^"']*["'][^>]*>`, 'gi');
+                    const regexRev = new RegExp(`<meta\\s+[^>]*content=["'][^"']*["'][^>]*property=["']${property}["'][^>]*>`, 'gi');
+
+                    if (regex.test(indexContent)) {
+                        indexContent = indexContent.replace(regex, `<meta property="${property}" content="${content}">`);
+                    } else if (regexRev.test(indexContent)) {
+                        indexContent = indexContent.replace(regexRev, `<meta property="${property}" content="${content}">`);
+                    }
                 };
 
                 // 1. Title
