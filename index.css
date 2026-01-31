@@ -620,3 +620,131 @@ input.glass-input::placeholder {
   width: 100% !important;
   box-sizing: content-box !important;
 }
+
+/* --- LOGO ANIMATIONS (Glassmorphism Luxury) --- */
+@keyframes moving-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes logo-shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-25deg);
+  }
+
+  100% {
+    transform: translateX(150%) skewX(-25deg);
+  }
+}
+
+@keyframes logo-breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(255, 107, 157, 0.3));
+  }
+
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 15px rgba(255, 107, 157, 0.6));
+  }
+}
+
+@keyframes float-petals {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-40px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.premium-logo-container {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(-45deg, #FF6B9D, #BD5FFF, #FFCE54, #FF8A5B);
+  background-size: 400% 400%;
+  animation: moving-gradient 10s ease infinite;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.premium-logo-glass {
+  position: absolute;
+  inset: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 14px;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.premium-logo-content {
+  position: relative;
+  z-index: 3;
+  width: 85%;
+  height: 85%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: logo-breathe 4s ease-in-out infinite;
+}
+
+.premium-logo-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent);
+  transform: skewX(-25deg);
+  z-index: 4;
+  animation: logo-shimmer 3s infinite;
+  pointer-events: none;
+}
+
+.premium-logo-petals {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.petal {
+  position: absolute;
+  background: white;
+  border-radius: 50% 0 50% 50%;
+  opacity: 0;
+  animation: float-petals 5s infinite;
+}
