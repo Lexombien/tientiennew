@@ -282,8 +282,14 @@ app.post('/api/database', (req, res) => {
 
                 // 4. Favicon
                 if (s.faviconUrl) {
+                    // Convert relative URL to absolute URL
+                    let faviconUrl = s.faviconUrl;
+                    if (faviconUrl.startsWith('/') && s.websiteUrl) {
+                        const baseUrl = s.websiteUrl.replace(/\/$/, '');
+                        faviconUrl = baseUrl + faviconUrl;
+                    }
                     // Support both <link rel="icon" href="..."> and type="image/..."
-                    indexContent = indexContent.replace(/<link rel="icon"([^>]*)href="[^"]*"/, `<link rel="icon"$1href="${s.faviconUrl}"`);
+                    indexContent = indexContent.replace(/<link rel="icon"([^>]*)href="[^"]*"/, `<link rel="icon"$1href="${faviconUrl}"`);
                 }
 
                 // 5. Social Share Image (og:image & twitter:image)
