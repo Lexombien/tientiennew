@@ -1174,12 +1174,18 @@ const App: React.FC = () => {
                   className={`w-auto object-contain ${globalSettings.logoSizeDesktop}`}
                 />
               ) : (
-                <>
-                  <div className="w-10 h-10 bg-gradient-pink rounded-2xl rotate-3 flex items-center justify-center shadow-lg glow-pink">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" strokeWidth="2" strokeLinecap="round" /></svg>
+                <div className="flex items-center gap-3">
+                  <div className="premium-logo-container !w-10 !h-10 !rounded-xl">
+                    <div className="premium-logo-glass !rounded-[10px]">
+                      <div className="premium-logo-content">
+                        <span className="text-white text-base font-black italic">
+                          {globalSettings.websiteName?.charAt(0) || 'H'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <h1 className="text-xl font-bold serif-display gradient-text italic">{globalSettings.websiteName || 'Admin Dashboard'}</h1>
-                </>
+                </div>
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -3098,64 +3104,64 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="premium-logo-container">
-                {/* Background Petals Animation */}
-                <div className="premium-logo-petals">
-                  {[...Array(6)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="petal"
-                      style={{
-                        left: `${(i * 17) % 100}%`,
-                        top: `100%`,
-                        width: `${5 + (i % 3)}px`,
-                        height: `${7 + (i % 2)}px`,
-                        animationDelay: `${i * 0.8}s`,
-                        background: i % 2 === 0 ? '#FF6B9D' : '#FFFFFF',
-                        opacity: 0.6
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Glass Cover Layer */}
-                <div className="premium-logo-glass">
-                  <div className="premium-logo-content">
-                    {globalSettings.useImageLogo && globalSettings.logoUrl ? (
-                      <img
-                        src={globalSettings.logoUrl}
-                        alt={globalSettings.websiteName}
-                        className="w-full h-full object-contain"
+            {globalSettings.useImageLogo && globalSettings.logoUrl ? (
+              <div className="flex items-center">
+                <img
+                  src={globalSettings.logoUrl}
+                  alt={globalSettings.websiteName}
+                  className={`w-auto object-contain hidden sm:block ${globalSettings.logoSizeDesktop}`}
+                />
+                <img
+                  src={globalSettings.logoUrl}
+                  alt={globalSettings.websiteName}
+                  className={`w-auto object-contain sm:hidden ${globalSettings.logoSizeMobile}`}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="premium-logo-container">
+                  {/* Background Petals Animation */}
+                  <div className="premium-logo-petals">
+                    {[...Array(6)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="petal"
+                        style={{
+                          left: `${(i * 17) % 100}%`,
+                          top: `100%`,
+                          width: `${5 + (i % 3)}px`,
+                          height: `${7 + (i % 2)}px`,
+                          animationDelay: `${i * 0.8}s`,
+                          background: i % 2 === 0 ? '#FF6B9D' : '#FFFFFF',
+                          opacity: 0.6
+                        }}
                       />
-                    ) : (
+                    ))}
+                  </div>
+
+                  {/* Glass Cover Layer */}
+                  <div className="premium-logo-glass">
+                    <div className="premium-logo-content">
                       <span className="text-white text-xl font-black italic select-none">
                         {globalSettings.websiteName?.charAt(0) || 'H'}
                       </span>
-                    )}
+                    </div>
+                    {/* Shimmering Light Effect */}
+                    <div className="premium-logo-shine" />
                   </div>
-                  {/* Shimmering Light Effect */}
-                  <div className="premium-logo-shine" />
+                </div>
+
+                {/* Branding Text */}
+                <div className="flex flex-col">
+                  <h1 className="text-base sm:text-lg font-black tracking-tight gradient-text uppercase serif-display leading-tight">
+                    <span className="premium-text-animate">{globalSettings.websiteName}</span>
+                  </h1>
+                  <span className="text-[7px] sm:text-[8px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none mt-0.5 whitespace-nowrap">
+                    Luxury Soap Flowers
+                  </span>
                 </div>
               </div>
-
-              {/* Branding Text */}
-              <div className="flex flex-col">
-                <h1 className="text-base sm:text-lg font-black tracking-tight gradient-text uppercase serif-display leading-tight">
-                  {globalSettings.useImageLogo ? (
-                    <>
-                      <span className="hidden sm:inline">{globalSettings.websiteName}</span>
-                      <span className="sm:hidden">{globalSettings.websiteName?.split(' ')[0]}</span>
-                    </>
-                  ) : (
-                    <span className="premium-text-animate">{globalSettings.websiteName}</span>
-                  )}
-                </h1>
-                <span className="text-[7px] sm:text-[8px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none mt-0.5 whitespace-nowrap">
-                  Luxury Soap Flowers
-                </span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Marquee Notification - Mobile Only - Clean Style */}
@@ -3263,25 +3269,25 @@ const App: React.FC = () => {
           {/* Drawer */}
           <div className="absolute top-0 left-0 bottom-0 w-[300px] bg-[var(--surface-color)] shadow-2xl p-6 flex flex-col animate-in slide-in-from-left duration-300 border-r border-white/40">
             <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200/50">
-              <div className="flex items-center gap-2">
-                <div className="premium-logo-container !w-10 !h-10 !rounded-xl">
-                  <div className="premium-logo-glass !rounded-[10px]">
-                    <div className="premium-logo-content">
-                      {globalSettings.useImageLogo && globalSettings.logoUrl ? (
-                        <img src={globalSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-                      ) : (
+              {globalSettings.useImageLogo && globalSettings.logoUrl ? (
+                <img src={globalSettings.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="premium-logo-container !w-10 !h-10 !rounded-xl">
+                    <div className="premium-logo-glass !rounded-[10px]">
+                      <div className="premium-logo-content">
                         <span className="text-white text-base font-black italic">
                           {globalSettings.websiteName?.charAt(0) || 'H'}
                         </span>
-                      )}
+                      </div>
                     </div>
                   </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold serif-display text-base gradient-text leading-tight">{globalSettings.websiteName}</span>
+                    <span className="text-[6px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none">Luxury Soap Flowers</span>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-bold serif-display text-base gradient-text leading-tight">{globalSettings.websiteName}</span>
-                  <span className="text-[6px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none">Luxury Soap Flowers</span>
-                </div>
-              </div>
+              )}
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-2 rounded-full hover:bg-gray-200/50 transition-all text-gray-500 hover:text-rose-500"
