@@ -174,6 +174,14 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
       };
     });
 
+  // 🆕 Auto-select first variant when modal opens
+  useEffect(() => {
+    const visibleVariants = product.variants?.filter(v => !v.isHidden) || [];
+    if (visibleVariants.length > 0 && !selectedVariant) {
+      setSelectedVariant(visibleVariants[0].id);
+    }
+  }, [product.variants]);
+
   // Auto-switch image when variant is selected
   useEffect(() => {
     if (selectedVariant && product.imagesWithMetadata) {
