@@ -288,8 +288,14 @@ app.post('/api/database', (req, res) => {
 
                 // 5. Social Share Image (og:image & twitter:image)
                 if (s.socialShareImage) {
-                    replaceProperty('og:image', s.socialShareImage);
-                    replaceProperty('twitter:image', s.socialShareImage);
+                    // Convert relative URL to absolute URL
+                    let imageUrl = s.socialShareImage;
+                    if (imageUrl.startsWith('/') && s.websiteUrl) {
+                        const baseUrl = s.websiteUrl.replace(/\/$/, '');
+                        imageUrl = baseUrl + imageUrl;
+                    }
+                    replaceProperty('og:image', imageUrl);
+                    replaceProperty('twitter:image', imageUrl);
                 }
 
                 // 6. Website URL (canonical, og:url, twitter:url)
