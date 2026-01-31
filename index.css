@@ -803,8 +803,8 @@ input.glass-input::placeholder {
   display: flex;
   align-items: center;
   position: relative;
-  height: 44px;
-  /* Default for Mobile */
+  height: 32px;
+  /* Super compact for Mobile */
 }
 
 @media (min-width: 1024px) {
@@ -821,7 +821,8 @@ input.glass-input::placeholder {
 .logo-text-path {
   font-family: 'Playfair Display', serif;
   font-weight: 900;
-  font-size: 40px;
+  font-size: 28px;
+  /* Further reduced for compact header */
   letter-spacing: 1px;
   fill: none;
 }

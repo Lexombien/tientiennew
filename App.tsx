@@ -3096,8 +3096,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-pattern">
       <header className="blur-backdrop fixed top-0 left-0 right-0 z-50 border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 lg:py-2 flex flex-col lg:flex-row lg:items-center justify-between min-h-[64px]">
-          <div className="flex items-center justify-between w-full lg:w-auto shrink-0 py-1 lg:py-0" onClick={() => window.location.href = '/'}>
+        <div className="max-w-7xl mx-auto px-4 lg:py-2 flex flex-col lg:flex-row lg:items-center justify-between lg:min-h-[64px] min-h-0">
+          <div className="flex items-center justify-between w-full lg:w-auto shrink-0 py-0.5 lg:py-0" onClick={() => window.location.href = '/'}>
             <div className="flex items-center gap-2 cursor-pointer">
               {/* Mobile Menu Button */}
               <div className="lg:hidden">
@@ -3168,7 +3168,7 @@ const App: React.FC = () => {
 
           {/* Marquee Notification - Mobile Only - New Stacked Style */}
           {globalSettings.showNotifications && globalSettings.notifications && globalSettings.notifications.length > 0 && (
-            <div className="lg:hidden w-full overflow-hidden relative h-8 flex items-center border-t border-white/10 bg-black/5 rounded-lg mb-1">
+            <div className="lg:hidden w-full overflow-hidden relative h-6 flex items-center border-t border-white/10 bg-black/5 rounded-lg mb-0.5">
               {/* Bell Icon */}
               <div className="flex-shrink-0 mx-2 text-pink-500 animate-bell">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
@@ -3181,17 +3181,17 @@ const App: React.FC = () => {
                 >
                   {/* Render items multiple times for seamless loop */}
                   {globalSettings.notifications.map((note, i) => (
-                    <span key={`1-${i}`} className="ticker-item leading-9">
+                    <span key={`1-${i}`} className="ticker-item leading-6 text-[10px]">
                       {note}
                     </span>
                   ))}
                   {globalSettings.notifications.map((note, i) => (
-                    <span key={`2-${i}`} className="ticker-item leading-9">
+                    <span key={`2-${i}`} className="ticker-item leading-6 text-[10px]">
                       {note}
                     </span>
                   ))}
                   {globalSettings.notifications.map((note, i) => (
-                    <span key={`3-${i}`} className="ticker-item leading-9">
+                    <span key={`3-${i}`} className="ticker-item leading-6 text-[10px]">
                       {note}
                     </span>
                   ))}
