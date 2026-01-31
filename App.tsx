@@ -3097,8 +3097,8 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-pattern">
       <header className="blur-backdrop fixed top-0 left-0 right-0 z-50 border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 lg:py-2 flex flex-col lg:flex-row lg:items-center justify-between lg:min-h-[64px] min-h-0">
-          <div className="flex items-center justify-between w-full lg:w-auto shrink-0 py-0.5 lg:py-0" onClick={() => window.location.href = '/'}>
-            <div className="flex items-center gap-2 cursor-pointer">
+          <div className="flex items-center justify-between w-full lg:w-auto shrink-0 py-0.5 lg:py-0">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
               {/* Mobile Menu Button */}
               <div className="lg:hidden">
                 <button
@@ -3163,6 +3163,19 @@ const App: React.FC = () => {
                   </svg>
                 </div>
               )}
+            </div>
+
+            {/* New Mobile Order Tracking Button */}
+            <div className="lg:hidden">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowOrderTracking(true); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60 border border-[var(--primary-pink)]/30 text-[var(--primary-pink)] hover:bg-rose-50 transition-all active:scale-95 shadow-sm"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span className="text-[10px] font-black uppercase tracking-tight text-pink-600">Tra cứu</span>
+              </button>
             </div>
           </div>
 
