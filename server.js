@@ -188,26 +188,26 @@ app.post('/api/database', (req, res) => {
 
                 // Helper to replace content in meta tags
                 const replaceMeta = (name, content) => {
-                    // Flexible regex for different attribute orders and formatting
-                    const regex = new RegExp(`<meta\\s+[^>]*name=["']${name}["'][^>]*content=["'][^"']*["'][^>]*>`, 'gi');
-                    const regexRev = new RegExp(`<meta\\s+[^>]*content=["'][^"']*["'][^>]*name=["']${name}["'][^>]*>`, 'gi');
+                    // Escape special characters in content
+                    const escapedContent = content.replace(/"/g, '&quot;');
 
-                    if (regex.test(indexContent)) {
-                        indexContent = indexContent.replace(regex, `<meta name="${name}" content="${content}">`);
-                    } else if (regexRev.test(indexContent)) {
-                        indexContent = indexContent.replace(regexRev, `<meta name="${name}" content="${content}">`);
-                    }
+                    // Try both attribute orders
+                    const regex1 = new RegExp(`<meta\\s+name="${name}"\\s+content="[^"]*">`, 'gi');
+                    const regex2 = new RegExp(`<meta\\s+content="[^"]*"\\s+name="${name}">`, 'gi');
+
+                    // Replace with name-first format
+                    indexContent = indexContent.replace(regex1, `<meta name="${name}" content="${escapedContent}">`);
+                    indexContent = indexContent.replace(regex2, `<meta name="${name}" content="${escapedContent}">`);
                 };
 
                 const replaceProperty = (property, content) => {
-                    const regex = new RegExp(`<meta\\s+[^>]*property=["']${property}["'][^>]*content=["'][^"']*["'][^>]*>`, 'gi');
-                    const regexRev = new RegExp(`<meta\\s+[^>]*content=["'][^"']*["'][^>]*property=["']${property}["'][^>]*>`, 'gi');
+                    const escapedContent = content.replace(/"/g, '&quot;');
 
-                    if (regex.test(indexContent)) {
-                        indexContent = indexContent.replace(regex, `<meta property="${property}" content="${content}">`);
-                    } else if (regexRev.test(indexContent)) {
-                        indexContent = indexContent.replace(regexRev, `<meta property="${property}" content="${content}">`);
-                    }
+                    const regex1 = new RegExp(`<meta\\s+property="${property}"\\s+content="[^"]*">`, 'gi');
+                    const regex2 = new RegExp(`<meta\\s+content="[^"]*"\\s+property="${property}">`, 'gi');
+
+                    indexContent = indexContent.replace(regex1, `<meta property="${property}" content="${escapedContent}">`);
+                    indexContent = indexContent.replace(regex2, `<meta property="${property}" content="${escapedContent}">`);
                 };
 
                 // 1. Title
@@ -244,6 +244,9 @@ app.post('/api/database', (req, res) => {
 
                 fs.writeFileSync(indexFile, indexContent, 'utf8');
                 console.log('✅ Updated index.html meta tags');
+                console.log('   📝 Title:', title);
+                console.log('   📝 Description:', s.seoDescription?.substring(0, 50) + '...');
+                console.log('   📝 Keywords:', s.seoKeywords?.substring(0, 50) + '...');
             }
         }
 
