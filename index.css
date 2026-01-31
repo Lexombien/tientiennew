@@ -748,3 +748,11 @@ input.glass-input::placeholder {
   opacity: 0;
   animation: float-petals 5s infinite;
 }
+.premium-text-animate {
+  background: linear-gradient(120deg, var(--primary-pink), var(--secondary-purple), var(--primary-pink));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: moving-gradient 5s linear infinite;
+  display: inline-block;
+}

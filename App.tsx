@@ -30,6 +30,70 @@ const BACKEND_URL = isDevelopment
   ? `http://${window.location.hostname}:3001`  // Development: use same host with backend port
   : '';  // Production: use same origin (Nginx proxy)
 
+const DEFAULT_GLOBAL_SETTINGS = {
+  // Display Settings
+  aspectRatio: '3/4',
+  customValue: '',
+  showSKU: false,
+  zaloLink: `https://zalo.me/${ZALO_NUMBER}`,
+  phoneNumber: '0900000000',
+
+  // Theme Settings
+  themeColor: 'pink',
+
+  // Branding
+  websiteName: 'HoasapHCM.vn',
+  logoUrl: '',
+  useImageLogo: false, // NEW: Toggle between Image and Text logo
+  logoSizeDesktop: 'h-12',
+  logoSizeMobile: 'h-10',
+  faviconUrl: '',
+  socialShareImage: '', // NEW: Social Share Image
+
+  // Footer Settings
+  footerTitle: '', // Tiêu đề footer (nếu trống sẽ dùng websiteName)
+  footerDescription: 'Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.',
+  footerCopyright: '© 2024 Tiệm Hoa Cao Cấp. All rights reserved.',
+
+  // SEO Meta Tags
+  seoTitle: 'Tiệm Hoa Cao Cấp - Hoa Tươi Đẹp',
+  seoDescription: 'Chuyên cung cấp hoa tươi cao cấp, bó hoa đẹp, giao hoa tận nơi tại TP.HCM',
+  seoKeywords: 'hoa tươi, bó hoa, tiệm hoa, hoa sinh nhật, hoa tươi đẹp',
+
+  // Feature Toggles
+  enableLightbox: true,
+  enablePriceDisplay: true,
+
+  // Google Fonts
+  fontTitle: 'Playfair Display',
+  fontCategoryTitle: 'Playfair Display',
+  fontPrice: 'Roboto',
+  fontBody: 'Inter',
+
+  // Custom Fonts
+  customFonts: [] as { name: string; url: string }[],
+
+  // Custom CSS
+  customCSS: '',
+
+  // Notifications (Marquee)
+  showNotifications: false,
+  notifications: [] as string[], // Array of strings
+  notificationSpeed: 15, // seconds
+
+  // Zalo Bot Settings
+  zaloBotToken: '',
+  zaloAdminIds: '',
+
+  // NEW: Holiday/Busy Mode Settings
+  holidayMode: false,
+  holidayInterval: 120, // default 2 hours (120 minutes)
+  holidayTimeBlockMode: false, // NEW: Chọn buổi (Sáng, Trưa, Chiều, Tối)
+
+  // NEW: Coupon Settings
+  coupons: [] as { code: string; discountPercent: number }[],
+};
+
 const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(window.location.hash);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -91,78 +155,13 @@ const App: React.FC = () => {
 
   // Global Settings với giá trị mặc định tiếng Việt chuẩn
   const [globalSettings, setGlobalSettings] = useState(() => {
-    // Default values
-    const defaults = {
-      // Display Settings
-      aspectRatio: '3/4',
-      customValue: '',
-      showSKU: false,
-      zaloLink: `https://zalo.me/${ZALO_NUMBER}`,
-      phoneNumber: '0900000000',
-
-      // Theme Settings
-      themeColor: 'pink',
-
-      // Branding
-      websiteName: 'HoasapHCM.vn',
-      logoUrl: '',
-      useImageLogo: false, // NEW: Toggle between Image and Text logo
-      logoSizeDesktop: 'h-12',
-      logoSizeMobile: 'h-10',
-      faviconUrl: '',
-      socialShareImage: '', // NEW: Social Share Image
-
-      // Footer Settings
-      footerTitle: '', // Tiêu đề footer (nếu trống sẽ dùng websiteName)
-      footerDescription: 'Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.',
-      footerCopyright: '© 2024 Tiệm Hoa Cao Cấp. All rights reserved.',
-
-      // SEO Meta Tags
-      seoTitle: 'Tiệm Hoa Cao Cấp - Hoa Tươi Đẹp',
-      seoDescription: 'Chuyên cung cấp hoa tươi cao cấp, bó hoa đẹp, giao hoa tận nơi tại TP.HCM',
-      seoKeywords: 'hoa tươi, bó hoa, tiệm hoa, hoa sinh nhật, hoa tươi đẹp',
-
-      // Feature Toggles
-      enableLightbox: true,
-      enablePriceDisplay: true,
-
-      // Google Fonts
-      fontTitle: 'Playfair Display',
-      fontCategoryTitle: 'Playfair Display',
-      fontPrice: 'Roboto',
-      fontBody: 'Inter',
-
-      // Custom Fonts
-      customFonts: [] as { name: string; url: string }[],
-
-      // Custom CSS
-      customCSS: '',
-
-      // Notifications (Marquee)
-      showNotifications: false,
-      notifications: [], // Array of strings
-      notificationSpeed: 15, // seconds
-
-      // Zalo Bot Settings
-      zaloBotToken: '',
-      zaloAdminIds: '',
-
-      // NEW: Holiday/Busy Mode Settings
-      holidayMode: false,
-      holidayInterval: 120, // default 2 hours (120 minutes)
-      holidayTimeBlockMode: false, // NEW: Chọn buổi (Sáng, Trưa, Chiều, Tối)
-
-      // NEW: Coupon Settings
-      coupons: [] as { code: string; discountPercent: number }[],
-    };
-
     // Load from localStorage and merge with defaults
     const saved = localStorage.getItem('global_settings');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         // Merge với defaults để đảm bảo tất cả trường đều tồn tại
-        return { ...defaults, ...parsed };
+        return { ...DEFAULT_GLOBAL_SETTINGS, ...parsed };
       } catch (e) {
         console.error('Failed to parse global_settings:', e);
         // Clear corrupted data
@@ -171,7 +170,7 @@ const App: React.FC = () => {
     }
 
     // Fallback to defaults
-    return defaults;
+    return DEFAULT_GLOBAL_SETTINGS;
   });
 
   // Lightbox State
@@ -462,12 +461,10 @@ const App: React.FC = () => {
             localStorage.setItem('categories_data', JSON.stringify(result.data.categories));
           }
           if (result.data.settings) {
-            setGlobalSettings(prev => ({ ...prev, ...result.data.settings }));
-            // Merge trước khi lưu lại LS để đảm bảo đồng bộ
-            // Tuy nhiên ở đây biến prev không truy cập được trực tiếp để lưu LS ngay
-            // Nên ta tạm thời chỉ lưu cái server gửi về, nhưng state thì phải merge
-            // Thực tế để an toàn: ta nên merge object trước rồi set và save
-            localStorage.setItem('global_settings', JSON.stringify(result.data.settings));
+            // Merge defaults with server data and then with current state
+            const mergedSettings = { ...DEFAULT_GLOBAL_SETTINGS, ...result.data.settings };
+            setGlobalSettings(mergedSettings);
+            localStorage.setItem('global_settings', JSON.stringify(mergedSettings));
           }
           if (result.data.categorySettings) {
             setCategorySettings(result.data.categorySettings);
@@ -1102,7 +1099,11 @@ const App: React.FC = () => {
         // Update states
         if (result.data.products) setProducts(result.data.products);
         if (result.data.categories) setCategories(result.data.categories);
-        if (result.data.settings) setGlobalSettings(result.data.settings);
+        if (result.data.settings) {
+          const mergedSettings = { ...DEFAULT_GLOBAL_SETTINGS, ...result.data.settings };
+          setGlobalSettings(mergedSettings);
+          localStorage.setItem('global_settings', JSON.stringify(mergedSettings));
+        }
         if (result.data.categorySettings) setCategorySettings(result.data.categorySettings);
 
         // Also save to localStorage for offline access
@@ -1166,7 +1167,7 @@ const App: React.FC = () => {
         <header className="blur-backdrop border-b border-white/20 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-2 md:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {globalSettings.logoUrl ? (
+              {globalSettings.useImageLogo && globalSettings.logoUrl ? (
                 <img
                   src={globalSettings.logoUrl}
                   alt={globalSettings.websiteName}
@@ -1177,7 +1178,7 @@ const App: React.FC = () => {
                   <div className="w-10 h-10 bg-gradient-pink rounded-2xl rotate-3 flex items-center justify-center shadow-lg glow-pink">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" strokeWidth="2" strokeLinecap="round" /></svg>
                   </div>
-                  <h1 className="text-xl font-bold serif-display gradient-text">{globalSettings.websiteName || 'Admin Dashboard'}</h1>
+                  <h1 className="text-xl font-bold serif-display gradient-text italic">{globalSettings.websiteName || 'Admin Dashboard'}</h1>
                 </>
               )}
             </div>
@@ -2102,8 +2103,7 @@ const App: React.FC = () => {
                           checked={globalSettings.useImageLogo || false}
                           onChange={(e) => {
                             const newSettings = { ...globalSettings, useImageLogo: e.target.checked };
-                            setGlobalSettings(newSettings);
-                            localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                            saveGlobalSettings(newSettings);
                           }}
                         />
                         <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-500"></div>
@@ -2121,8 +2121,7 @@ const App: React.FC = () => {
                           <button
                             onClick={() => {
                               const newSettings = { ...globalSettings, logoUrl: '' };
-                              setGlobalSettings(newSettings);
-                              localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                              saveGlobalSettings(newSettings);
                             }}
                             className="mt-3 w-full text-xs text-rose-500 hover:text-rose-600 font-bold"
                           >
@@ -2149,8 +2148,7 @@ const App: React.FC = () => {
 
                             if (result.success) {
                               const newSettings = { ...globalSettings, logoUrl: result.url, useImageLogo: true };
-                              setGlobalSettings(newSettings);
-                              localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                              saveGlobalSettings(newSettings);
                               alert('✅ Upload logo thành công!');
                             }
                           } catch (error) {
