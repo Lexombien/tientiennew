@@ -796,3 +796,44 @@ input.glass-input::placeholder {
 .wicked-text:hover::before {
   opacity: 1;
 }
+
+/* --- ANIMATED SVG LOGO EFFECT --- */
+.logo-loader {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 48px;
+}
+
+.logo-loader svg {
+  height: 100%;
+}
+
+.logo-text-path {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  fill: none;
+}
+
+.dash {
+  animation:
+    dashArray 4s ease-in-out infinite,
+    dashOffset 4s linear infinite;
+}
+
+@keyframes dashArray {
+  0% { stroke-dasharray: 0 1 359 0; }
+  50% { stroke-dasharray: 0 359 1 0; }
+  100% { stroke-dasharray: 359 1 0 0; }
+}
+
+@keyframes dashOffset {
+  0% { stroke-dashoffset: 365; }
+  100% { stroke-dashoffset: 5; }
+}
+
+.gradient-b { stroke: url(#b); }
+.gradient-c { stroke: url(#c); }
+.gradient-d { stroke: url(#d); }
+

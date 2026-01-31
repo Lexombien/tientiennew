@@ -1174,19 +1174,21 @@ const App: React.FC = () => {
                   className={`w-auto object-contain ${globalSettings.logoSizeDesktop}`}
                 />
               ) : (
-                <div className="flex items-center gap-3">
-                  <div className="premium-logo-container !w-10 !h-10 !rounded-xl">
-                    <div className="premium-logo-glass !rounded-[10px]">
-                      <div className="premium-logo-content">
-                        <span className="text-white text-base font-black italic">
-                          {globalSettings.websiteName?.charAt(0) || 'H'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <h1 className="text-xl font-bold serif-display leading-tight">
-                    <span className="wicked-text" data-text={globalSettings.websiteName}>{globalSettings.websiteName || 'Admin Dashboard'}</span>
-                  </h1>
+                <div className="logo-loader !h-8 grayscale">
+                  <svg viewBox="0 0 240 60" className="h-full w-auto">
+                    <text
+                      x="0"
+                      y="45"
+                      className="logo-text-path dash gradient-c"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      pathLength="360"
+                      style={{ fontSize: '36px' }}
+                    >
+                      HOASAPHCM.VN
+                    </text>
+                  </svg>
                 </div>
               )}
             </div>
@@ -3120,48 +3122,44 @@ const App: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <div className="premium-logo-container">
-                  {/* Background Petals Animation */}
-                  <div className="premium-logo-petals">
-                    {[...Array(6)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="petal"
-                        style={{
-                          left: `${(i * 17) % 100}%`,
-                          top: `100%`,
-                          width: `${5 + (i % 3)}px`,
-                          height: `${7 + (i % 2)}px`,
-                          animationDelay: `${i * 0.8}s`,
-                          background: i % 2 === 0 ? '#FF6B9D' : '#FFFFFF',
-                          opacity: 0.6
-                        }}
+              <div className="logo-loader">
+                <svg className="absolute" width="0" height="0">
+                  <defs>
+                    <linearGradient id="b" x1="0" y1="62" x2="0" y2="2" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#973BED"></stop>
+                      <stop offset="1" stopColor="#007CFF"></stop>
+                    </linearGradient>
+                    <linearGradient id="c" x1="0" y1="64" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#FFC800"></stop>
+                      <stop offset="1" stopColor="#F0F"></stop>
+                      <animateTransform
+                        attributeName="gradientTransform"
+                        type="rotate"
+                        values="0 32 32;-270 32 32;-540 32 32;-810 32 32;-1080 32 32"
+                        dur="8s"
+                        repeatCount="indefinite"
                       />
-                    ))}
-                  </div>
+                    </linearGradient>
+                    <linearGradient id="d" x1="0" y1="62" x2="0" y2="2" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#00E0ED"></stop>
+                      <stop offset="1" stopColor="#00DA72"></stop>
+                    </linearGradient>
+                  </defs>
+                </svg>
 
-                  {/* Glass Cover Layer */}
-                  <div className="premium-logo-glass">
-                    <div className="premium-logo-content">
-                      <span className="text-white text-xl font-black italic select-none">
-                        {globalSettings.websiteName?.charAt(0) || 'H'}
-                      </span>
-                    </div>
-                    {/* Shimmering Light Effect */}
-                    <div className="premium-logo-shine" />
-                  </div>
-                </div>
-
-                {/* Branding Text */}
-                <div className="flex flex-col">
-                  <h1 className="text-base sm:text-lg font-black tracking-tight uppercase serif-display leading-tight">
-                    <span className="wicked-text" data-text={globalSettings.websiteName}>{globalSettings.websiteName}</span>
-                  </h1>
-                  <span className="text-[7px] sm:text-[8px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none mt-0.5 whitespace-nowrap">
-                    Luxury Soap Flowers
-                  </span>
-                </div>
+                <svg viewBox="0 0 320 60" className="h-full w-auto">
+                  <text
+                    x="0"
+                    y="45"
+                    className="logo-text-path dash gradient-c"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    pathLength="360"
+                  >
+                    HOASAPHCM.VN
+                  </text>
+                </svg>
               </div>
             )}
           </div>
@@ -3274,20 +3272,21 @@ const App: React.FC = () => {
               {globalSettings.useImageLogo && globalSettings.logoUrl ? (
                 <img src={globalSettings.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
               ) : (
-                <div className="flex items-center gap-2">
-                  <div className="premium-logo-container !w-10 !h-10 !rounded-xl">
-                    <div className="premium-logo-glass !rounded-[10px]">
-                      <div className="premium-logo-content">
-                        <span className="text-white text-base font-black italic">
-                          {globalSettings.websiteName?.charAt(0) || 'H'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="wicked-text text-base leading-tight" data-text={globalSettings.websiteName}>{globalSettings.websiteName}</span>
-                    <span className="text-[6px] font-bold tracking-[0.2em] text-gray-400 uppercase leading-none">Luxury Soap Flowers</span>
-                  </div>
+                <div className="logo-loader !h-8">
+                  <svg viewBox="0 0 240 60" className="h-full w-auto">
+                    <text
+                      x="0"
+                      y="45"
+                      className="logo-text-path dash gradient-c"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      pathLength="360"
+                      style={{ fontSize: '32px' }}
+                    >
+                      HOASAPHCM.VN
+                    </text>
+                  </svg>
                 </div>
               )}
               <button
