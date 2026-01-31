@@ -181,8 +181,18 @@ app.post('/api/database', (req, res) => {
         // ==================== AUTO-UPDATE INDEX.HTML ====================
         // Update index.html meta tags to prevent flickering
         if (updatedDb.settings) {
-            const indexFile = path.join(__dirname, 'index.html');
-            if (fs.existsSync(indexFile)) {
+            // Update both source and built index.html
+            const indexFiles = [
+                path.join(__dirname, 'index.html'),           // Source file (for dev)
+                path.join(__dirname, 'dist', 'index.html')    // Built file (for production)
+            ];
+
+            indexFiles.forEach(indexFile => {
+                if (!fs.existsSync(indexFile)) {
+                    console.log(`⚠️  Skipping ${indexFile} (not found)`);
+                    return;
+                }
+
                 let indexContent = fs.readFileSync(indexFile, 'utf8');
                 const s = updatedDb.settings;
 
@@ -243,11 +253,11 @@ app.post('/api/database', (req, res) => {
                 }
 
                 fs.writeFileSync(indexFile, indexContent, 'utf8');
-                console.log('✅ Updated index.html meta tags');
+                console.log(`✅ Updated ${indexFile.includes('dist') ? 'dist/' : ''}index.html`);
                 console.log('   📝 Title:', title);
                 console.log('   📝 Description:', s.seoDescription?.substring(0, 50) + '...');
                 console.log('   📝 Keywords:', s.seoKeywords?.substring(0, 50) + '...');
-            }
+            });
         }
 
         res.json({ success: true, message: 'Đã lưu database thành công!' });
