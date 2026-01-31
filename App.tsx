@@ -49,6 +49,7 @@ const DEFAULT_GLOBAL_SETTINGS = {
   logoSizeMobile: 'h-10',
   faviconUrl: '',
   socialShareImage: '', // NEW: Social Share Image
+  websiteUrl: 'https://hoasaphcm.vn', // NEW: Website URL for canonical/og:url
 
   // Footer Settings
   footerTitle: '', // Tiêu đề footer (nếu trống sẽ dùng websiteName)

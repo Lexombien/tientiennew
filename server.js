@@ -41,6 +41,33 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 
+// ==================== INITIALIZE DIST/INDEX.HTML ====================
+// Create dist/index.html on startup to prevent ENOENT during deployment
+const initializeDistIndexHtml = () => {
+    const sourceIndexFile = path.join(__dirname, 'index.html');
+    const distIndexFile = path.join(__dirname, 'dist', 'index.html');
+    const distDir = path.join(__dirname, 'dist');
+
+    try {
+        // Ensure dist directory exists
+        if (!fs.existsSync(distDir)) {
+            fs.mkdirSync(distDir, { recursive: true });
+            console.log('📁 Created dist/ directory on startup');
+        }
+
+        // Copy source index.html to dist if not exists
+        if (fs.existsSync(sourceIndexFile) && !fs.existsSync(distIndexFile)) {
+            fs.copyFileSync(sourceIndexFile, distIndexFile);
+            console.log('📋 Initialized dist/index.html from source');
+        }
+    } catch (err) {
+        console.error('⚠️  Failed to initialize dist/index.html:', err.message);
+    }
+};
+
+// Run initialization immediately on server startup
+initializeDistIndexHtml();
+
 // LOGGING MIDDLEWARE để biết có request nào đang đến không
 app.use((req, res, next) => {
     if (req.url.includes('/api/')) {
@@ -263,6 +290,17 @@ app.post('/api/database', (req, res) => {
                 if (s.socialShareImage) {
                     replaceProperty('og:image', s.socialShareImage);
                     replaceProperty('twitter:image', s.socialShareImage);
+                }
+
+                // 6. Website URL (canonical, og:url, twitter:url)
+                if (s.websiteUrl) {
+                    const cleanUrl = s.websiteUrl.replace(/\/$/, ''); // Remove trailing slash
+                    // Canonical URL
+                    indexContent = indexContent.replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${cleanUrl}/">`);
+                    // OG URL
+                    replaceProperty('og:url', cleanUrl + '/');
+                    // Twitter URL
+                    replaceProperty('twitter:url', cleanUrl + '/');
                 }
 
                 fs.writeFileSync(indexFile, indexContent, 'utf8');
