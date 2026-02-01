@@ -824,9 +824,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 {/* Coupon Section */}
                 <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
-                      <span className="text-lg">🎫</span> Bạn có mã giảm giá?
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
+                        <span className="text-lg">🎫</span> Bạn có mã giảm giá?
+                      </span>
+                      <span className="text-[10px] text-indigo-500 italic font-medium ml-6">Dành cho Khách cũ</span>
+                    </div>
                     {appliedCoupon && (
                       <button
                         onClick={() => setAppliedCoupon(null)}
@@ -842,13 +845,13 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         type="text"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
-                        placeholder="Nhập mã (Vd: KHACHVIP)"
-                        className="flex-grow px-3 py-2 bg-white border border-indigo-200 rounded-lg md:text-xs text-base font-bold uppercase focus:border-indigo-500 outline-none"
+                        placeholder="Khách Cũ Nhập Mã"
+                        className="flex-1 px-3 py-2.5 bg-white border border-indigo-200 rounded-lg text-xs font-bold uppercase focus:border-indigo-500 outline-none placeholder:text-[10px]"
                       />
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-all"
+                        className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-all whitespace-nowrap"
                       >
                         Áp dụng
                       </button>
