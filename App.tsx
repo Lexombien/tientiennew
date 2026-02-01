@@ -3267,17 +3267,17 @@ const App: React.FC = () => {
               {globalSettings.useImageLogo && globalSettings.logoUrl ? (
                 <img src={globalSettings.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
               ) : (
-                <div className="logo-loader !h-10">
+                <div className="logo-loader !h-8">
                   <svg viewBox="0 0 320 70" className="h-full w-auto">
                     <text
                       x="0"
                       y="50"
                       className="logo-text-path dash gradient-c"
-                      strokeWidth="3"
+                      strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       pathLength="360"
-                      style={{ fontSize: '42px' }}
+                      style={{ fontSize: '32px' }}
                     >
                       HOASAPHCM.VN
                     </text>
@@ -3303,7 +3303,7 @@ const App: React.FC = () => {
                       scrollToCategory(cat);
                       setIsMobileMenuOpen(false); // Close menu after clicking category
                     }}
-                    className="text-left py-4 px-5 rounded-2xl font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group"
+                    className="text-left py-3 px-4 rounded-2xl text-sm font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group"
                     style={{ color: 'var(--text-primary)' }}
                   >
                     {categorySettings[cat]?.displayName || cat}

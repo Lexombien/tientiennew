@@ -803,8 +803,8 @@ input.glass-input::placeholder {
   display: flex;
   align-items: center;
   position: relative;
-  height: 32px;
-  /* Super compact for Mobile */
+  height: 24px;
+  /* Smaller for Mobile to prevent text cutoff */
 }
 
 @media (min-width: 1024px) {
