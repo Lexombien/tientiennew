@@ -821,8 +821,8 @@ input.glass-input::placeholder {
 .logo-text-path {
   font-family: 'Playfair Display', serif;
   font-weight: 900;
-  font-size: 28px;
-  /* Further reduced for compact header */
+  font-size: 39px;
+  /* Larger size as requested */
   letter-spacing: 1px;
   fill: none;
 }
