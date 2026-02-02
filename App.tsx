@@ -3484,7 +3484,7 @@ const App: React.FC = () => {
                     <FacebookPagePlugin
                       pageUrl={globalSettings.facebookPageUrl}
                       width={340}
-                      height={500}
+                      height={300}
                       showPosts={true}
                       hideCover={false}
                       showFacepile={true}
