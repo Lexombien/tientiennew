@@ -15,6 +15,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import OrdersManagement from './components/OrdersManagement';
 import OrderTrackingModal from './components/OrderTrackingModal';
 import ShippingFeesManager from './components/ShippingFeesManager';
+import FacebookPagePlugin from './components/FacebookPagePlugin';
 import { loadAnalyticsData, trackPageView, trackProductClick, exportAnalytics, clearAllAnalytics, clearOldAnalytics } from './utils/analytics';
 
 // Auto-detect backend URL based on environment
@@ -93,6 +94,10 @@ const DEFAULT_GLOBAL_SETTINGS = {
 
   // NEW: Coupon Settings
   coupons: [] as { code: string; discountPercent: number }[],
+
+  // Facebook Page Settings
+  facebookPageUrl: '', // URL của Facebook Fanpage
+  showFacebookWidget: false, // Hiển thị widget Facebook hay không
 };
 
 const App: React.FC = () => {
@@ -2869,6 +2874,51 @@ const App: React.FC = () => {
                       onBlur={() => saveGlobalSettings(globalSettings)}
                     />
                   </div>
+
+                  {/* Facebook Page Settings */}
+                  <div className="pt-4 border-t border-gray-200/50">
+                    <label className="text-xs font-bold mb-3 block" style={{ color: 'var(--text-secondary)' }}>
+                      📘 Facebook Fanpage
+                    </label>
+
+                    <div className="flex items-center gap-3 mb-3">
+                      <input
+                        type="checkbox"
+                        id="showFacebookWidget"
+                        className="w-5 h-5 rounded border-gray-300 text-[var(--primary-pink)] focus:ring-[var(--primary-pink)]"
+                        checked={globalSettings.showFacebookWidget || false}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, showFacebookWidget: e.target.checked };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                          saveGlobalSettings(newSettings);
+                        }}
+                      />
+                      <label htmlFor="showFacebookWidget" className="text-sm font-medium cursor-pointer">
+                        Hiển thị widget Facebook dưới footer
+                      </label>
+                    </div>
+
+                    {globalSettings.showFacebookWidget && (
+                      <input
+                        type="url"
+                        className="glass-input w-full rounded-2xl px-5 py-3 text-sm"
+                        placeholder="https://www.facebook.com/Thegioihoasapp"
+                        value={globalSettings.facebookPageUrl || ''}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, facebookPageUrl: e.target.value };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                        onBlur={() => saveGlobalSettings(globalSettings)}
+                      />
+                    )}
+                    {globalSettings.showFacebookWidget && (
+                      <p className="text-[10px] text-neutral-400 mt-2">
+                        * Nhập URL đầy đủ của Facebook Page (VD: https://www.facebook.com/Thegioihoasapp)
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -3411,6 +3461,29 @@ const App: React.FC = () => {
           <p className="text-neutral-500 text-sm leading-relaxed max-w-2xl mx-auto">
             {globalSettings.footerDescription || 'Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.'}
           </p>
+
+          {/* Facebook Page Widget */}
+          {globalSettings.showFacebookWidget && globalSettings.facebookPageUrl && (
+            <div className="mt-8 flex justify-center">
+              <div className="glass p-6 rounded-2xl inline-block">
+                <h5 className="text-lg font-bold mb-4 text-[var(--primary-pink)]">
+                  📘 Theo dõi chúng tôi trên Facebook
+                </h5>
+                <div className="flex justify-center">
+                  <FacebookPagePlugin
+                    pageUrl={globalSettings.facebookPageUrl}
+                    width={340}
+                    height={500}
+                    showPosts={true}
+                    hideCover={false}
+                    showFacepile={true}
+                    smallHeader={false}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <p className="text-neutral-400 text-xs mt-6">
             {globalSettings.footerCopyright || `© ${new Date().getFullYear()} ${globalSettings.websiteName}. All rights reserved.`}
           </p>

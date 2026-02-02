@@ -1036,3 +1036,28 @@ input.glass-input::placeholder {
     letter-spacing: 0.5px;
   }
 }
+
+/* Facebook Page Widget Styles */
+.facebook-page-plugin-wrapper {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.facebook-page-plugin-wrapper iframe {
+  max-width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Mobile adjustments for Facebook widget */
+@media (max-width: 640px) {
+  .facebook-page-plugin-wrapper .fb-page {
+    width: 100% !important;
+  }
+
+  .facebook-page-plugin-wrapper .fb-page>span,
+  .facebook-page-plugin-wrapper .fb-page>span>iframe {
+    width: 100% !important;
+    max-width: 340px !important;
+  }
+}
