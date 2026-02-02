@@ -23,8 +23,9 @@
     opacity: 0;
 }
 
-.transition-fade img.active {
+.image-container img.active {
     opacity: 1;
+    z-index: 10;
 }
 
 /* 2. SLIDE LEFT - Trượt từ phải sang trái */

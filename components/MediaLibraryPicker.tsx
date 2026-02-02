@@ -42,11 +42,15 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({
 
     const loadImages = async () => {
         try {
-            const response = await fetch(`${BACKEND_URL}/api/media`);
+            const response = await fetch(`${BACKEND_URL}/api/uploads`);
             if (!response.ok) throw new Error('Failed to load images');
             const data = await response.json();
+
+            // Extract images from response (data.images)
+            const imageData = data.images || [];
+
             // Sort by uploadedAt descending (newest first)
-            const sorted = data.sort((a: MediaImage, b: MediaImage) =>
+            const sorted = imageData.sort((a: MediaImage, b: MediaImage) =>
                 new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
             );
             setImages(sorted);
@@ -160,8 +164,8 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({
                                     <div
                                         key={img.filename}
                                         className={`relative group cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${isSelected
-                                                ? 'border-pink-500 shadow-[0_0_20px_rgba(255,107,157,0.5)] scale-95'
-                                                : 'border-white/30 hover:border-pink-300'
+                                            ? 'border-pink-500 shadow-[0_0_20px_rgba(255,107,157,0.5)] scale-95'
+                                            : 'border-white/30 hover:border-pink-300'
                                             }`}
                                         onClick={() => toggleImage(img.filename)}
                                     >
@@ -217,7 +221,7 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({
                             disabled={selectedImages.size === 0}
                             className="pill-button bg-gradient-pink !text-white px-8 py-3 text-sm font-bold shadow-xl hover-glow-pink disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none"
                         >
-                            Thêm {selectedImages.size > 0 ? `(${selectedImages.size})` : ''}
+                            THÊM {selectedImages.size > 0 ? `(${selectedImages.size})` : ''}
                         </button>
                     </div>
                 </div>

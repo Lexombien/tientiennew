@@ -228,8 +228,12 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
         setFormData(prev => {
             const images = prev.imagesWithMetadata || [];
-            const oldIndex = images.findIndex(img => (img.url + images.indexOf(img)) === active.id);
-            const newIndex = images.findIndex(img => (img.url + images.indexOf(img)) === over.id);
+
+            // Find indices based on the composite ID (url + index)
+            const oldIndex = images.findIndex((img, idx) => (img.url + idx) === active.id);
+            const newIndex = images.findIndex((img, idx) => (img.url + idx) === over.id);
+
+            if (oldIndex === -1 || newIndex === -1) return prev;
 
             const newImages = arrayMove(images, oldIndex, newIndex);
             const newUrls = newImages.map(img => img.url);
@@ -292,8 +296,9 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide glass-strong rounded-3xl border border-white/30 shadow-2xl">
-                <div className="sticky top-0 z-10 flex items-center justify-between p-2 md:p-6 border-b border-white/20 blur-backdrop">
+            <div className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden glass-strong rounded-3xl border border-white/30 shadow-2xl flex flex-col">
+                {/* Header - Sticky */}
+                <div className="sticky top-0 z-20 flex items-center justify-between p-4 md:p-6 border-b border-white/20 blur-backdrop">
                     <h2 className="text-2xl font-bold serif-display gradient-text">
                         {product?.id ? '✏️ Cập nhật sản phẩm' : '➕ Thêm sản phẩm mới'}
                     </h2>
@@ -307,7 +312,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-2 md:p-6 space-y-6">
+                {/* Body - Scrollable */}
+                <form id="product-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-hide">
                     {/* Product Name & SKU */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="glass p-2 md:p-4 rounded-2xl">
@@ -517,42 +523,43 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                             </div>
                         )}
                     </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col md:flex-row gap-3 justify-between pt-4 border-t border-white/20">
-                        {/* Delete Button - Only show for existing products */}
-                        {product?.id && onDelete && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (window.confirm(`⚠️ Bạn có chắc chắn muốn xóa sản phẩm "${product.title}"?\n\nHành động này không thể hoàn tác!`)) {
-                                        onDelete(product.id);
-                                    }
-                                }}
-                                className="pill-button bg-rose-500 text-white px-6 py-3 text-sm font-bold shadow-xl hover:bg-rose-600 transition-all w-full md:w-auto order-last md:order-first"
-                            >
-                                🗑️ XÓA SP
-                            </button>
-                        )}
-
-                        {/* Right side buttons */}
-                        <div className="flex flex-col md:flex-row gap-3 ml-auto w-full md:w-auto">
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                className="pill-button glass text-sm px-6 py-3 font-bold hover:glass-strong w-full md:w-auto"
-                            >
-                                Hủy bỏ
-                            </button>
-                            <button
-                                type="submit"
-                                className="pill-button bg-gradient-pink !text-white px-8 py-3 text-sm font-bold shadow-xl hover-glow-pink w-full md:w-auto"
-                            >
-                                {product?.id ? 'Lưu thông tin' : 'Thêm sản phẩm'}
-                            </button>
-                        </div>
-                    </div>
                 </form>
+
+                {/* Footer - Fixed Bottom */}
+                <div className="sticky bottom-0 z-20 flex flex-col md:flex-row gap-3 justify-between p-4 md:p-6 border-t border-white/20 blur-backdrop bg-white/10">
+                    {/* Delete Button - Only show for existing products */}
+                    {product?.id && onDelete && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (window.confirm(`⚠️ Bạn có chắc chắn muốn xóa sản phẩm "${product.title}"?\n\nHành động này không thể hoàn tác!`)) {
+                                    onDelete(product.id);
+                                }
+                            }}
+                            className="pill-button bg-rose-500 text-white px-6 py-3 text-sm font-bold shadow-xl hover:bg-rose-600 transition-all w-full md:w-auto order-last md:order-first"
+                        >
+                            🗑️ XÓA SP
+                        </button>
+                    )}
+
+                    {/* Right side buttons */}
+                    <div className="flex flex-col md:flex-row gap-3 ml-auto w-full md:w-auto">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="pill-button glass text-sm px-6 py-3 font-bold hover:glass-strong w-full md:w-auto"
+                        >
+                            HỦY BỎ
+                        </button>
+                        <button
+                            type="submit"
+                            form="product-form"
+                            className="pill-button bg-gradient-pink !text-white px-8 py-3 text-sm font-bold shadow-xl hover-glow-pink w-full md:w-auto"
+                        >
+                            {product?.id ? 'LƯU THÔNG TIN' : 'THÊM SẢN PHẨM'}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Media Library Picker Modal */}
