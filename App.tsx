@@ -3455,38 +3455,46 @@ const App: React.FC = () => {
         onClose={() => setShowOrderTracking(false)}
       />
 
-      <footer className="bg-neutral-50 border-t border-neutral-200 py-4">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h4 className="font-bold text-xl mb-3 serif text-rose-600">{globalSettings.footerTitle || globalSettings.websiteName}</h4>
-          <p className="text-neutral-500 text-sm leading-relaxed max-w-2xl mx-auto">
-            {globalSettings.footerDescription || 'Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.'}
-          </p>
+      <footer className="bg-neutral-50 border-t border-neutral-200 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Grid layout: 2 columns on desktop, 1 column on mobile */}
+          <div className={`grid ${globalSettings.showFacebookWidget && globalSettings.facebookPageUrl ? 'lg:grid-cols-2' : 'grid-cols-1'} gap-8 lg:gap-12 items-start`}>
 
-          {/* Facebook Page Widget */}
-          {globalSettings.showFacebookWidget && globalSettings.facebookPageUrl && (
-            <div className="mt-8 flex justify-center">
-              <div className="glass p-6 rounded-2xl inline-block">
-                <h5 className="text-lg font-bold mb-4 text-[var(--primary-pink)]">
-                  📘 Theo dõi chúng tôi trên Facebook
-                </h5>
-                <div className="flex justify-center">
-                  <FacebookPagePlugin
-                    pageUrl={globalSettings.facebookPageUrl}
-                    width={340}
-                    height={500}
-                    showPosts={true}
-                    hideCover={false}
-                    showFacepile={true}
-                    smallHeader={false}
-                  />
+            {/* Left Column: Footer Info */}
+            <div className="text-center lg:text-left space-y-4">
+              <h4 className="font-bold text-2xl serif text-rose-600">
+                {globalSettings.footerTitle || globalSettings.websiteName}
+              </h4>
+              <p className="text-neutral-500 text-sm leading-relaxed max-w-xl lg:max-w-none">
+                {globalSettings.footerDescription || 'Tiệm hoa cao cấp - Nơi khởi nguồn của những cảm xúc chân thành nhất qua từng đóa hoa tươi.'}
+              </p>
+              <p className="text-neutral-400 text-xs pt-4">
+                {globalSettings.footerCopyright || `© ${new Date().getFullYear()} ${globalSettings.websiteName}. All rights reserved.`}
+              </p>
+            </div>
+
+            {/* Right Column: Facebook Widget */}
+            {globalSettings.showFacebookWidget && globalSettings.facebookPageUrl && (
+              <div className="flex justify-center lg:justify-end">
+                <div className="glass p-6 rounded-2xl inline-block w-full max-w-[380px]">
+                  <h5 className="text-lg font-bold mb-4 text-[var(--primary-pink)] text-center">
+                    📘 Theo dõi chúng tôi trên Facebook
+                  </h5>
+                  <div className="flex justify-center">
+                    <FacebookPagePlugin
+                      pageUrl={globalSettings.facebookPageUrl}
+                      width={340}
+                      height={500}
+                      showPosts={true}
+                      hideCover={false}
+                      showFacepile={true}
+                      smallHeader={false}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          <p className="text-neutral-400 text-xs mt-6">
-            {globalSettings.footerCopyright || `© ${new Date().getFullYear()} ${globalSettings.websiteName}. All rights reserved.`}
-          </p>
+            )}
+          </div>
         </div>
       </footer>
 
