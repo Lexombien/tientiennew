@@ -363,11 +363,26 @@ const OrdersManagement: React.FC = () => {
                                             <div className="font-bold text-gray-800">{order.customerName}</div>
                                             <div className="text-xs font-medium text-gray-500 mt-1">{order.customerPhone}</div>
                                         </td>
-                                        <td className="p-6 max-w-[200px]">
-                                            <div className="font-bold text-gray-700 truncate">{order.productName}</div>
-                                            {order.variantName && (
-                                                <div className="text-[10px] font-bold text-blue-500 mt-1 bg-blue-50 px-2 py-0.5 rounded-md inline-block">🎨 {order.variantName}</div>
-                                            )}
+                                        <td className="p-6 max-w-[250px]">
+                                            <div className="flex items-center gap-3">
+                                                {/* Product Thumbnail */}
+                                                {order.productImage && (
+                                                    <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-md">
+                                                        <img
+                                                            src={order.productImage}
+                                                            alt={order.productName}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                )}
+                                                {/* Product Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-bold text-gray-700 truncate">{order.productName}</div>
+                                                    {order.variantName && (
+                                                        <div className="text-[10px] font-bold text-blue-500 mt-1 bg-blue-50 px-2 py-0.5 rounded-md inline-block">🎨 {order.variantName}</div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="p-6">
                                             <div className="font-black text-gray-800 tracking-tight">{formatPrice(order.productPrice)}</div>
