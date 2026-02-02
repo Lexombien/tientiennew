@@ -4,6 +4,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { vi } from 'date-fns/locale';
 import '../styles/datepicker-custom.css';
+import { trackConversion } from '../utils/trackingInjector';
 
 registerLocale('vi', vi);
 
@@ -323,6 +324,9 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
       const result = await response.json();
 
       if (result.success) {
+        // Track conversion for Google Ads, Facebook Pixel, GA4
+        trackConversion(globalSettings, finalTotalPrice);
+
         setShowSuccessScreen(true); // Show success screen instead of message
       } else {
         setSubmitMessage('❌ Có lỗi xảy ra. Vui lòng thử lại!');

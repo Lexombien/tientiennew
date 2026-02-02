@@ -17,6 +17,7 @@ import OrderTrackingModal from './components/OrderTrackingModal';
 import ShippingFeesManager from './components/ShippingFeesManager';
 import FacebookPagePlugin from './components/FacebookPagePlugin';
 import { loadAnalyticsData, trackPageView, trackProductClick, exportAnalytics, clearAllAnalytics, clearOldAnalytics } from './utils/analytics';
+import { injectTrackingScripts } from './utils/trackingInjector';
 
 // Auto-detect backend URL based on environment
 // Development: localhost or LAN IP (192.168.x.x, 10.x.x.x, etc.)
@@ -98,6 +99,14 @@ const DEFAULT_GLOBAL_SETTINGS = {
   // Facebook Page Settings
   facebookPageUrl: 'https://www.facebook.com/thegioihoasapp', // URL của Facebook Fanpage
   showFacebookWidget: true, // Hiển thị widget Facebook hay không
+
+  // Tracking Codes (Google Ads, Analytics, Facebook Pixel)
+  googleAnalyticsId: '', // GA4 Measurement ID (G-XXXXXXXXXX)
+  googleTagManagerId: '', // GTM Container ID (GTM-XXXXXXX)
+  googleAdsConversionId: '', // Google Ads Conversion ID (AW-XXXXXXXXX)
+  googleAdsConversionLabel: '', // Google Ads Conversion Label for purchase event
+  facebookPixelId: '', // Facebook Pixel ID
+
 };
 
 const App: React.FC = () => {
@@ -267,6 +276,17 @@ const App: React.FC = () => {
 
     styleElement.textContent = globalSettings.customCSS;
   }, [globalSettings.customCSS]);
+
+  // Inject Tracking Scripts (Google Analytics, Ads, Facebook Pixel)
+  useEffect(() => {
+    // Auto-inject tracking scripts when admin saves tracking codes
+    injectTrackingScripts(globalSettings);
+  }, [
+    globalSettings.googleAnalyticsId,
+    globalSettings.googleTagManagerId,
+    globalSettings.googleAdsConversionId,
+    globalSettings.facebookPixelId
+  ]);
 
   // Apply Favicon Dynamically
   useEffect(() => {
@@ -3041,6 +3061,137 @@ const App: React.FC = () => {
                       <br />* Để lấy ID: Chat với Bot/OA và kiểm tra công cụ quản lý.
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Tracking Codes (Google Ads, Analytics, Facebook Pixel) */}
+              <div className="glass p-6 rounded-2xl">
+                <div className="mb-4">
+                  <label className="block text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                    📈 Mã theo dõi quảng cáo & Analytics
+                  </label>
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    Cấu hình Google Analytics, Google Ads, Facebook Pixel để theo dõi hiệu quả quảng cáo
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Google Analytics 4 */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      🔍 Google Analytics 4 (Measurement ID)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-mono"
+                      placeholder="G-XXXXXXXXXX"
+                      value={globalSettings.googleAnalyticsId || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, googleAnalyticsId: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">
+                      Ví dụ: G-ABC123XYZ | Lấy tại: <a href="https://analytics.google.com" target="_blank" className="text-pink-500 hover:underline">Google Analytics</a>
+                    </p>
+                  </div>
+
+                  {/* Google Tag Manager */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      🏷️ Google Tag Manager (Container ID)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-mono"
+                      placeholder="GTM-XXXXXXX"
+                      value={globalSettings.googleTagManagerId || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, googleTagManagerId: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">
+                      Ví dụ: GTM-XXXXXX | Lấy tại: <a href="https://tagmanager.google.com" target="_blank" className="text-pink-500 hover:underline">Google Tag Manager</a>
+                    </p>
+                  </div>
+
+                  {/* Google Ads Conversion ID */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      🎯 Google Ads Conversion ID (AW-XXXXXXXXX)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-mono"
+                      placeholder="AW-1234567890"
+                      value={globalSettings.googleAdsConversionId || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, googleAdsConversionId: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">
+                      Ví dụ: AW-123456789 | Lấy tại: <a href="https://ads.google.com" target="_blank" className="text-pink-500 hover:underline">Google Ads</a> → Conversions
+                    </p>
+                  </div>
+
+                  {/* Google Ads Conversion Label (for order completion) */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      🏁 Google Ads Conversion Label (Đơn hàng hoàn thành)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-mono"
+                      placeholder="purchase_label_xxx"
+                      value={globalSettings.googleAdsConversionLabel || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, googleAdsConversionLabel: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">
+                      Label theo dõi sự kiện "Đặt hàng thành công"
+                    </p>
+                  </div>
+
+                  {/* Facebook Pixel */}
+                  <div>
+                    <label className="text-xs font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                      📘 Facebook Pixel ID (Meta Ads)
+                    </label>
+                    <input
+                      type="text"
+                      className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-mono"
+                      placeholder="123456789012345"
+                      value={globalSettings.facebookPixelId || ''}
+                      onChange={(e) => {
+                        const newSettings = { ...globalSettings, facebookPixelId: e.target.value };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                      onBlur={() => saveGlobalSettings(globalSettings)}
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">
+                      Ví dụ: 123456789012345 | Lấy tại: <a href="https://business.facebook.com/events_manager2" target="_blank" className="text-pink-500 hover:underline">Facebook Events Manager</a>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Info box */}
+                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                    💡 <strong>Hướng dẫn:</strong> Sau khi nhập mã, website sẽ tự động gửi dữ liệu tracking (lượt xem trang, đơn hàng) đến các nền tảng quảng cáo.
+                  </p>
                 </div>
               </div>
 
