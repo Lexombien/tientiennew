@@ -474,11 +474,26 @@ const OrdersManagement: React.FC = () => {
                             {/* Product Info */}
                             <div className="glass p-4 rounded-2xl">
                                 <h3 className="font-bold mb-3">📦 Sản phẩm</h3>
-                                <div className="space-y-1 text-sm">
-                                    <div><strong>Tên:</strong> {selectedOrder.productName}</div>
-                                    {selectedOrder.variantName && <div><strong>Biến thể:</strong> {selectedOrder.variantName}</div>}
-                                    {selectedOrder.variantSKU && <div><strong>SKU:</strong> {selectedOrder.variantSKU}</div>}
-                                    <div className="text-lg font-bold gradient-text mt-2">{formatPrice(selectedOrder.productPrice)}</div>
+                                <div className="flex gap-4">
+                                    {/* Product Image - Large */}
+                                    {selectedOrder.productImage && (
+                                        <div className="flex-shrink-0">
+                                            <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-white shadow-lg hover:scale-105 transition-transform">
+                                                <img
+                                                    src={selectedOrder.productImage}
+                                                    alt={selectedOrder.productName}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* Product Details */}
+                                    <div className="flex-1 space-y-1 text-sm">
+                                        <div><strong>Tên:</strong> {selectedOrder.productName}</div>
+                                        {selectedOrder.variantName && <div><strong>Biến thể:</strong> {selectedOrder.variantName}</div>}
+                                        {selectedOrder.variantSKU && <div><strong>SKU:</strong> {selectedOrder.variantSKU}</div>}
+                                        <div className="text-lg font-bold gradient-text mt-2">{formatPrice(selectedOrder.productPrice)}</div>
+                                    </div>
                                 </div>
                             </div>
 
