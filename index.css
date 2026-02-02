@@ -868,3 +868,171 @@ input.glass-input::placeholder {
 .gradient-d {
   stroke: url(#d);
 }
+
+/* --- ANIMATED LOAD MORE BUTTON --- */
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    box-shadow:
+      0 4px 0 #c21b64,
+      0 8px 10px rgba(255, 62, 157, 0.35),
+      0 0 20px rgba(255, 107, 157, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  50% {
+    box-shadow:
+      0 4px 0 #c21b64,
+      0 8px 10px rgba(255, 62, 157, 0.5),
+      0 0 30px rgba(255, 107, 157, 0.8),
+      0 0 40px rgba(189, 95, 255, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  }
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes bounce-subtle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.btn-load-more-animated {
+  background: linear-gradient(-45deg,
+      #ff8eb3,
+      #ff6b9d,
+      #e83e8c,
+      #bd5fff,
+      #ff6b9d,
+      #ff8eb3);
+  background-size: 400% 400%;
+  animation: gradient-flow 3s ease infinite, glow-pulse 2s ease-in-out infinite;
+
+  color: white !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.95rem;
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.6);
+  border-bottom: 2px solid #c21b64;
+  border-radius: 50px;
+
+  box-shadow:
+    0 4px 0 #c21b64,
+    0 8px 10px rgba(255, 62, 157, 0.35),
+    0 0 20px rgba(255, 107, 157, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+
+  text-shadow:
+    0 1px 2px rgba(160, 20, 60, 0.6),
+    0 0 10px rgba(255, 255, 255, 0.3);
+
+  padding: 14px 32px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+/* Shimmer overlay effect */
+.btn-load-more-animated::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -200%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-25deg);
+  animation: text-shimmer 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Inner glow effect */
+.btn-load-more-animated::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.1) 100%);
+  border-radius: 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.btn-load-more-animated span {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+
+.btn-load-more-animated:hover {
+  transform: translateY(-3px) scale(1.05);
+  animation: gradient-flow 2s ease infinite, glow-pulse 1.5s ease-in-out infinite, bounce-subtle 0.6s ease-in-out infinite;
+  filter: brightness(1.1);
+  box-shadow:
+    0 6px 0 #be155f,
+    0 14px 20px rgba(255, 62, 157, 0.5),
+    0 0 30px rgba(255, 107, 157, 0.8),
+    0 0 40px rgba(189, 95, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.btn-load-more-animated:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow:
+    0 2px 0 #be155f,
+    0 4px 8px rgba(255, 62, 157, 0.4),
+    0 0 15px rgba(255, 107, 157, 0.5),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: gradient-flow 2s ease infinite;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .btn-load-more-animated {
+    padding: 12px 24px;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+}

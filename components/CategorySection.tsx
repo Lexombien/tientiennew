@@ -140,9 +140,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                 <div className="flex justify-center mt-8">
                     <button
                         onClick={onLoadMore}
-                        className="btn-skeuo-pink"
+                        className="btn-load-more-animated"
                     >
-                        ➕ Xem thêm sản phẩm
+                        <span>➕ Xem thêm sản phẩm</span>
                     </button>
                 </div>
             )}
