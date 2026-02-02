@@ -96,8 +96,8 @@ const DEFAULT_GLOBAL_SETTINGS = {
   coupons: [] as { code: string; discountPercent: number }[],
 
   // Facebook Page Settings
-  facebookPageUrl: '', // URL của Facebook Fanpage
-  showFacebookWidget: false, // Hiển thị widget Facebook hay không
+  facebookPageUrl: 'https://www.facebook.com/thegioihoasapp', // URL của Facebook Fanpage
+  showFacebookWidget: true, // Hiển thị widget Facebook hay không
 };
 
 const App: React.FC = () => {
@@ -3455,13 +3455,13 @@ const App: React.FC = () => {
         onClose={() => setShowOrderTracking(false)}
       />
 
-      <footer className="bg-neutral-50 border-t border-neutral-200 py-8">
+      <footer className="bg-neutral-50 border-t border-neutral-200 py-10">
         <div className="max-w-7xl mx-auto px-4">
           {/* Grid layout: 2 columns on desktop, 1 column on mobile */}
-          <div className={`grid ${globalSettings.showFacebookWidget && globalSettings.facebookPageUrl ? 'lg:grid-cols-2' : 'grid-cols-1'} gap-8 lg:gap-12 items-start`}>
+          <div className={`grid ${globalSettings.showFacebookWidget && globalSettings.facebookPageUrl ? 'lg:grid-cols-2' : 'grid-cols-1'} gap-6 lg:gap-8 items-start`}>
 
-            {/* Left Column: Footer Info */}
-            <div className="text-center lg:text-left space-y-4">
+            {/* Left Column: Footer Info - Order: Desktop 1st, Mobile 2nd */}
+            <div className="text-center lg:text-left space-y-4 order-2 lg:order-1">
               <h4 className="font-bold text-2xl serif text-rose-600">
                 {globalSettings.footerTitle || globalSettings.websiteName}
               </h4>
@@ -3473,17 +3473,28 @@ const App: React.FC = () => {
               </p>
             </div>
 
-            {/* Right Column: Facebook Widget */}
+            {/* Right Column: Facebook Widget - Order: Desktop 2nd, Mobile 1st */}
             {globalSettings.showFacebookWidget && globalSettings.facebookPageUrl && (
-              <div className="flex justify-center lg:justify-end">
-                <div className="glass p-6 rounded-2xl inline-block w-full max-w-[380px]">
-                  <h5 className="text-lg font-bold mb-4 text-[var(--primary-pink)] text-center">
-                    📘 Theo dõi chúng tôi trên Facebook
+              <div className="flex justify-center lg:justify-end w-full order-1 lg:order-2">
+                <div className="facebook-widget-container w-full max-w-[540px]">
+                  {/* Shooting Stars Background */}
+                  <section className="bg-stars">
+                    <span className="star"></span>
+                    <span className="star"></span>
+                    <span className="star"></span>
+                    <span className="star"></span>
+                  </section>
+
+                  {/* Title with Flickering Effect */}
+                  <h5 className="facebook-widget-title">
+                    <span>📘 Theo dõi chúng tôi trên Facebook</span>
                   </h5>
+
+                  {/* Facebook Widget */}
                   <div className="flex justify-center">
                     <FacebookPagePlugin
                       pageUrl={globalSettings.facebookPageUrl}
-                      width={340}
+                      width={500}
                       height={300}
                       showPosts={true}
                       hideCover={false}

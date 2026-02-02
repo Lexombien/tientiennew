@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface FacebookPagePluginProps {
     pageUrl: string;
@@ -12,7 +12,7 @@ interface FacebookPagePluginProps {
 
 const FacebookPagePlugin: React.FC<FacebookPagePluginProps> = ({
     pageUrl,
-    width = 340,
+    width = 500,
     height = 300,
     showPosts = true,
     hideCover = false,
@@ -20,78 +20,48 @@ const FacebookPagePlugin: React.FC<FacebookPagePluginProps> = ({
     smallHeader = false
 }) => {
     const [isMobile, setIsMobile] = useState(false);
+    const [containerWidth, setContainerWidth] = useState(width);
 
     useEffect(() => {
-        // Check if mobile
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+
+            // Calculate width based on screen size
+            if (mobile) {
+                // Mobile: container width - padding (40px total)
+                const calculatedWidth = Math.min(window.innerWidth - 40, width);
+                setContainerWidth(calculatedWidth);
+            } else {
+                setContainerWidth(width);
+            }
         };
 
         checkMobile();
         window.addEventListener('resize', checkMobile);
 
         return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    }, [width]);
 
-    useEffect(() => {
-        // Only load SDK in browser environment
-        if (typeof window === 'undefined') return;
+    // Encode the page URL for the iframe src
+    const encodedPageUrl = encodeURIComponent(pageUrl);
+    const tabs = showPosts ? 'timeline' : '';
 
-        // Load Facebook SDK
-        if (!(window as any).FB) {
-            // Remove existing script if any
-            const existingScript = document.getElementById('facebook-jssdk');
-            if (existingScript) {
-                existingScript.remove();
-            }
-
-            const script = document.createElement('script');
-            script.id = 'facebook-jssdk';
-            script.src = 'https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v18.0';
-            script.async = true;
-            script.defer = true;
-            script.crossOrigin = 'anonymous';
-
-            script.onload = () => {
-                if ((window as any).FB) {
-                    (window as any).FB.XFBML.parse();
-                }
-            };
-
-            const fjs = document.getElementsByTagName('script')[0];
-            if (fjs && fjs.parentNode) {
-                fjs.parentNode.insertBefore(script, fjs);
-            }
-        } else {
-            // If SDK is already loaded, parse XFBML
-            setTimeout(() => {
-                if ((window as any).FB) {
-                    (window as any).FB.XFBML.parse();
-                }
-            }, 100);
-        }
-    }, [pageUrl]);
-
-    // Adjust width for mobile
-    const responsiveWidth = isMobile ? Math.min(width, window.innerWidth - 80) : width;
+    const iframeSrc = `https://www.facebook.com/plugins/page.php?href=${encodedPageUrl}&tabs=${tabs}&width=${containerWidth}&height=${height}&small_header=${smallHeader}&adapt_container_width=true&hide_cover=${hideCover}&show_facepile=${showFacepile}&appId=720604248414654`;
 
     return (
-        <div className="facebook-page-plugin-wrapper">
-            <div id="fb-root"></div>
-            <div
-                className="fb-page"
-                data-href={pageUrl}
-                data-tabs={showPosts ? "timeline" : ""}
-                data-width={responsiveWidth}
-                data-height={height}
-                data-hide-cover={hideCover}
-                data-show-facepile={showFacepile}
-                data-small-header={smallHeader}
-                data-adapt-container-width="true"
-            >
-                <blockquote cite={pageUrl} className="fb-xfbml-parse-ignore">
-                    <a href={pageUrl}>Facebook</a>
-                </blockquote>
+        <div className="facebook-page-plugin-wrapper" style={{ maxWidth: '100%', width: '100%' }}>
+            <div style={{ maxWidth: `${containerWidth}px`, margin: '0 auto' }}>
+                <iframe
+                    src={iframeSrc}
+                    width={containerWidth}
+                    height={height}
+                    style={{ border: 'none', overflow: 'hidden', maxWidth: '100%' }}
+                    scrolling="no"
+                    frameBorder="0"
+                    allowFullScreen={true}
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                />
             </div>
         </div>
     );
