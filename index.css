@@ -11,6 +11,16 @@
   box-sizing: border-box;
 }
 
+/* Fix iOS Zoom Issue on Inputs */
+@media screen and (max-width: 768px) {
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 :root {
   /* Skeuomorphism / Neumorphism Color Palette */
   --primary-pink: #FF6B9D;

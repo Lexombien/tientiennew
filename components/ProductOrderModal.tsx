@@ -857,12 +857,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
                         placeholder="Khách Cũ Nhập Mã"
-                        className="flex-1 px-3 py-2.5 bg-white border border-indigo-200 rounded-lg text-xs font-bold uppercase focus:border-indigo-500 outline-none placeholder:text-[10px]"
+                        className="flex-1 px-3 py-2.5 bg-white border border-indigo-200 rounded-lg text-[16px] md:text-sm font-bold uppercase focus:border-indigo-500 outline-none placeholder:text-xs"
                       />
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
-                        className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-all whitespace-nowrap"
+                        className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm md:text-xs font-bold hover:bg-indigo-700 transition-all whitespace-nowrap"
                       >
                         Áp dụng
                       </button>
