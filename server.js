@@ -842,6 +842,13 @@ app.post('/api/submit-order', async (req, res) => {
         console.log('\n🛒 ===== ĐƠN HÀNG MỚI (DEBUG) =====');
         console.log('📦 Body nhận được:', JSON.stringify(req.body, null, 2));
 
+        // 1. LƯU ĐƠN HÀNG VÀO DATABASE (Generate Order Number first)
+        const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+        if (!db.orders) db.orders = [];
+
+        const orderId = Date.now().toString();
+        const orderNumber = `#${String(db.orders.length + 1).padStart(4, '0')}`;
+
         // Format message cho Zalo Bot
         let message = isGift
             ? `🎁 === ĐƠN HÀNG QUÀ TẶNG ===\n\n`
@@ -937,13 +944,7 @@ app.post('/api/submit-order', async (req, res) => {
 
         console.log('📨 Message gửi Zalo:', message);
 
-        // 1. LƯU ĐƠN HÀNG VÀO DATABASE
-        const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
-        if (!db.orders) db.orders = [];
-
-        const orderId = Date.now().toString();
-        const orderNumber = `#${String(db.orders.length + 1).padStart(4, '0')}`;
-
+        // Create new order object
         const newOrder = {
             id: orderId,
             orderNumber,
