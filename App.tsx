@@ -512,6 +512,60 @@ const App: React.FC = () => {
     loadDataFromServer();
   }, []);
 
+  // NEW: Deep Linking Handler - Scroll to category based on URL path
+  useEffect(() => {
+    // Only proceed if we have categories loaded to match against
+    if (categories.length === 0) return;
+
+    // Helper to slugify Vietnamese string for matching
+    const toSlug = (str: string) => {
+      return str
+        .toLowerCase()
+        .normalize('NFD') // Decompose combined characters
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+        .replace(/[đĐ]/g, 'd') // Convert đ -> d
+        .replace(/([^0-9a-z-\s])/g, '') // Remove non-alphanumeric
+        .replace(/(\s+)/g, '-') // Replace spaces with dashes
+        .replace(/^-+|-+$/g, ''); // Trim leading/trailing dashes
+    };
+
+    // Get path after domain (e.g., /quatet -> quatet)
+    const path = window.location.pathname.replace(/^\//, '');
+
+    if (path && path !== '' && path !== 'admin') {
+      const decodedPath = decodeURIComponent(path);
+      const targetSlug = toSlug(decodedPath);
+
+      // Find matching category by comparing slugs
+      const matchedCategory = categories.find(cat => toSlug(cat) === targetSlug);
+
+      if (matchedCategory) {
+        console.log(`🔗 Detected deep link category: "${matchedCategory}" from path: "${path}"`);
+
+        // Helper to scroll
+        const performScroll = () => {
+          const element = document.getElementById(matchedCategory);
+          if (element) {
+            const header = document.querySelector('header') as HTMLElement;
+            const headerHeight = header ? header.offsetHeight : 64;
+            const offset = headerHeight + 16;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        };
+
+        // Retry a few times in case of lazy loading or layout shifts
+        setTimeout(performScroll, 500);
+        setTimeout(performScroll, 1500); // Second attempt for slower connections
+      }
+    }
+  }, [categories]);
+
   // Track page views for analytics
   useEffect(() => {
     // Only track on homepage (not admin panel)
