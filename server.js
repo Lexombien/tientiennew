@@ -847,6 +847,9 @@ app.post('/api/submit-order', async (req, res) => {
             ? `🎁 === ĐƠN HÀNG QUÀ TẶNG ===\n\n`
             : `🛒 === ĐƠN HÀNG MỚI ===\n\n`;
 
+        // Add order number at the beginning
+        message += `📋 Mã ĐH: ${orderNumber}\n\n`;
+
         // ===== THÔNG TIN NGƯỜI NHẬN =====
         message += `👤 Người nhận: ${customerName}\n`;
         message += `📞 SĐT nhận: ${customerPhone}\n`;
@@ -990,6 +993,7 @@ app.post('/api/submit-order', async (req, res) => {
             let sentCount = 0;
             for (const ownerId of ownerIds) {
                 try {
+                    // 2.1. Send TEXT message with order details
                     await axios.post(
                         `https://bot-api.zaloplatforms.com/bot${botToken}/sendMessage`,
                         {
@@ -998,7 +1002,37 @@ app.post('/api/submit-order', async (req, res) => {
                         },
                         { headers: { 'Content-Type': 'application/json' } }
                     );
-                    console.log(`✅ Đã gửi đơn hàng qua Zalo đến ${ownerId}`);
+                    console.log(`✅ Đã gửi thông tin đơn hàng qua Zalo đến ${ownerId}`);
+
+                    // 2.2. Send PRODUCT IMAGE if available
+                    if (productImage) {
+                        try {
+                            // Determine if productImage is a full URL or relative path
+                            let imageUrl = productImage;
+
+                            // If it's a relative URL (starts with /), convert to absolute URL
+                            if (productImage.startsWith('/')) {
+                                const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+                                const host = req.get('host');
+                                imageUrl = `${protocol}://${host}${productImage}`;
+                            }
+
+                            await axios.post(
+                                `https://bot-api.zaloplatforms.com/bot${botToken}/sendPhoto`,
+                                {
+                                    chat_id: ownerId,
+                                    photo: imageUrl,
+                                    caption: `📦 ${productName}${variantName ? ` - ${variantName}` : ''}`
+                                },
+                                { headers: { 'Content-Type': 'application/json' } }
+                            );
+                            console.log(`📸 Đã gửi ảnh sản phẩm qua Zalo đến ${ownerId}`);
+                        } catch (photoError) {
+                            console.error(`⚠️ Lỗi gửi ảnh Zalo cho ${ownerId}:`, photoError.response?.data || photoError.message);
+                            // Don't fail the whole order if photo fails
+                        }
+                    }
+
                     sentCount++;
                 } catch (zaloError) {
                     console.error(`⚠️ Lỗi gửi Zalo cho ${ownerId}:`, zaloError.response?.data || zaloError.message);
