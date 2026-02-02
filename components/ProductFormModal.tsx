@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { FlowerProduct, ProductVariant, ImageWithMetadata } from '../types';
 import ProductVariantsEditor from './ProductVariantsEditor';
+import MediaLibraryPicker from './MediaLibraryPicker';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ProductFormModalProps {
     product?: FlowerProduct | null;
@@ -10,6 +28,106 @@ interface ProductFormModalProps {
     onDelete?: (productId: string) => void; // ← NEW: Delete callback
     onUploadImage?: (file: File) => Promise<string>;
 }
+
+// Sortable Image Item Component for Drag & Drop
+interface SortableImageItemProps {
+    img: ImageWithMetadata;
+    index: number;
+    variants?: ProductVariant[];
+    onDelete: (index: number) => void;
+    onUpdateVariant: (index: number, variantId: string) => void;
+}
+
+const SortableImageItem: React.FC<SortableImageItemProps> = ({
+    img,
+    index,
+    variants,
+    onDelete,
+    onUpdateVariant
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: img.url + index });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className="relative group"
+        >
+            <div className="aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-lg">
+                <img
+                    src={img.url}
+                    alt={img.alt || `Ảnh ${index + 1}`}
+                    className="w-full h-full object-cover"
+                />
+            </div>
+
+            {/* Drag Handle */}
+            <div
+                {...listeners}
+                {...attributes}
+                className="absolute top-2 left-2 bg-blue-500 text-white p-1.5 rounded-lg cursor-move opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                title="Kéo để sắp xếp"
+            >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16" />
+                </svg>
+            </div>
+
+            {/* Variant Selector */}
+            <div className="mt-2">
+                <label className="text-[9px] font-bold uppercase tracking-wide block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                    Biến thể
+                </label>
+                <select
+                    className="glass-input w-full rounded-lg px-2 py-1.5 text-[11px] font-semibold"
+                    value={img.variantId || ''}
+                    onChange={(e) => onUpdateVariant(index, e.target.value)}
+                >
+                    <option value="">-- Không có --</option>
+                    {variants?.map(variant => (
+                        <option key={variant.id} value={variant.id}>
+                            {variant.name}
+                        </option>
+                    ))}
+                </select>
+                {img.variantId && (
+                    <p className="text-[9px] mt-1 italic text-green-600">
+                        ✅ {variants?.find(v => v.id === img.variantId)?.name}
+                    </p>
+                )}
+            </div>
+
+            {/* Delete Button */}
+            <button
+                type="button"
+                onClick={() => onDelete(index)}
+                className="absolute top-2 right-2 w-6 h-6 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex items-center justify-center shadow-lg z-10"
+            >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            {/* Image Index */}
+            <div className="absolute bottom-2 left-2 bg-neutral-900/70 text-white px-2 py-0.5 rounded-lg text-[10px] font-bold z-10">
+                Ảnh {index + 1}
+            </div>
+        </div>
+    );
+};
 
 const ProductFormModal: React.FC<ProductFormModalProps> = ({
     product,
@@ -33,6 +151,15 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     });
 
     const [uploadingImages, setUploadingImages] = useState(false);
+    const [showMediaPicker, setShowMediaPicker] = useState(false);
+
+    // Drag and Drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -89,6 +216,40 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 imagesWithMetadata: updated
             };
         });
+    };
+
+    // Handle drag end - reorder images
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (!over || active.id === over.id) {
+            return;
+        }
+
+        setFormData(prev => {
+            const images = prev.imagesWithMetadata || [];
+            const oldIndex = images.findIndex(img => (img.url + images.indexOf(img)) === active.id);
+            const newIndex = images.findIndex(img => (img.url + images.indexOf(img)) === over.id);
+
+            const newImages = arrayMove(images, oldIndex, newIndex);
+            const newUrls = newImages.map(img => img.url);
+
+            return {
+                ...prev,
+                imagesWithMetadata: newImages,
+                images: newUrls
+            };
+        });
+    };
+
+    // Handle media library selection
+    const handleMediaLibrarySelect = (selectedImages: ImageWithMetadata[]) => {
+        setFormData(prev => ({
+            ...prev,
+            imagesWithMetadata: [...(prev.imagesWithMetadata || []), ...selectedImages],
+            images: [...(prev.images || []), ...selectedImages.map(img => img.url)]
+        }));
+        setShowMediaPicker(false);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -283,28 +444,37 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                         onChange={(variants) => setFormData(prev => ({ ...prev, variants }))}
                     />
 
-                    {/* Images with Variant Selection */}
+                    {/* Images with Variant Selection + Drag & Drop */}
                     <div className="glass p-2 md:p-6 rounded-2xl">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
                             <div>
                                 <label className="block text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-                                    📷 Hình ảnh sản phẩm (Tối đa 10 ảnh + SEO)
+                                    📷 Hình ảnh sản phẩm (Kéo thả để sắp xếp)
                                 </label>
                                 <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                    Tải ảnh lên sẽ tự động lưu vào thư viện SEO của bạn. Chọn biến thể cho từng ảnh (nếu có).
+                                    💡 Ảnh bên trái hiển thị đầu tiên trên trang chủ. Chọn biến thể cho từng ảnh (nếu có).
                                 </p>
                             </div>
-                            <label className="pill-button bg-gradient-pink !text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink cursor-pointer w-full md:w-auto text-center whitespace-nowrap">
-                                + Tải ảnh lên
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={handleImageUpload}
-                                    disabled={uploadingImages}
-                                />
-                            </label>
+                            <div className="flex gap-2 w-full md:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowMediaPicker(true)}
+                                    className="pill-button glass px-5 py-2 text-xs font-bold hover:glass-strong flex-1 md:flex-none whitespace-nowrap"
+                                >
+                                    📚 Chọn từ thư viện
+                                </button>
+                                <label className="pill-button bg-gradient-pink !text-white px-5 py-2 text-xs font-bold shadow-lg hover-glow-pink cursor-pointer flex-1 md:flex-none text-center whitespace-nowrap">
+                                    + Tải ảnh mới
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImages}
+                                    />
+                                </label>
+                            </div>
                         </div>
 
                         {uploadingImages && (
@@ -315,65 +485,35 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                         )}
 
                         {formData.imagesWithMetadata && formData.imagesWithMetadata.length > 0 ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
-                                {formData.imagesWithMetadata.map((img, index) => (
-                                    <div key={index} className="relative group">
-                                        <div className="aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-lg">
-                                            <img
-                                                src={img.url}
-                                                alt={img.alt || `Ảnh ${index + 1}`}
-                                                className="w-full h-full object-cover"
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={formData.imagesWithMetadata.map((img, idx) => img.url + idx)}
+                                    strategy={rectSortingStrategy}
+                                >
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
+                                        {formData.imagesWithMetadata.map((img, index) => (
+                                            <SortableImageItem
+                                                key={img.url + index}
+                                                img={img}
+                                                index={index}
+                                                variants={formData.variants}
+                                                onDelete={handleDeleteImage}
+                                                onUpdateVariant={handleUpdateImageVariant}
                                             />
-                                        </div>
-
-                                        {/* Variant Selector - REPLACED SEO Checkbox */}
-                                        <div className="mt-2">
-                                            <label className="text-[9px] font-bold uppercase tracking-wide block mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                                Biến thể
-                                            </label>
-                                            <select
-                                                className="glass-input w-full rounded-lg px-2 py-1.5 text-[11px] font-semibold"
-                                                value={img.variantId || ''}
-                                                onChange={(e) => handleUpdateImageVariant(index, e.target.value)}
-                                            >
-                                                <option value="">-- Không có --</option>
-                                                {formData.variants?.map(variant => (
-                                                    <option key={variant.id} value={variant.id}>
-                                                        {variant.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {img.variantId && (
-                                                <p className="text-[9px] mt-1 italic text-green-600">
-                                                    ✅ {formData.variants?.find(v => v.id === img.variantId)?.name}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Delete Button */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteImage(index)}
-                                            className="absolute top-2 right-2 w-6 h-6 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex items-center justify-center shadow-lg"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-
-                                        {/* Image Index */}
-                                        <div className="absolute top-2 left-2 bg-neutral-900/70 text-white px-2 py-0.5 rounded-lg text-[10px] font-bold">
-                                            Ảnh {index + 1}
-                                        </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </SortableContext>
+                            </DndContext>
                         ) : (
                             <div className="text-center py-12 border-2 border-dashed border-neutral-300 rounded-2xl mt-4">
                                 <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                <p className="text-sm text-neutral-400">Chưa có ảnh nào. Nhấn "Tải ảnh lên" để thêm ảnh.</p>
+                                <p className="text-sm text-neutral-400">Chưa có ảnh nào. Tải ảnh mới hoặc chọn từ thư viện.</p>
                             </div>
                         )}
                     </div>
@@ -414,6 +554,16 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     </div>
                 </form>
             </div>
+
+            {/* Media Library Picker Modal */}
+            {showMediaPicker && (
+                <MediaLibraryPicker
+                    onSelect={handleMediaLibrarySelect}
+                    onCancel={() => setShowMediaPicker(false)}
+                    multiSelect={true}
+                    productTitle={formData.title}
+                />
+            )}
         </div>
     );
 };

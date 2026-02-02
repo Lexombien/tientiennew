@@ -325,6 +325,13 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
       if (result.success) {
         // Track conversion for Google Ads, Facebook Pixel, GA4
+        console.log('🔍 DEBUG: Calling trackConversion with:', {
+          googleAdsId: globalSettings?.googleAdsConversionId,
+          googleAdsLabel: globalSettings?.googleAdsConversionLabel,
+          fbPixel: globalSettings?.facebookPixelId,
+          ga4: globalSettings?.googleAnalyticsId,
+          orderValue: finalTotalPrice
+        });
         trackConversion(globalSettings, finalTotalPrice);
 
         setShowSuccessScreen(true); // Show success screen instead of message
