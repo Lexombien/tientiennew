@@ -142,7 +142,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                         onClick={onLoadMore}
                         className="btn-skeuo-pink"
                     >
-                        ➕ Tải thêm sản phẩm
+                        ➕ Xem thêm sản phẩm
                     </button>
                 </div>
             )}
