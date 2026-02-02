@@ -524,8 +524,8 @@ const App: React.FC = () => {
         .normalize('NFD') // Decompose combined characters
         .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
         .replace(/[đĐ]/g, 'd') // Convert đ -> d
-        .replace(/([^0-9a-z-\s])/g, '') // Remove non-alphanumeric
-        .replace(/(\s+)/g, '-') // Replace spaces with dashes
+        .replace(/[^0-9a-z]/g, '-') // Replace NON-alphanumeric (spaces, symbols) with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
         .replace(/^-+|-+$/g, ''); // Trim leading/trailing dashes
     };
 
