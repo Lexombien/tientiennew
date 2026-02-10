@@ -111,6 +111,7 @@ const DEFAULT_GLOBAL_SETTINGS = {
   bankQRCode: '', // QR Code image for bank transfer
   bankAccountNumber: '', // Số tài khoản ngân hàng
   bankName: '', // Tên ngân hàng (VD: ACB, Vietcombank, Techcombank...)
+  bankCode: '', // Mã ngân hàng (VD: ACB, VCB, TCB, VPB...)
   bankAccountName: '', // Tên chủ tài khoản
 
 };
@@ -2834,18 +2835,55 @@ const App: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-600 block mb-1">Tên ngân hàng:</label>
-                      <input
-                        type="text"
+                      <label className="text-xs text-gray-600 block mb-1">Ngân hàng:</label>
+                      <select
                         className="glass-input w-full rounded-lg px-3 py-2 text-sm"
-                        placeholder="VD: ACB, Vietcombank, Techcombank..."
-                        value={globalSettings.bankName || ''}
+                        value={globalSettings.bankCode || ''}
                         onChange={(e) => {
-                          const newSettings = { ...globalSettings, bankName: e.target.value };
+                          const selectedBank = e.target.value;
+                          const bankNames: Record<string, string> = {
+                            'ACB': 'ACB - Ngân hàng Á Châu',
+                            'VCB': 'Vietcombank',
+                            'TCB': 'Techcombank',
+                            'MB': 'MBBank',
+                            'VPB': 'VPBank',
+                            'BIDV': 'BIDV',
+                            'VIB': 'VIB',
+                            'SHB': 'SHB',
+                            'TPB': 'TPBank',
+                            'MSB': 'MSB',
+                            'STB': 'Sacombank',
+                            'VIETINBANK': 'VietinBank',
+                            'AGR': 'Agribank',
+                            'OCB': 'OCB',
+                            'SCB': 'SCB',
+                          };
+                          const newSettings = {
+                            ...globalSettings,
+                            bankCode: selectedBank,
+                            bankName: bankNames[selectedBank] || selectedBank
+                          };
                           setGlobalSettings(newSettings);
                           localStorage.setItem('global_settings', JSON.stringify(newSettings));
                         }}
-                      />
+                      >
+                        <option value="">-- Chọn ngân hàng --</option>
+                        <option value="ACB">ACB - Ngân hàng Á Châu</option>
+                        <option value="VCB">Vietcombank</option>
+                        <option value="TCB">Techcombank</option>
+                        <option value="MB">MBBank</option>
+                        <option value="VPB">VPBank</option>
+                        <option value="BIDV">BIDV</option>
+                        <option value="VIB">VIB</option>
+                        <option value="SHB">SHB</option>
+                        <option value="TPB">TPBank</option>
+                        <option value="MSB">MSB</option>
+                        <option value="STB">Sacombank</option>
+                        <option value="VIETINBANK">VietinBank</option>
+                        <option value="AGR">Agribank</option>
+                        <option value="OCB">OCB</option>
+                        <option value="SCB">SCB</option>
+                      </select>
                     </div>
                     <div>
                       <label className="text-xs text-gray-600 block mb-1">Tên chủ tài khoản:</label>

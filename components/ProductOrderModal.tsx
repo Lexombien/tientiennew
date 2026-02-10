@@ -412,23 +412,66 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 </div>
               )}
 
-              {/* Bank Transfer Button - Only show if bank info is provided */}
+              {/* Bank Account Details - Display clearly for manual transfer */}
               {globalSettings?.bankAccountNumber && globalSettings?.bankName && (
-                <div className="mb-4">
-                  <a
-                    href={`https://dl.trustingsocial.com/app/payment?amount=${finalTotalPrice}&bankCode=${globalSettings.bankName}&accountNumber=${globalSettings.bankAccountNumber}&accountName=${encodeURIComponent(globalSettings.bankAccountName || '')}&content=Thanh%20toan%20don%20hang`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all hover:scale-105 active:scale-95"
+                <div className="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200">
+                  <p className="text-xs font-bold text-blue-700 mb-3 text-center">
+                    📋 Thông tin chuyển khoản:
+                  </p>
+                  <div className="space-y-2 bg-white p-4 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600">Ngân hàng:</span>
+                      <span className="text-sm font-bold text-gray-900">{globalSettings.bankName}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600">Số TK:</span>
+                      <span className="text-sm font-bold text-gray-900">{globalSettings.bankAccountNumber}</span>
+                    </div>
+                    {globalSettings.bankAccountName && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-600">Chủ TK:</span>
+                        <span className="text-sm font-bold text-gray-900">{globalSettings.bankAccountName}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <span className="text-xs text-gray-600">Số tiền:</span>
+                      <span className="text-lg font-black text-pink-600">{formatPrice(finalTotalPrice)}</span>
+                    </div>
+                  </div>
+
+
+                  {/* Deep Link to Banking App - Primary Action */}
+                  <button
+                    onClick={() => {
+                      const amount = Math.floor(finalTotalPrice);
+                      const message = encodeURIComponent(`Thanh toan don hang`);
+                      const accountName = encodeURIComponent(globalSettings.bankAccountName || '');
+                      const vietqrLink = `https://img.vietqr.io/image/${globalSettings.bankCode}-${globalSettings.bankAccountNumber}-compact2.jpg?amount=${amount}&addInfo=${message}&accountName=${accountName}`;
+                      window.open(vietqrLink, '_blank');
+                    }}
+                    className="w-full mt-3 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-4 rounded-xl font-bold text-base shadow-xl transition-all hover:scale-105 active:scale-95 animate-pulse"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                     </svg>
-                    Chuyển khoản ngay
-                  </a>
-                  <p className="text-xs text-blue-600 mt-2 italic">
-                    (Bấm để mở ứng dụng ngân hàng)
-                  </p>
+                    Mở App Ngân Hàng Chuyển Khoản
+                  </button>
+
+                  {/* Copy Button as backup */}
+                  <button
+                    onClick={() => {
+                      const textToCopy = `${globalSettings.bankName}\nSTK: ${globalSettings.bankAccountNumber}\nTên: ${globalSettings.bankAccountName || ''}\nSố tiền: ${formatPrice(finalTotalPrice)}`;
+                      navigator.clipboard.writeText(textToCopy).then(() => {
+                        alert('✅ Đã copy thông tin chuyển khoản!');
+                      });
+                    }}
+                    className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-lg transition-all hover:scale-105 active:scale-95"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Hoặc Copy thông tin TK
+                  </button>
                 </div>
               )}
 
