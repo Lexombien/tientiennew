@@ -726,7 +726,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
-                      placeholder="Họ tên của bạn"
+                      placeholder={isGiftMode ? "Họ tên người nhận" : "Họ tên của bạn"}
                       required
                     />
                   </div>
@@ -741,7 +741,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
-                      placeholder="Số điện thoại của bạn"
+                      placeholder={isGiftMode ? "Số điện thoại người nhận" : "Số điện thoại của bạn"}
                       required
                     />
                   </div>
@@ -1025,59 +1025,58 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   )}
                 </div>
 
-                {/* Shipping Fee & Payment Method Section */}
-                <div className="bg-gray-50 p-3 rounded-xl space-y-3">
+                {/* Payment Method Selection */}
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Phương thức thanh toán:</p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('transfer')}
+                      className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${paymentMethod === 'transfer'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                      🏦 Chuyển khoản
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => !isGiftMode && setPaymentMethod('cod')}
+                      disabled={isGiftMode}
+                      className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${isGiftMode
+                        ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200'
+                        : paymentMethod === 'cod'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                      💵 COD (Tiền mặt)
+                      {isGiftMode && <span className="block text-[10px] font-normal mt-0.5">(Không áp dụng tặng quà)</span>}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Summary Section */}
+                <div className="pt-2 border-t border-dashed border-gray-300 space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600 flex items-center gap-2">
-                      <span className="text-lg">🚚</span> Phí vận chuyển:
+                    <span className="text-gray-500 flex items-center gap-2">
+                      <span className="text-base">🚚</span> Phí vận chuyển:
                     </span>
-                    <span className="font-medium text-gray-900">
+                    <span className="font-bold text-gray-700">
                       {isHCMAddress && district ? (
-                        shippingFee === 0 ? <span className="text-green-600 font-bold">Freeship</span> : formatPrice(shippingFee)
+                        shippingFee === 0 ? <span className="text-green-600">Freeship</span> : formatPrice(shippingFee)
                       ) : (
-                        <span className="text-gray-500 italic text-xs">(Chọn quận để tính phí)</span>
+                        <span className="text-gray-400 italic text-xs">(Chọn quận để tính phí)</span>
                       )}
                     </span>
                   </div>
 
-                  {/* Payment Method Selection */}
-                  <div className="space-y-2 pt-2 border-t border-gray-200">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Phương thức thanh toán:</p>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('transfer')}
-                        className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${paymentMethod === 'transfer'
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                          : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                          }`}
-                      >
-                        🏦 Chuyển khoản
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => !isGiftMode && setPaymentMethod('cod')}
-                        disabled={isGiftMode}
-                        className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${isGiftMode
-                          ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200'
-                          : paymentMethod === 'cod'
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                          }`}
-                      >
-                        💵 COD (Tiền mặt)
-                        {isGiftMode && <span className="block text-[10px] font-normal mt-0.5">(Không áp dụng tặng quà)</span>}
-                      </button>
-                    </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-base font-bold text-gray-800">Tổng cộng:</span>
+                    <span className="text-2xl font-black text-pink-600 tracking-tight">
+                      {formatPrice(finalTotalPrice)}
+                    </span>
                   </div>
-                </div>
-
-                {/* Total */}
-                <div className="flex items-center justify-between pt-2 border-t border-dashed border-gray-300">
-                  <span className="text-base font-bold text-gray-800">Tổng cộng:</span>
-                  <span className="text-2xl font-black text-pink-600 tracking-tight">
-                    {formatPrice(finalTotalPrice)}
-                  </span>
                 </div>
 
                 {/* Note */}
@@ -1132,8 +1131,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
         </div>
 
 
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
