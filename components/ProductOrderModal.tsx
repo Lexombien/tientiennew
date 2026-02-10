@@ -832,28 +832,10 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   </div>
                 )}
 
+
+
                 {/* Card / Banner Option */}
                 <div className="bg-amber-50 p-3 rounded-xl space-y-3">
-                  <div className="flex items-center justify-between bg-pink-50/50 p-2.5 rounded-xl border border-pink-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center text-pink-500">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20 7h-7L10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /></svg>
-                      </div>
-                      <span className="text-sm font-bold text-gray-700">Gửi tặng người thương</span>
-                      <span className="text-pink-500 animate-pulse text-sm">♥</span>
-                    </div>
-                    <div
-                      className={`w-10 h-5 rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out ${isGiftMode ? 'bg-pink-500' : 'bg-gray-300'}`}
-                      onClick={() => {
-                        setIsGiftMode(!isGiftMode);
-                        if (!isGiftMode) {
-                          setFormData({ ...formData, senderName: '', senderPhone: '' });
-                        }
-                      }}
-                    >
-                      <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${isGiftMode ? 'translate-x-5' : ''}`} />
-                    </div>
-                  </div>
                   <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsCardOption(!isCardOption)}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
@@ -893,7 +875,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       <textarea
                         value={cardContent}
                         onChange={(e) => setCardContent(e.target.value)}
-                        className="w-full p-3 bg-white border border-amber-200 rounded-xl md:text-sm text-base focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none"
+                        className="w-full p-3 bg-white border border-amber-200 rounded-xl text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none"
                         rows={2}
                         placeholder={cardType === 'card' ? "Nội dung lời chúc trên thiệp..." : "Nội dung in trên bảng chữ..."}
                       />
@@ -906,16 +888,14 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   <button
                     type="button"
                     onClick={() => setDeliveryMode('instant')}
-                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'instant' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}
+                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'instant' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     🚀 Giao ngay
                   </button>
                   <button
                     type="button"
                     onClick={() => setDeliveryMode('scheduled')}
-                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'scheduled' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}
+                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'scheduled' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     📅 Hẹn giờ
                   </button>
@@ -923,7 +903,6 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
                 {deliveryMode === 'scheduled' && (
                   <div className="animate-fadeIn space-y-4">
-                    {/* Date Selection */}
                     <div className="relative">
                       <DatePicker
                         selected={deliveryTime}
@@ -952,15 +931,14 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         )}
                         locale="vi"
                         placeholderText={globalSettings?.holidayTimeBlockMode ? "Chọn ngày giao hàng..." : "Chọn ngày giờ giao hàng..."}
-                        className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
+                        className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
                         required={deliveryMode === 'scheduled'}
                         minDate={new Date()}
                         withPortal
-                        onFocus={(e) => e.target.blur()} // Prevent keyboard on mobile
+                        onFocus={(e) => e.target.blur()}
                       />
                     </div>
 
-                    {/* NEW: Session Selection for Holiday Mode */}
                     {globalSettings?.holidayTimeBlockMode && (
                       <div className="grid grid-cols-2 gap-2">
                         {[
@@ -984,7 +962,6 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       </div>
                     )}
 
-                    {/* NEW: Holiday Policy explanation */}
                     {globalSettings?.holidayTimeBlockMode && (
                       <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-fadeIn">
                         <div className="flex items-start gap-2 text-amber-800">
@@ -995,8 +972,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         </div>
                         <div className="pl-6 space-y-1.5 text-[10.5px] text-amber-700 font-medium italic leading-snug">
                           <p>• Shop sẽ cố gắng giao trong khung giờ Buổi bạn đã chọn.</p>
-                          <p>• Shipper sẽ gọi điện trước cho người nhận: Nếu người nhận đồng ý sẽ tiến hành giao ngay.</p>
-                          <p>• Trường hợp người nhận bận hoặc chưa thuận tiện, shop sẽ sắp xếp phối hợp giao lại theo ý người nhận.</p>
+                          <p>• Shipper sẽ gọi điện trước cho người nhận.</p>
+                          <p>• Trường hợp người nhận bận, shop sẽ sắp xếp giao lại.</p>
                         </div>
                       </div>
                     )}
@@ -1006,17 +983,11 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 {/* Coupon Section */}
                 <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
-                        <span className="text-lg">🎫</span> Bạn có mã giảm giá?
-                      </span>
-                    </div>
+                    <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
+                      <span className="text-lg">🎫</span> Bạn có mã giảm giá?
+                    </span>
                     {appliedCoupon && (
-                      <button
-                        type="button"
-                        onClick={() => setAppliedCoupon(null)}
-                        className="text-[10px] text-rose-500 font-bold hover:underline"
-                      >
+                      <button type="button" onClick={() => setAppliedCoupon(null)} className="text-[10px] text-rose-500 font-bold hover:underline">
                         Gỡ mã
                       </button>
                     )}
@@ -1027,155 +998,6 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         type="text"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                        placeholder="Nhập mã giảm giá..."
-                        className="flex-1 px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none uppercase placeholder-gray-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleApplyCoupon}
-                        disabled={!couponInput}
-                        className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        Áp dụng
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="bg-white p-2.5 rounded-lg border border-indigo-100 flex items-center justify-between">
-                      <span className="text-sm font-bold text-indigo-600">
-                        {appliedCoupon.code}
-                      </span>
-                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">
-                        -{formatPrice(discountAmount)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Delivery Time */}
-                <div className="p-1 bg-gray-100 rounded-xl flex">
-                  <button
-                    type="button"
-                    onClick={() => setDeliveryMode('instant')}
-                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'instant' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}
-                  >
-                    🚀 Giao ngay
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeliveryMode('scheduled')}
-                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'scheduled' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}
-                  >
-                    📅 Hẹn giờ
-                  </button>
-                </div>
-
-                {deliveryMode === 'scheduled' && (
-                  <div className="animate-fadeIn space-y-4">
-                    {/* Date Selection */}
-                    <div className="relative">
-                      <DatePicker
-                        selected={deliveryTime}
-                        onChange={(date) => setDeliveryTime(date)}
-                        showTimeSelect={!globalSettings?.holidayTimeBlockMode}
-                        timeFormat="HH:mm"
-                        timeIntervals={busyInterval}
-                        timeCaption="Giờ"
-                        dateFormat={globalSettings?.holidayTimeBlockMode ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm"}
-                        renderCustomHeader={({
-                          date,
-                          decreaseMonth,
-                          increaseMonth,
-                          prevMonthButtonDisabled,
-                          nextMonthButtonDisabled,
-                        }) => (
-                          <div className="custom-datepicker-header">
-                            <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <span className="font-bold text-gray-800">Tháng {date.getMonth() + 1}, {date.getFullYear()}</span>
-                            <button onClick={increaseMonth} disabled={nextMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                            </button>
-                          </div>
-                        )}
-                        locale="vi"
-                        placeholderText={globalSettings?.holidayTimeBlockMode ? "Chọn ngày giao hàng..." : "Chọn ngày giờ giao hàng..."}
-                        className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
-                        required={deliveryMode === 'scheduled'}
-                        minDate={new Date()}
-                        withPortal
-                        onFocus={(e) => e.target.blur()} // Prevent keyboard on mobile
-                      />
-                    </div>
-
-                    {/* NEW: Session Selection for Holiday Mode */}
-                    {globalSettings?.holidayTimeBlockMode && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { id: 'morning', label: 'Sáng', range: '8h-11h', icon: '🌅' },
-                          { id: 'noon', label: 'Trưa', range: '11h-13h', icon: '☀️' },
-                          { id: 'afternoon', label: 'Chiều', range: '13h-18h', icon: '🌇' },
-                          { id: 'evening', label: 'Tối', range: '18h-23h', icon: '🌙' }
-                        ].map((session) => (
-                          <button
-                            key={session.id}
-                            type="button"
-                            onClick={() => setDeliverySession(`${session.label} (${session.range})`)}
-                            className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${deliverySession?.includes(session.label)
-                              ? 'border-orange-500 bg-orange-50 text-orange-700'
-                              : 'border-gray-100 bg-white text-gray-500 hover:border-orange-200'}`}
-                          >
-                            <span className="text-sm mb-0.5">{session.icon} {session.label}</span>
-                            <span className="text-[10px] opacity-60 font-bold">{session.range}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* NEW: Holiday Policy explanation */}
-                    {globalSettings?.holidayTimeBlockMode && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-fadeIn">
-                        <div className="flex items-start gap-2 text-amber-800">
-                          <span className="text-sm mt-0.5">📢</span>
-                          <p className="text-[11px] font-bold leading-relaxed">
-                            Do ngày Lễ đơn hàng nhiều, Shop xin phép <span className="text-red-600 underline">không thể hẹn chính xác giờ giao</span>.
-                          </p>
-                        </div>
-                        <div className="pl-6 space-y-1.5 text-[10.5px] text-amber-700 font-medium italic leading-snug">
-                          <p>• Shop sẽ cố gắng giao trong khung giờ Buổi bạn đã chọn.</p>
-                          <p>• Shipper sẽ gọi điện trước cho người nhận: Nếu người nhận đồng ý sẽ tiến hành giao ngay.</p>
-                          <p>• Trường hợp người nhận bận hoặc chưa thuận tiện, shop sẽ sắp xếp phối hợp giao lại theo ý người nhận.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Coupon Section */}
-                <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
-                        <span className="text-lg">🎫</span> Bạn có mã giảm giá?
-                      </span>
-                    </div>
-                    {appliedCoupon && (
-                      <button
-                        onClick={() => setAppliedCoupon(null)}
-                        className="text-[10px] text-rose-500 font-bold hover:underline"
-                      >
-                        Gỡ mã
-                      </button>
-                    )}
-                  </div>
-                  {!appliedCoupon ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={couponInput}
-                        onChange={(e) => setCouponInput(e.target.value)}
                         placeholder="Nhập mã"
                         className="flex-1 px-3 py-2.5 bg-white border border-indigo-200 rounded-lg text-[16px] md:text-sm font-bold uppercase focus:border-indigo-500 outline-none placeholder:text-xs"
                       />
@@ -1196,9 +1018,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   {couponError && <p className="text-[10px] text-rose-500 mt-1 font-bold">{couponError}</p>}
                 </div>
 
-                {/* Shipping Fee & Payment Method Section */}
+                {/* Payment Method & Total */}
                 <div className="space-y-3">
-                  {/* Payment Method Selection */}
                   {!isGiftMode ? (
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -1234,21 +1055,18 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                     </div>
                   )}
 
-                  {/* Compact Shipping Fee & Total */}
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span>Giá gốc:</span>
                         <span>{formatPrice(product.salePrice)}</span>
                       </div>
-
                       {appliedCoupon && discountAmount > 0 && (
                         <div className="flex justify-between text-xs text-emerald-600 font-bold">
                           <span>Giảm giá ({appliedCoupon.code}):</span>
                           <span>-{formatPrice(discountAmount)}</span>
                         </div>
                       )}
-
                       {(shippingFee > 0 || !isHCMAddress) && (
                         <div className="flex items-center justify-between text-xs text-gray-500">
                           <div className="flex items-center gap-1">
@@ -1259,14 +1077,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         </div>
                       )}
                     </div>
-
                     <div className="flex items-center justify-between pt-2 border-t border-gray-200/60">
                       <span className="text-sm font-bold text-gray-800">Tổng cộng:</span>
                       <span className="text-lg font-black text-pink-600" style={{ fontFamily: 'var(--font-price)' }}>
                         {formatPrice(finalTotalPrice)}
                       </span>
                     </div>
-
                     {isHCMAddress && !district && (
                       <p className="text-[10px] text-pink-500 text-center italic mt-1">
                         💡 Vui lòng chọn quận để tính phí ship & tổng tiền
@@ -1283,20 +1099,19 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   <textarea
                     value={formData.note}
                     onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
                     rows={2}
                     placeholder="Ghi chú thêm (Lời chúc, lưu ý giao hàng...)"
                   />
                 </div>
 
                 {submitMessage && (
-                  <div className={`p-4 rounded-xl text-center font-semibold text-sm animate-pulse ${submitMessage.includes('✅') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                    }`}>
+                  <div className={`p-4 rounded-xl text-center font-semibold text-sm animate-pulse ${submitMessage.includes('✅') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                     {submitMessage}
                   </div>
                 )}
 
-                {/* Submit Button - Scrolled with content */}
+                {/* Submit Button */}
                 <div className="mt-8 mb-4">
                   <button
                     onClick={(e) => handleSubmit(e)}
@@ -1323,6 +1138,494 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductOrderModal;
+
+  }
+}}
+  >
+  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${isGiftMode ? 'translate-x-5' : ''}`} />
+  </div >
+        </div >
+  <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsCardOption(!isCardOption)}>
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+      </div>
+      <span className="text-sm font-bold text-amber-800">Kèm thiệp hoặc bảng chữ?</span>
+    </div>
+    <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isCardOption ? 'bg-amber-500' : 'bg-gray-300'}`}>
+      <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isCardOption ? 'translate-x-6' : ''}`} />
+    </div>
+  </div>
+
+{
+  isCardOption && (
+    <div className="animate-fadeIn pt-2 border-t border-amber-100 space-y-3">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setCardType('card')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${cardType === 'card'
+            ? 'bg-amber-500 text-white border-amber-500'
+            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+            }`}
+        >
+          ✉️ Thiệp chúc mừng
+        </button>
+        <button
+          type="button"
+          onClick={() => setCardType('banner')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${cardType === 'banner'
+            ? 'bg-amber-500 text-white border-amber-500'
+            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+            }`}
+        >
+          🚩 Bảng chữ (Banner)
+        </button>
+      </div>
+      <textarea
+        value={cardContent}
+        onChange={(e) => setCardContent(e.target.value)}
+        className="w-full p-3 bg-white border border-amber-200 rounded-xl md:text-sm text-base focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none"
+        rows={2}
+        placeholder={cardType === 'card' ? "Nội dung lời chúc trên thiệp..." : "Nội dung in trên bảng chữ..."}
+      />
+    </div>
+  )
+}
+      </div >
+
+  {/* Delivery Time */ }
+  < div className = "p-1 bg-gray-100 rounded-xl flex" >
+        <button
+          type="button"
+          onClick={() => setDeliveryMode('instant')}
+          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'instant' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          🚀 Giao ngay
+        </button>
+        <button
+          type="button"
+          onClick={() => setDeliveryMode('scheduled')}
+          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'scheduled' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          📅 Hẹn giờ
+        </button>
+      </div >
+
+  { deliveryMode === 'scheduled' && (
+    <div className="animate-fadeIn space-y-4">
+      {/* Date Selection */}
+      <div className="relative">
+        <DatePicker
+          selected={deliveryTime}
+          onChange={(date) => setDeliveryTime(date)}
+          showTimeSelect={!globalSettings?.holidayTimeBlockMode}
+          timeFormat="HH:mm"
+          timeIntervals={busyInterval}
+          timeCaption="Giờ"
+          dateFormat={globalSettings?.holidayTimeBlockMode ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm"}
+          renderCustomHeader={({
+            date,
+            decreaseMonth,
+            increaseMonth,
+            prevMonthButtonDisabled,
+            nextMonthButtonDisabled,
+          }) => (
+            <div className="custom-datepicker-header">
+              <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <span className="font-bold text-gray-800">Tháng {date.getMonth() + 1}, {date.getFullYear()}</span>
+              <button onClick={increaseMonth} disabled={nextMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          )}
+          locale="vi"
+          placeholderText={globalSettings?.holidayTimeBlockMode ? "Chọn ngày giao hàng..." : "Chọn ngày giờ giao hàng..."}
+          className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
+          required={deliveryMode === 'scheduled'}
+          minDate={new Date()}
+          withPortal
+          onFocus={(e) => e.target.blur()} // Prevent keyboard on mobile
+        />
+      </div>
+
+      {/* NEW: Session Selection for Holiday Mode */}
+      {globalSettings?.holidayTimeBlockMode && (
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { id: 'morning', label: 'Sáng', range: '8h-11h', icon: '🌅' },
+            { id: 'noon', label: 'Trưa', range: '11h-13h', icon: '☀️' },
+            { id: 'afternoon', label: 'Chiều', range: '13h-18h', icon: '🌇' },
+            { id: 'evening', label: 'Tối', range: '18h-23h', icon: '🌙' }
+          ].map((session) => (
+            <button
+              key={session.id}
+              type="button"
+              onClick={() => setDeliverySession(`${session.label} (${session.range})`)}
+              className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${deliverySession?.includes(session.label)
+                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                : 'border-gray-100 bg-white text-gray-500 hover:border-orange-200'}`}
+            >
+              <span className="text-sm mb-0.5">{session.icon} {session.label}</span>
+              <span className="text-[10px] opacity-60 font-bold">{session.range}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* NEW: Holiday Policy explanation */}
+      {globalSettings?.holidayTimeBlockMode && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-fadeIn">
+          <div className="flex items-start gap-2 text-amber-800">
+            <span className="text-sm mt-0.5">📢</span>
+            <p className="text-[11px] font-bold leading-relaxed">
+              Do ngày Lễ đơn hàng nhiều, Shop xin phép <span className="text-red-600 underline">không thể hẹn chính xác giờ giao</span>.
+            </p>
+          </div>
+          <div className="pl-6 space-y-1.5 text-[10.5px] text-amber-700 font-medium italic leading-snug">
+            <p>• Shop sẽ cố gắng giao trong khung giờ Buổi bạn đã chọn.</p>
+            <p>• Shipper sẽ gọi điện trước cho người nhận: Nếu người nhận đồng ý sẽ tiến hành giao ngay.</p>
+            <p>• Trường hợp người nhận bận hoặc chưa thuận tiện, shop sẽ sắp xếp phối hợp giao lại theo ý người nhận.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+
+{/* Coupon Section */ }
+<div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+  <div className="flex items-center justify-between mb-2">
+    <div className="flex flex-col">
+      <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
+        <span className="text-lg">🎫</span> Bạn có mã giảm giá?
+      </span>
+    </div>
+    {appliedCoupon && (
+      <button
+        type="button"
+        onClick={() => setAppliedCoupon(null)}
+        className="text-[10px] text-rose-500 font-bold hover:underline"
+      >
+        Gỡ mã
+      </button>
+    )}
+  </div>
+  {!appliedCoupon ? (
+    <div className="flex gap-2">
+      <input
+        type="text"
+        value={couponInput}
+        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+        placeholder="Nhập mã giảm giá..."
+        className="flex-1 px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none uppercase placeholder-gray-400"
+      />
+      <button
+        type="button"
+        onClick={handleApplyCoupon}
+        disabled={!couponInput}
+        className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Áp dụng
+      </button>
+    </div>
+  ) : (
+    <div className="bg-white p-2.5 rounded-lg border border-indigo-100 flex items-center justify-between">
+      <span className="text-sm font-bold text-indigo-600">
+        {appliedCoupon.code}
+      </span>
+      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">
+        -{formatPrice(discountAmount)}
+      </span>
+    </div>
+  )}
+</div>
+
+{/* Delivery Time */ }
+<div className="p-1 bg-gray-100 rounded-xl flex">
+  <button
+    type="button"
+    onClick={() => setDeliveryMode('instant')}
+    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'instant' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+      }`}
+  >
+    🚀 Giao ngay
+  </button>
+  <button
+    type="button"
+    onClick={() => setDeliveryMode('scheduled')}
+    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'scheduled' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+      }`}
+  >
+    📅 Hẹn giờ
+  </button>
+</div>
+
+{
+  deliveryMode === 'scheduled' && (
+    <div className="animate-fadeIn space-y-4">
+      {/* Date Selection */}
+      <div className="relative">
+        <DatePicker
+          selected={deliveryTime}
+          onChange={(date) => setDeliveryTime(date)}
+          showTimeSelect={!globalSettings?.holidayTimeBlockMode}
+          timeFormat="HH:mm"
+          timeIntervals={busyInterval}
+          timeCaption="Giờ"
+          dateFormat={globalSettings?.holidayTimeBlockMode ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm"}
+          renderCustomHeader={({
+            date,
+            decreaseMonth,
+            increaseMonth,
+            prevMonthButtonDisabled,
+            nextMonthButtonDisabled,
+          }) => (
+            <div className="custom-datepicker-header">
+              <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <span className="font-bold text-gray-800">Tháng {date.getMonth() + 1}, {date.getFullYear()}</span>
+              <button onClick={increaseMonth} disabled={nextMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          )}
+          locale="vi"
+          placeholderText={globalSettings?.holidayTimeBlockMode ? "Chọn ngày giao hàng..." : "Chọn ngày giờ giao hàng..."}
+          className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
+          required={deliveryMode === 'scheduled'}
+          minDate={new Date()}
+          withPortal
+          onFocus={(e) => e.target.blur()} // Prevent keyboard on mobile
+        />
+      </div>
+
+      {/* NEW: Session Selection for Holiday Mode */}
+      {globalSettings?.holidayTimeBlockMode && (
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { id: 'morning', label: 'Sáng', range: '8h-11h', icon: '🌅' },
+            { id: 'noon', label: 'Trưa', range: '11h-13h', icon: '☀️' },
+            { id: 'afternoon', label: 'Chiều', range: '13h-18h', icon: '🌇' },
+            { id: 'evening', label: 'Tối', range: '18h-23h', icon: '🌙' }
+          ].map((session) => (
+            <button
+              key={session.id}
+              type="button"
+              onClick={() => setDeliverySession(`${session.label} (${session.range})`)}
+              className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${deliverySession?.includes(session.label)
+                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                : 'border-gray-100 bg-white text-gray-500 hover:border-orange-200'}`}
+            >
+              <span className="text-sm mb-0.5">{session.icon} {session.label}</span>
+              <span className="text-[10px] opacity-60 font-bold">{session.range}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* NEW: Holiday Policy explanation */}
+      {globalSettings?.holidayTimeBlockMode && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-fadeIn">
+          <div className="flex items-start gap-2 text-amber-800">
+            <span className="text-sm mt-0.5">📢</span>
+            <p className="text-[11px] font-bold leading-relaxed">
+              Do ngày Lễ đơn hàng nhiều, Shop xin phép <span className="text-red-600 underline">không thể hẹn chính xác giờ giao</span>.
+            </p>
+          </div>
+          <div className="pl-6 space-y-1.5 text-[10.5px] text-amber-700 font-medium italic leading-snug">
+            <p>• Shop sẽ cố gắng giao trong khung giờ Buổi bạn đã chọn.</p>
+            <p>• Shipper sẽ gọi điện trước cho người nhận: Nếu người nhận đồng ý sẽ tiến hành giao ngay.</p>
+            <p>• Trường hợp người nhận bận hoặc chưa thuận tiện, shop sẽ sắp xếp phối hợp giao lại theo ý người nhận.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+{/* Coupon Section */ }
+<div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+  <div className="flex items-center justify-between mb-2">
+    <div className="flex flex-col">
+      <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
+        <span className="text-lg">🎫</span> Bạn có mã giảm giá?
+      </span>
+    </div>
+    {appliedCoupon && (
+      <button
+        onClick={() => setAppliedCoupon(null)}
+        className="text-[10px] text-rose-500 font-bold hover:underline"
+      >
+        Gỡ mã
+      </button>
+    )}
+  </div>
+  {!appliedCoupon ? (
+    <div className="flex gap-2">
+      <input
+        type="text"
+        value={couponInput}
+        onChange={(e) => setCouponInput(e.target.value)}
+        placeholder="Nhập mã"
+        className="flex-1 px-3 py-2.5 bg-white border border-indigo-200 rounded-lg text-[16px] md:text-sm font-bold uppercase focus:border-indigo-500 outline-none placeholder:text-xs"
+      />
+      <button
+        type="button"
+        onClick={handleApplyCoupon}
+        className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm md:text-xs font-bold hover:bg-indigo-700 transition-all whitespace-nowrap"
+      >
+        Áp dụng
+      </button>
+    </div>
+  ) : (
+    <div className="flex items-center justify-between bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+      <span className="text-xs font-bold text-emerald-700">✅ Đã áp dụng: {appliedCoupon.code}</span>
+      <span className="text-xs font-black text-emerald-600">-{appliedCoupon.percent}%</span>
+    </div>
+  )}
+  {couponError && <p className="text-[10px] text-rose-500 mt-1 font-bold">{couponError}</p>}
+</div>
+
+{/* Shipping Fee & Payment Method Section */ }
+<div className="space-y-3">
+  {/* Payment Method Selection */}
+  {!isGiftMode ? (
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => setPaymentMethod('transfer')}
+        className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'transfer'
+          ? 'border-blue-500 bg-blue-50 text-blue-700'
+          : 'border-gray-100 bg-white text-gray-500 hover:border-blue-200'}`}
+      >
+        <span className="text-lg mb-1">🏦</span>
+        <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Chuyển khoản trước</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setPaymentMethod('cod')}
+        className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${paymentMethod === 'cod'
+          ? 'border-pink-500 bg-pink-50 text-pink-700'
+          : 'border-gray-100 bg-white text-gray-500 hover:border-pink-200'}`}
+      >
+        <span className="text-lg mb-1">🤝</span>
+        <span className="text-[10px] font-bold leading-tight uppercase tracking-tight">Nhận hàng thanh toán (COD)</span>
+      </button>
+    </div>
+  ) : (
+    <div className="p-3 bg-blue-50 border-2 border-blue-500 rounded-xl flex flex-col items-center justify-center animate-fadeIn">
+      <div className="flex items-center gap-2 text-blue-700 mb-1">
+        <span className="text-lg">🏦</span>
+        <span className="text-xs font-black uppercase tracking-tight">Chuyển khoản trước</span>
+      </div>
+      <p className="text-[10px] text-blue-600 font-bold italic">
+        💝 Đối với đơn hàng gửi tặng, vui lòng thanh toán trước
+      </p>
+    </div>
+  )}
+
+  {/* Compact Shipping Fee & Total */}
+  <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span>Giá gốc:</span>
+        <span>{formatPrice(product.salePrice)}</span>
+      </div>
+
+      {appliedCoupon && discountAmount > 0 && (
+        <div className="flex justify-between text-xs text-emerald-600 font-bold">
+          <span>Giảm giá ({appliedCoupon.code}):</span>
+          <span>-{formatPrice(discountAmount)}</span>
+        </div>
+      )}
+
+      {(shippingFee > 0 || !isHCMAddress) && (
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center gap-1">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+            <span>Phí ship ({isHCMAddress && district ? district : 'Tỉnh khác'}):</span>
+          </div>
+          <span>{formatPrice(shippingFee)}</span>
+        </div>
+      )}
+    </div>
+
+    <div className="flex items-center justify-between pt-2 border-t border-gray-200/60">
+      <span className="text-sm font-bold text-gray-800">Tổng cộng:</span>
+      <span className="text-lg font-black text-pink-600" style={{ fontFamily: 'var(--font-price)' }}>
+        {formatPrice(finalTotalPrice)}
+      </span>
+    </div>
+
+    {isHCMAddress && !district && (
+      <p className="text-[10px] text-pink-500 text-center italic mt-1">
+        💡 Vui lòng chọn quận để tính phí ship & tổng tiền
+      </p>
+    )}
+  </div>
+</div>
+
+{/* Note */ }
+<div className="relative group">
+  <div className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+  </div>
+  <textarea
+    value={formData.note}
+    onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
+    rows={2}
+    placeholder="Ghi chú thêm (Lời chúc, lưu ý giao hàng...)"
+  />
+</div>
+
+{
+  submitMessage && (
+    <div className={`p-4 rounded-xl text-center font-semibold text-sm animate-pulse ${submitMessage.includes('✅') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+      }`}>
+      {submitMessage}
+    </div>
+  )
+}
+
+{/* Submit Button - Scrolled with content */ }
+<div className="mt-8 mb-4">
+  <button
+    onClick={(e) => handleSubmit(e)}
+    disabled={isSubmitting}
+    className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-pink-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+  >
+    {isSubmitting ? (
+      <>
+        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Đang xử lý...</span>
+      </>
+    ) : (
+      <>
+        <span>Đặt hàng ngay</span>
+        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+      </>
+    )}
+  </button>
+</div>
+    </form >
+            </div >
+          </div >
+        </div >
 
 
       </div >
