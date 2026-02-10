@@ -59,6 +59,14 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string, percent: number } | null>(null);
   const [couponError, setCouponError] = useState('');
 
+  // 🆕 Lock body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   // Danh sách các quận ở TP.HCM
   const HCM_DISTRICTS = [
     'Quận 1', 'Quận 2', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 'Quận 7', 'Quận 8', 'Quận 9', 'Quận 10',
@@ -561,9 +569,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
   // Order Form Screen
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn touch-none"
+      onClick={onClose}
+    >
       <div
-        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] shadow-2xl flex flex-col animate-slideUp overflow-hidden relative"
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] shadow-2xl flex flex-col animate-slideUp overflow-hidden relative touch-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Floating Close Button */}
@@ -577,7 +588,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
         </button>
 
         {/* Scrollable Content */}
-        <div className="overflow-y-auto flex-1 scrollbar-hide">
+        <div className="overflow-y-auto flex-1 scrollbar-hide overscroll-contain">
           <div className="p-3 space-y-3">
 
             {/* Fixed Aspect Gallery for Compact Design */}
