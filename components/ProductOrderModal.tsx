@@ -348,10 +348,13 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
   // Success Screen
   if (showSuccessScreen) {
+    // Check if payment method is transfer to show QR code
+    const isTransferPayment = paymentMethod === 'transfer';
+
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 z-50 flex items-center justify-center p-4 animate-fadeIn" onClick={onClose}>
+      <div className="fixed inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 z-50 flex items-center justify-center p-4 animate-fadeIn overflow-y-auto" onClick={onClose}>
         <div
-          className="bg-white rounded-3xl max-w-2xl w-full p-8 md:p-12 text-center shadow-2xl animate-slideUp"
+          className="bg-white rounded-3xl max-w-2xl w-full p-8 md:p-12 text-center shadow-2xl animate-slideUp my-8"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Success Icon */}
@@ -372,14 +375,72 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
             Đơn hàng của bạn đã được gửi thành công!
           </p>
 
-          <p className="text-gray-600 mb-8">
-            Chúng tôi sẽ liên hệ với bạn sớm nhất qua <span className="font-bold text-blue-600">Zalo</span> hoặc <span className="font-bold text-green-600">Gọi điện</span> để xác nhận đơn hàng.
-          </p>
+          {/* QR Code Section - Only show for Transfer Payment */}
+          {isTransferPayment && (
+            <div className="my-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 animate-fadeIn">
+              <div className="mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full mb-3">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-blue-700 mb-2">
+                  📱 Quét mã để chuyển khoản
+                </h3>
+                <p className="text-sm text-blue-600 font-medium">
+                  Số tiền: <span className="text-xl font-black text-pink-600">{formatPrice(finalTotalPrice)}</span>
+                </p>
+              </div>
+
+              {/* QR Code Image */}
+              {globalSettings?.bankQRCode ? (
+                <div className="bg-white p-4 rounded-xl shadow-lg inline-block mb-4">
+                  <img
+                    src={globalSettings.bankQRCode}
+                    alt="QR Code chuyển khoản"
+                    className="w-64 h-64 object-contain mx-auto"
+                  />
+                </div>
+              ) : (
+                <div className="bg-white p-8 rounded-xl shadow-lg inline-block mb-4">
+                  <div className="w-64 h-64 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
+                    <p className="text-gray-400 text-sm text-center px-4">
+                      Chưa cài đặt QR Code<br />
+                      <span className="text-xs">(Vào Admin → Cài đặt để upload)</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Transfer Instructions */}
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mt-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center mt-0.5">
+                    <span className="text-white font-bold text-lg">!</span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-bold text-amber-800 mb-2">
+                      📸 Sau khi chuyển khoản xong:
+                    </p>
+                    <p className="text-sm text-amber-700 leading-relaxed">
+                      Vui lòng <span className="font-black underline">chụp ảnh màn hình</span> xác nhận chuyển khoản và gửi qua Zalo: <span className="font-black text-blue-600">0567899996</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isTransferPayment && (
+            <p className="text-gray-600 mb-8">
+              Chúng tôi sẽ liên hệ với bạn sớm nhất qua <span className="font-bold text-blue-600">Zalo</span> hoặc <span className="font-bold text-green-600">Gọi điện</span> để xác nhận đơn hàng.
+            </p>
+          )}
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href={getZaloLink()}
+              href={isTransferPayment ? "https://zalo.me/0567899996" : getZaloLink()}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all hover:scale-105 active:scale-95"
@@ -387,7 +448,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.896 1.372 5.515 3.564 7.302V22l3.37-1.854c.958.27 1.969.416 3.022.416 5.523 0 10-4.145 10-9.243C22 6.145 17.523 2 12 2z" />
               </svg>
-              Liên hệ Zalo ngay
+              {isTransferPayment ? "Gửi ảnh CK qua Zalo" : "Liên hệ Zalo ngay"}
             </a>
 
             <button
@@ -839,7 +900,6 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
                         <span className="text-lg">🎫</span> Bạn có mã giảm giá?
                       </span>
-                      <span className="text-[10px] text-indigo-500 italic font-medium ml-6">Dành cho Khách cũ</span>
                     </div>
                     {appliedCoupon && (
                       <button
@@ -856,7 +916,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         type="text"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
-                        placeholder="Khách Cũ Nhập Mã"
+                        placeholder="Nhập mã"
                         className="flex-1 px-3 py-2.5 bg-white border border-indigo-200 rounded-lg text-[16px] md:text-sm font-bold uppercase focus:border-indigo-500 outline-none placeholder:text-xs"
                       />
                       <button

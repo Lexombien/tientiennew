@@ -107,6 +107,9 @@ const DEFAULT_GLOBAL_SETTINGS = {
   googleAdsConversionLabel: '', // Google Ads Conversion Label for purchase event
   facebookPixelId: '', // Facebook Pixel ID
 
+  // Bank Transfer QR Code
+  bankQRCode: '', // QR Code image for bank transfer
+
 };
 
 const App: React.FC = () => {
@@ -2738,6 +2741,74 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Bank Transfer QR Code Upload */}
+              <div className="glass p-6 rounded-2xl border-2 border-blue-200">
+                <label className="block text-sm font-bold mb-3 text-blue-700">
+                  🏦 Mã QR Chuyển Khoản Ngân Hàng
+                </label>
+                <p className="text-xs mb-4 text-blue-600">
+                  Upload mã QR chuyển khoản để hiển thị cho khách hàng khi chọn thanh toán bằng chuyển khoản
+                </p>
+
+                {globalSettings.bankQRCode && (
+                  <div className="mb-4 p-4 bg-white rounded-xl">
+                    <p className="text-xs mb-2 font-bold text-gray-700">QR Code hiện tại:</p>
+                    <img
+                      src={globalSettings.bankQRCode}
+                      alt="Bank QR Code"
+                      className="w-48 h-48 object-contain mx-auto border-2 border-blue-200 rounded-lg"
+                    />
+                    <button
+                      onClick={() => {
+                        const newSettings = { ...globalSettings, bankQRCode: '' };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                      }}
+                      className="mt-3 w-full text-xs text-rose-500 hover:text-rose-600 font-bold"
+                    >
+                      Xóa QR Code
+                    </button>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    try {
+                      const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                        method: 'POST',
+                        body: formData
+                      });
+                      const result = await response.json();
+
+                      if (result.success) {
+                        const newSettings = { ...globalSettings, bankQRCode: result.url };
+                        setGlobalSettings(newSettings);
+                        localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        alert('✅ Upload QR Code thành công!');
+                      }
+                    } catch (error) {
+                      console.error('Upload error:', error);
+                      alert('❌ Lỗi khi upload QR Code!');
+                    }
+
+                    e.target.value = '';
+                  }}
+                  className="glass-input w-full rounded-2xl px-5 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-500 file:to-indigo-500 file:text-white hover:file:from-blue-600 hover:file:to-indigo-600"
+                />
+
+                <p className="text-xs text-blue-500 mt-3 italic">
+                  💡 Mã QR sẽ hiển thị khi khách hàng chọn "Chuyển khoản trước" với hướng dẫn gửi ảnh xác nhận qua Zalo 0567899996
+                </p>
               </div>
 
               {/* Google Fonts Selection */}
