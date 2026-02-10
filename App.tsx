@@ -109,6 +109,9 @@ const DEFAULT_GLOBAL_SETTINGS = {
 
   // Bank Transfer QR Code
   bankQRCode: '', // QR Code image for bank transfer
+  bankAccountNumber: '', // Số tài khoản ngân hàng
+  bankName: '', // Tên ngân hàng (VD: ACB, Vietcombank, Techcombank...)
+  bankAccountName: '', // Tên chủ tài khoản
 
 };
 
@@ -2809,6 +2812,57 @@ const App: React.FC = () => {
                 <p className="text-xs text-blue-500 mt-3 italic">
                   💡 Mã QR sẽ hiển thị khi khách hàng chọn "Chuyển khoản trước" với hướng dẫn gửi ảnh xác nhận qua Zalo 0567899996
                 </p>
+
+                {/* Bank Account Details for Auto Transfer */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-blue-200">
+                  <p className="text-xs font-bold text-blue-700 mb-3">
+                    🏦 Thông tin tài khoản (để tạo nút chuyển khoản tự động)
+                  </p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-600 block mb-1">Số tài khoản:</label>
+                      <input
+                        type="text"
+                        className="glass-input w-full rounded-lg px-3 py-2 text-sm"
+                        placeholder="VD: 24410361"
+                        value={globalSettings.bankAccountNumber || ''}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, bankAccountNumber: e.target.value };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 block mb-1">Tên ngân hàng:</label>
+                      <input
+                        type="text"
+                        className="glass-input w-full rounded-lg px-3 py-2 text-sm"
+                        placeholder="VD: ACB, Vietcombank, Techcombank..."
+                        value={globalSettings.bankName || ''}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, bankName: e.target.value };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 block mb-1">Tên chủ tài khoản:</label>
+                      <input
+                        type="text"
+                        className="glass-input w-full rounded-lg px-3 py-2 text-sm"
+                        placeholder="VD: PHAN HUU HIEN"
+                        value={globalSettings.bankAccountName || ''}
+                        onChange={(e) => {
+                          const newSettings = { ...globalSettings, bankAccountName: e.target.value };
+                          setGlobalSettings(newSettings);
+                          localStorage.setItem('global_settings', JSON.stringify(newSettings));
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Google Fonts Selection */}

@@ -394,11 +394,11 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
               {/* QR Code Image */}
               {globalSettings?.bankQRCode ? (
-                <div className="bg-white p-4 rounded-xl shadow-lg inline-block mb-4">
+                <div className="bg-white p-6 rounded-2xl shadow-2xl inline-block mb-4">
                   <img
                     src={globalSettings.bankQRCode}
                     alt="QR Code chuyển khoản"
-                    className="w-64 h-64 object-contain mx-auto"
+                    className="w-80 h-80 object-contain mx-auto"
                   />
                 </div>
               ) : (
@@ -409,6 +409,26 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       <span className="text-xs">(Vào Admin → Cài đặt để upload)</span>
                     </p>
                   </div>
+                </div>
+              )}
+
+              {/* Bank Transfer Button - Only show if bank info is provided */}
+              {globalSettings?.bankAccountNumber && globalSettings?.bankName && (
+                <div className="mb-4">
+                  <a
+                    href={`https://dl.trustingsocial.com/app/payment?amount=${finalTotalPrice}&bankCode=${globalSettings.bankName}&accountNumber=${globalSettings.bankAccountNumber}&accountName=${encodeURIComponent(globalSettings.bankAccountName || '')}&content=Thanh%20toan%20don%20hang`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all hover:scale-105 active:scale-95"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Chuyển khoản ngay
+                  </a>
+                  <p className="text-xs text-blue-600 mt-2 italic">
+                    (Bấm để mở ứng dụng ngân hàng)
+                  </p>
                 </div>
               )}
 
