@@ -352,25 +352,24 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
     const isTransferPayment = paymentMethod === 'transfer';
 
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 z-50 flex items-center justify-center p-4 animate-fadeIn overflow-y-auto">
-        <div
-          className="bg-white rounded-3xl max-w-2xl w-full p-8 md:p-12 text-center shadow-2xl animate-slideUp my-8"
-        >
+      <div className="fixed inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 z-50 overflow-y-auto">
+        <div className="min-h-screen w-full bg-white py-4 px-3 text-center">
+
           {/* Success Icon */}
-          <div className="mb-6 flex justify-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-xl animate-bounce">
-              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-3 flex justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-xl">
+              <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
 
           {/* Thank You Message */}
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
             🎉 Cảm ơn bạn đã đặt hàng!
           </h2>
 
-          <p className="text-lg text-gray-700 mb-2 font-semibold">
+          <p className="text-base text-gray-700 mb-2 font-semibold">
             Đơn hàng của bạn đã được gửi thành công!
           </p>
 
@@ -393,11 +392,11 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
               {/* QR Code Image */}
               {globalSettings?.bankQRCode ? (
-                <div className="bg-white p-6 rounded-2xl shadow-2xl inline-block mb-4">
+                <div className="bg-white p-3 rounded-xl shadow-xl inline-block mb-3">
                   <img
                     src={globalSettings.bankQRCode}
                     alt="QR Code chuyển khoản"
-                    className="w-80 h-80 object-contain mx-auto"
+                    className="w-72 h-72 object-contain mx-auto"
                   />
                 </div>
               ) : (
@@ -413,11 +412,11 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
               {/* Bank Account Details - Display clearly for manual transfer */}
               {globalSettings?.bankAccountNumber && globalSettings?.bankName && (
-                <div className="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200">
-                  <p className="text-xs font-bold text-blue-700 mb-3 text-center">
+                <div className="mb-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-xl border-2 border-blue-200">
+                  <p className="text-xs font-bold text-blue-700 mb-2 text-center">
                     📋 Thông tin chuyển khoản:
                   </p>
-                  <div className="space-y-2 bg-white p-4 rounded-lg">
+                  <div className="space-y-1 bg-white p-3 rounded-lg">
                     <div className="flex justify-between items-center group hover:bg-blue-50 p-2 rounded transition-colors">
                       <div className="flex-1">
                         <span className="text-xs text-gray-500 block">Ngân hàng:</span>
@@ -501,16 +500,16 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
               )}
 
               {/* Transfer Instructions */}
-              <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mt-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center mt-0.5">
-                    <span className="text-white font-bold text-lg">!</span>
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3 mt-3">
+                <div className="flex items-start gap-2">
+                  <div className="flex-shrink-0 w-7 h-7 bg-amber-400 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-base">!</span>
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-bold text-amber-800 mb-2">
+                    <p className="text-xs font-bold text-amber-800 mb-1">
                       📸 Sau khi chuyển khoản xong:
                     </p>
-                    <p className="text-sm text-amber-700 leading-relaxed">
+                    <p className="text-xs text-amber-700 leading-relaxed">
                       Vui lòng <span className="font-black underline">chụp ảnh màn hình</span> xác nhận chuyển khoản và gửi qua Zalo: <span className="font-black text-blue-600">0567899996</span>
                     </p>
                   </div>
@@ -519,21 +518,22 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
             </div>
           )}
 
+
           {!isTransferPayment && (
-            <p className="text-gray-600 mb-8">
+            <p className="text-sm text-gray-600 mb-4">
               Chúng tôi sẽ liên hệ với bạn sớm nhất qua <span className="font-bold text-blue-600">Zalo</span> hoặc <span className="font-bold text-green-600">Gọi điện</span> để xác nhận đơn hàng.
             </p>
           )}
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
             <a
               href={isTransferPayment ? "https://zalo.me/0567899996" : getZaloLink()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all hover:scale-105 active:scale-95"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-base shadow-lg transition-all hover:scale-105 active:scale-95"
             >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.896 1.372 5.515 3.564 7.302V22l3.37-1.854c.958.27 1.969.416 3.022.416 5.523 0 10-4.145 10-9.243C22 6.145 17.523 2 12 2z" />
               </svg>
               {isTransferPayment ? "Gửi ảnh CK qua Zalo" : "Liên hệ Zalo ngay"}
@@ -541,14 +541,14 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
             <button
               onClick={onClose}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all hover:scale-105 active:scale-95"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-xl font-bold text-base shadow-lg transition-all hover:scale-105 active:scale-95"
             >
               Trở về
             </button>
           </div>
 
           {/* Decorative Elements */}
-          <div className="mt-8 flex justify-center gap-2">
+          <div className="mt-4 flex justify-center gap-2">
             <span className="text-4xl animate-bounce" style={{ animationDelay: '0s' }}>🎁</span>
             <span className="text-4xl animate-bounce" style={{ animationDelay: '0.1s' }}>💐</span>
             <span className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>✨</span>
