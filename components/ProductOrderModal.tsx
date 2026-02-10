@@ -975,6 +975,16 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         </div>
                       </div>
                     )}
+
+                    {/* Delivery Confidence Note */}
+                    <div className="px-3 py-2.5 bg-sky-50 border border-sky-100 rounded-xl animate-fadeIn">
+                      <div className="flex gap-2">
+                        <span className="text-xs">✨</span>
+                        <p className="text-[10.5px] text-sky-700 leading-relaxed font-medium italic">
+                          Shop sẽ gọi trước xác nhận với người nhận, nếu ok thì giao luôn. Còn người nhận hẹn thì sẽ giao lại theo yêu cầu của người nhận nên <span className="font-bold text-sky-800">Người tặng yên tâm nhé!</span>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1126,7 +1136,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 )}
 
                 {/* Submit Button */}
-                <div className="sticky bottom-0 bg-white pt-2 pb-1 border-t border-gray-50 mt-auto z-20">
+                <div className="pt-6 pb-2 mt-auto">
                   <button
                     type="submit"
                     disabled={isSubmitting}
