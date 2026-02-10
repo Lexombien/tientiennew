@@ -45,6 +45,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'transfer'>('transfer'); // Phương thức thanh toán mặc định là chuyển khoản
   const [busyInterval, setBusyInterval] = useState(30); // NEW: Interval thời gian (mặc định 30ph)
   const [deliverySession, setDeliverySession] = useState<string | null>(null); // NEW: Khung giờ buổi (Sáng/Trưa/Chiều/Tối)
+  const [isShowNote, setIsShowNote] = useState(false); // NEW: Toggle ghi chú
 
   // 🆕 Tự động chuyển sang Chuyển khoản khi bật chế độ Gửi tặng
   useEffect(() => {
@@ -1057,21 +1058,31 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 </div>
 
                 {/* Summary Section */}
-                <div className="pt-2 border-t border-dashed border-gray-300 space-y-1">
+                <div className="pt-2 border-t border-dashed border-gray-300 space-y-1.5">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500 flex items-center gap-2">
-                      <span className="text-base">🚚</span> Phí vận chuyển:
-                    </span>
+                    <span className="text-gray-500">Giá sản phẩm:</span>
+                    <span className="font-bold text-gray-700">{formatPrice(product.salePrice)}</span>
+                  </div>
+
+                  {appliedCoupon && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Giảm giá ({appliedCoupon.code}):</span>
+                      <span className="font-bold text-green-600">-{formatPrice(discountAmount)}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Phí vận chuyển:</span>
                     <span className="font-bold text-gray-700">
                       {isHCMAddress && district ? (
                         shippingFee === 0 ? <span className="text-green-600">Freeship</span> : formatPrice(shippingFee)
                       ) : (
-                        <span className="text-gray-400 italic text-xs">(Chọn quận để tính phí)</span>
+                        <span className="text-gray-400 italic text-[10px]">(Chọn quận để tính phí)</span>
                       )}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                     <span className="text-base font-bold text-gray-800">Tổng cộng:</span>
                     <span className="text-2xl font-black text-pink-600 tracking-tight">
                       {formatPrice(finalTotalPrice)}
@@ -1079,14 +1090,26 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                   </div>
                 </div>
 
-                {/* Note */}
-                <textarea
-                  value={formData.note}
-                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                  className="w-full px-4 py-3 bg-yellow-50/50 border border-yellow-200 rounded-xl text-sm focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none resize-none font-medium placeholder-yellow-700/50 text-yellow-900"
-                  rows={2}
-                  placeholder="Ghi chú thêm cho Shop (Nếu chọn Tặng quà, Shop sẽ che tên người gửi trên bill)..."
-                />
+                {/* Note Toggle */}
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsShowNote(!isShowNote)}
+                    className="text-xs font-bold text-gray-500 flex items-center gap-1 hover:text-pink-600 transition-colors w-fit"
+                  >
+                    {isShowNote ? '🔼 Ẩn ghi chú' : '📝 Thêm ghi chú cho đơn hàng'}
+                  </button>
+
+                  {isShowNote && (
+                    <textarea
+                      value={formData.note}
+                      onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                      className="w-full px-4 py-3 bg-yellow-50/50 border border-yellow-200 rounded-xl text-sm focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none resize-none font-medium placeholder-yellow-700/50 text-yellow-900 animate-fadeIn"
+                      rows={2}
+                      placeholder="Ghi chú thêm cho Shop (Nếu chọn Tặng quà, Shop sẽ che tên người gửi trên bill)..."
+                    />
+                  )}
+                </div>
 
                 {/* Error Message */}
                 {submitMessage && (
