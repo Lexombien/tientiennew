@@ -352,10 +352,9 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
     const isTransferPayment = paymentMethod === 'transfer';
 
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 z-50 flex items-center justify-center p-4 animate-fadeIn overflow-y-auto" onClick={onClose}>
+      <div className="fixed inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 z-50 flex items-center justify-center p-4 animate-fadeIn overflow-y-auto">
         <div
           className="bg-white rounded-3xl max-w-2xl w-full p-8 md:p-12 text-center shadow-2xl animate-slideUp my-8"
-          onClick={(e) => e.stopPropagation()}
         >
           {/* Success Icon */}
           <div className="mb-6 flex justify-center">
