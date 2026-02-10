@@ -577,12 +577,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 scrollbar-hide">
-          <div className="p-5 space-y-6">
+          <div className="p-3 space-y-3">
 
-            {/* Fixed Square Gallery for Compact Design */}
-            <div className="space-y-2">
+            {/* Fixed Aspect Gallery for Compact Design */}
+            <div className="space-y-1">
               <div
-                className="relative aspect-square rounded-3xl overflow-hidden bg-gray-50 group cursor-zoom-in shadow-inner border border-gray-100"
+                className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-50 group cursor-zoom-in shadow-inner border border-gray-100"
                 onClick={() => {
                   if (onImageClick) {
                     onImageClick(imagesToDisplay, currentImageIndex, {
@@ -637,13 +637,13 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
               </p>
             </div>
 
-            {/* Product Title & Price (Moved below Image) */}
-            <div className="mt-2">
-              <h2 className="text-xl font-bold text-gray-900 leading-snug" style={{ fontFamily: 'var(--font-title)' }}>{product.title}</h2>
-              <div className="flex items-center gap-3 mt-1">
-                <p className="text-xl font-bold text-pink-600" style={{ fontFamily: 'var(--font-price)' }}>{formatPrice(product.salePrice)}</p>
+            {/* Product Title & Price (Compact) */}
+            <div className="mt-1">
+              <h2 className="text-lg font-bold text-gray-900 leading-snug" style={{ fontFamily: 'var(--font-title)' }}>{product.title}</h2>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-lg font-bold text-pink-600" style={{ fontFamily: 'var(--font-price)' }}>{formatPrice(product.salePrice)}</p>
                 {product.originalPrice > product.salePrice && (
-                  <p className="text-base text-gray-400 line-through font-medium" style={{ fontFamily: 'var(--font-price)' }}>
+                  <p className="text-sm text-gray-400 line-through font-medium" style={{ fontFamily: 'var(--font-price)' }}>
                     {formatPrice(product.originalPrice)}
                   </p>
                 )}
@@ -718,48 +718,50 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                 <div className="space-y-3">
                   {/* Name Input */}
                   <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-pink-500 transition-colors">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-pink-500 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </div>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
-                      placeholder={isGiftMode ? "Tên người nhận" : "Họ tên của bạn"}
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
+                      placeholder="Họ tên của bạn"
                       required
                     />
                   </div>
 
                   {/* Phone Input */}
                   <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-pink-500 transition-colors">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-pink-500 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                     </div>
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
-                      placeholder={isGiftMode ? "SĐT người nhận" : "Số điện thoại của bạn"}
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none"
+                      placeholder="Số điện thoại của bạn"
                       required
                     />
                   </div>
 
-                  {/* HCM / Other Province Toggle */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-xl space-y-3">
+                </div>
+                {/* Shipping Options */}
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-2.5 rounded-xl space-y-2">
                     <div className="flex items-center justify-between cursor-pointer" onClick={() => {
                       setIsHCMAddress(!isHCMAddress);
                       if (!isHCMAddress) setDistrict(''); // Reset district when switching to HCM
                     }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </div>
-                        <span className="text-sm font-bold text-blue-700">{isHCMAddress ? 'Giao hàng tại TP.HCM' : 'Giao hàng toàn quốc'}</span>
+                        <span className="text-xs font-bold text-blue-700">{isHCMAddress ? 'Giao hàng tại TP.HCM' : 'Giao hàng toàn quốc'}</span>
                       </div>
-                      <div className={`w-12 h-6 rounded-full p-1 transition-colors ${isHCMAddress ? 'bg-blue-500' : 'bg-gray-300'}`}>
-                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isHCMAddress ? 'translate-x-6' : ''}`} />
+                      <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${isHCMAddress ? 'bg-blue-500' : 'bg-gray-300'}`}>
+                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isHCMAddress ? 'translate-x-5' : ''}`} />
                       </div>
                     </div>
 
@@ -769,7 +771,7 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         <select
                           value={district}
                           onChange={(e) => setDistrict(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white border border-blue-200 rounded-xl md:text-sm text-base focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-medium text-gray-700"
+                          className="w-full px-3 py-2.5 bg-white border border-blue-200 rounded-lg text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-medium text-gray-700"
                           required={isHCMAddress}
                         >
                           <option value="">-- Chọn Quận/Huyện --</option>
@@ -783,15 +785,15 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
                   {/* Address Input */}
                   <div className="relative group">
-                    <div className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-pink-500 transition-colors">
+                    <div className="absolute left-3 top-3 text-gray-400 group-focus-within:text-pink-500 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </div>
                     <textarea
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:text-sm text-base focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none resize-none"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none resize-none"
                       rows={2}
-                      placeholder={isHCMAddress ? "Địa chỉ chi tiết (Số nhà, đường, phường...)\n(Ưu tiên địa chỉ cũ để dễ book ship)" : "Địa chỉ đầy đủ (Số nhà, đường, phường, quận/huyện, tỉnh/thành phố)"}
+                      placeholder={isHCMAddress ? "Địa chỉ chi tiết (Số nhà, đường...)\n(Ưu tiên địa chỉ cũ để dễ book ship)" : "Địa chỉ đầy đủ (Số nhà, đường, phường, quận/huyện...)"}
                       required
                     />
                   </div>
@@ -832,6 +834,26 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
                 {/* Card / Banner Option */}
                 <div className="bg-amber-50 p-3 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between bg-pink-50/50 p-2.5 rounded-xl border border-pink-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center text-pink-500">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20 7h-7L10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /></svg>
+                      </div>
+                      <span className="text-sm font-bold text-gray-700">Gửi tặng người thương</span>
+                      <span className="text-pink-500 animate-pulse text-sm">♥</span>
+                    </div>
+                    <div
+                      className={`w-10 h-5 rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out ${isGiftMode ? 'bg-pink-500' : 'bg-gray-300'}`}
+                      onClick={() => {
+                        setIsGiftMode(!isGiftMode);
+                        if (!isGiftMode) {
+                          setFormData({ ...formData, senderName: '', senderPhone: '' });
+                        }
+                      }}
+                    >
+                      <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${isGiftMode ? 'translate-x-5' : ''}`} />
+                    </div>
+                  </div>
                   <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsCardOption(!isCardOption)}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
@@ -875,6 +897,156 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                         rows={2}
                         placeholder={cardType === 'card' ? "Nội dung lời chúc trên thiệp..." : "Nội dung in trên bảng chữ..."}
                       />
+                    </div>
+                  )}
+                </div>
+
+                {/* Delivery Time */}
+                <div className="p-1 bg-gray-100 rounded-xl flex">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMode('instant')}
+                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'instant' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                  >
+                    🚀 Giao ngay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMode('scheduled')}
+                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryMode === 'scheduled' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                  >
+                    📅 Hẹn giờ
+                  </button>
+                </div>
+
+                {deliveryMode === 'scheduled' && (
+                  <div className="animate-fadeIn space-y-4">
+                    {/* Date Selection */}
+                    <div className="relative">
+                      <DatePicker
+                        selected={deliveryTime}
+                        onChange={(date) => setDeliveryTime(date)}
+                        showTimeSelect={!globalSettings?.holidayTimeBlockMode}
+                        timeFormat="HH:mm"
+                        timeIntervals={busyInterval}
+                        timeCaption="Giờ"
+                        dateFormat={globalSettings?.holidayTimeBlockMode ? "dd/MM/yyyy" : "dd/MM/yyyy HH:mm"}
+                        renderCustomHeader={({
+                          date,
+                          decreaseMonth,
+                          increaseMonth,
+                          prevMonthButtonDisabled,
+                          nextMonthButtonDisabled,
+                        }) => (
+                          <div className="custom-datepicker-header">
+                            <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <span className="font-bold text-gray-800">Tháng {date.getMonth() + 1}, {date.getFullYear()}</span>
+                            <button onClick={increaseMonth} disabled={nextMonthButtonDisabled} type="button" className="p-1 hover:bg-gray-100 rounded-full">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                          </div>
+                        )}
+                        locale="vi"
+                        placeholderText={globalSettings?.holidayTimeBlockMode ? "Chọn ngày giao hàng..." : "Chọn ngày giờ giao hàng..."}
+                        className="w-full px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl md:text-sm text-base focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none font-medium text-orange-800"
+                        required={deliveryMode === 'scheduled'}
+                        minDate={new Date()}
+                        withPortal
+                        onFocus={(e) => e.target.blur()} // Prevent keyboard on mobile
+                      />
+                    </div>
+
+                    {/* NEW: Session Selection for Holiday Mode */}
+                    {globalSettings?.holidayTimeBlockMode && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { id: 'morning', label: 'Sáng', range: '8h-11h', icon: '🌅' },
+                          { id: 'noon', label: 'Trưa', range: '11h-13h', icon: '☀️' },
+                          { id: 'afternoon', label: 'Chiều', range: '13h-18h', icon: '🌇' },
+                          { id: 'evening', label: 'Tối', range: '18h-23h', icon: '🌙' }
+                        ].map((session) => (
+                          <button
+                            key={session.id}
+                            type="button"
+                            onClick={() => setDeliverySession(`${session.label} (${session.range})`)}
+                            className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${deliverySession?.includes(session.label)
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-100 bg-white text-gray-500 hover:border-orange-200'}`}
+                          >
+                            <span className="text-sm mb-0.5">{session.icon} {session.label}</span>
+                            <span className="text-[10px] opacity-60 font-bold">{session.range}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* NEW: Holiday Policy explanation */}
+                    {globalSettings?.holidayTimeBlockMode && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-fadeIn">
+                        <div className="flex items-start gap-2 text-amber-800">
+                          <span className="text-sm mt-0.5">📢</span>
+                          <p className="text-[11px] font-bold leading-relaxed">
+                            Do ngày Lễ đơn hàng nhiều, Shop xin phép <span className="text-red-600 underline">không thể hẹn chính xác giờ giao</span>.
+                          </p>
+                        </div>
+                        <div className="pl-6 space-y-1.5 text-[10.5px] text-amber-700 font-medium italic leading-snug">
+                          <p>• Shop sẽ cố gắng giao trong khung giờ Buổi bạn đã chọn.</p>
+                          <p>• Shipper sẽ gọi điện trước cho người nhận: Nếu người nhận đồng ý sẽ tiến hành giao ngay.</p>
+                          <p>• Trường hợp người nhận bận hoặc chưa thuận tiện, shop sẽ sắp xếp phối hợp giao lại theo ý người nhận.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Coupon Section */}
+                <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-indigo-700 flex items-center gap-1">
+                        <span className="text-lg">🎫</span> Bạn có mã giảm giá?
+                      </span>
+                    </div>
+                    {appliedCoupon && (
+                      <button
+                        type="button"
+                        onClick={() => setAppliedCoupon(null)}
+                        className="text-[10px] text-rose-500 font-bold hover:underline"
+                      >
+                        Gỡ mã
+                      </button>
+                    )}
+                  </div>
+                  {!appliedCoupon ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        placeholder="Nhập mã giảm giá..."
+                        className="flex-1 px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none uppercase placeholder-gray-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={!couponInput}
+                        className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Áp dụng
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-white p-2.5 rounded-lg border border-indigo-100 flex items-center justify-between">
+                      <span className="text-sm font-bold text-indigo-600">
+                        {appliedCoupon.code}
+                      </span>
+                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">
+                        -{formatPrice(discountAmount)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1153,8 +1325,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
         </div>
 
 
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
