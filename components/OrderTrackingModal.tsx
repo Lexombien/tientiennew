@@ -198,20 +198,27 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                       {/* Shop Note - Ghi chú từ cửa hàng */}
                       {order.shopNote && (
                         <div className="mt-2.5 p-3 bg-blue-50 border border-blue-100 rounded-xl space-y-1 animate-fadeIn">
-                          <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                          <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5 leading-none shadow-sm">
                             <span className="text-xs">💬</span> Thông tin từ Shop
                           </div>
-                          <p className="text-[13px] text-blue-800 font-bold leading-relaxed whitespace-pre-wrap">
-                            {order.shopNote}
-                          </p>
-                          {/* Helper: if note looks like a link, show a small hint */}
-                          {order.shopNote.includes('http') && (
-                            <div className="pt-1 mt-1 border-t border-blue-200/50">
-                              <p className="text-[10px] text-blue-600 font-medium italic">
-                                * Bạn có thể nhấn trực tiếp vào link trên để xem
-                              </p>
-                            </div>
-                          )}
+                          <div className="text-[13px] text-blue-800 font-bold leading-relaxed whitespace-pre-wrap mt-1">
+                            {order.shopNote.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
+                              if (part.match(/^https?:\/\//)) {
+                                return (
+                                  <a
+                                    key={i}
+                                    href={part}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-pink-600 underline hover:text-pink-700 transition-colors break-all"
+                                  >
+                                    {part}
+                                  </a>
+                                );
+                              }
+                              return part;
+                            })}
+                          </div>
                         </div>
                       )}
 
