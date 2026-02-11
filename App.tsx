@@ -3781,7 +3781,7 @@ const App: React.FC = () => {
                 .map((cat) => (
                   <a
                     key={cat}
-                    href={`#${cat}`}
+                    href={`/${slugify(cat)}`}
                     onClick={(e) => { e.preventDefault(); scrollToCategory(cat); }}
                     className="hover:text-[var(--primary-pink)] transition-all hover:scale-105 whitespace-nowrap"
                   >
@@ -3877,18 +3877,20 @@ const App: React.FC = () => {
               {categories
                 .filter(cat => !categorySettings[cat]?.isHidden) // Lọc danh mục không bị ẩn
                 .map(cat => (
-                  <button
+                  <a
                     key={cat}
-                    onClick={() => {
+                    href={`/${slugify(cat)}`}
+                    onClick={(e) => {
+                      e.preventDefault();
                       scrollToCategory(cat);
                       setIsMobileMenuOpen(false); // Close menu after clicking category
                     }}
-                    className="text-left py-3 px-4 rounded-2xl text-sm font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group"
+                    className="text-left py-3 px-4 rounded-2xl text-sm font-semibold bg-white/40 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:text-[var(--primary-pink)] hover:scale-[1.02] transition-all flex justify-between items-center group no-underline"
                     style={{ color: 'var(--text-primary)' }}
                   >
                     {categorySettings[cat]?.displayName || cat}
                     <svg className="w-4 h-4 text-gray-400 group-hover:text-[var(--primary-pink)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                  </button>
+                  </a>
                 ))}
 
               <div className="my-2 border-t border-gray-200/50"></div>
