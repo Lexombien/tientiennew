@@ -406,6 +406,10 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({
             Đơn hàng của bạn đã được gửi thành công!
           </p>
 
+          <p className="text-sm text-pink-600 mb-6 font-medium animate-pulse">
+            Shop chúc bạn có 1 ngày thật vui và tuyệt vời ạ ❤
+          </p>
+
           {/* QR Code Section - Only show for Transfer Payment */}
           {isTransferPayment && (
             <div className="my-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 animate-fadeIn">
@@ -1165,26 +1169,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({
                 {/* Summary Section */}
                 <div className="pt-2 border-t border-dashed border-gray-300 space-y-1.5">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Giá sản phẩm:</span>
+                    <span className="text-gray-500">Giá Gốc:</span>
                     <span className="font-bold text-gray-700">{formatPrice(product.salePrice)}</span>
-                  </div>
-
-                  {appliedCoupon && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Giảm giá ({appliedCoupon.code}):</span>
-                      <span className="font-bold text-green-600">-{formatPrice(discountAmount)}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Phí vận chuyển:</span>
-                    <span className="font-bold text-gray-700">
-                      {isHCMAddress && district ? (
-                        shippingFee === 0 ? <span className="text-green-600">Freeship</span> : formatPrice(shippingFee)
-                      ) : (
-                        <span className="text-gray-400 italic text-[10px]">(Chọn quận để tính phí)</span>
-                      )}
-                    </span>
                   </div>
 
                   {selectedAddOns.length > 0 && (
@@ -1193,6 +1179,24 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({
                       <span className="font-bold text-pink-600">+{formatPrice(addOnsTotal)}</span>
                     </div>
                   )}
+
+                  {appliedCoupon && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Khuyến mãi ({appliedCoupon.code}):</span>
+                      <span className="font-bold text-green-600">-{formatPrice(discountAmount)}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Ship:</span>
+                    <span className="font-bold text-gray-700">
+                      {isHCMAddress && district ? (
+                        shippingFee === 0 ? <span className="text-green-600">Freeship</span> : formatPrice(shippingFee)
+                      ) : (
+                        <span className="text-gray-400 italic text-[10px]">(Chọn quận để tính phí)</span>
+                      )}
+                    </span>
+                  </div>
 
                   <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                     <span className="text-base font-bold text-gray-800">Tổng cộng:</span>
