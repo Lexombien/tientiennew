@@ -349,6 +349,31 @@ input.glass-input::placeholder {
   animation: fadeIn 0.4s ease-out;
 }
 
+/* Product Highlight Animation */
+@keyframes highlightProduct {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 157, 0.8), 9px 9px 18px var(--shadow-dark), -9px -9px 18px var(--shadow-light);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 40px 10px rgba(255, 107, 157, 0.4), 14px 14px 28px var(--shadow-dark), -14px -14px 28px var(--shadow-light);
+    transform: scale(1.05);
+    border-color: var(--primary-pink);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 157, 0), 9px 9px 18px var(--shadow-dark), -9px -9px 18px var(--shadow-light);
+    transform: scale(1);
+  }
+}
+
+.highlight-product {
+  animation: highlightProduct 2s ease-in-out infinite;
+  z-index: 10;
+  position: relative;
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

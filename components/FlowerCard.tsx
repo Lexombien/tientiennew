@@ -4,6 +4,7 @@ import { FlowerProduct } from '../types';
 import { ZALO_NUMBER } from '../constants';
 import { trackProductClick } from '../utils/analytics';
 import { trackZaloBotClick } from '../utils/zaloBotTracking';
+import { getProductSlug, toSlug } from '../utils/slug';
 
 interface FlowerCardProps {
   product: FlowerProduct;
@@ -22,6 +23,7 @@ interface FlowerCardProps {
   enablePriceDisplay?: boolean; // NEW: Show/hide price
   onOrderClick?: (product: FlowerProduct) => void; // NEW: Order button click handler
   productIndex?: number; // NEW: Index of product in list for lazy loading
+  allProducts?: FlowerProduct[]; // NEW: For generating unique slugs
 }
 
 const FlowerCard: React.FC<FlowerCardProps> = ({
@@ -36,9 +38,15 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
   zaloLink = 'https://zalo.me/0900000000',
   enablePriceDisplay = true,
   onOrderClick,
-  productIndex = 0
+  productIndex = 0,
+  allProducts = []
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Generate SEO-friendly slug
+  const productSlug = allProducts.length > 0
+    ? getProductSlug(product, allProducts)
+    : toSlug(product.title);
 
   // Get transition class
   const transitionEffect = product.imageTransition || 'fade';
@@ -126,7 +134,10 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
   };
 
   return (
-    <div className={`glass-card glass overflow-hidden transition-all duration-500 flex flex-col border border-white/30 ${isAdmin ? '!rounded-none md:!rounded-2xl' : 'rounded-2xl group'}`}>
+    <div
+      id={`product-${product.id}`}
+      className={`glass-card glass overflow-hidden transition-all duration-500 flex flex-col border border-white/30 ${isAdmin ? '!rounded-none md:!rounded-2xl' : 'rounded-2xl group'}`}
+    >
       <div
         className={`relative overflow-hidden image-container ${transitionClass} ${!isAdmin ? 'cursor-zoom-in' : ''}`}
         style={{ paddingBottom: `${(parseInt(globalAspectRatio.split('/')[1]) / parseInt(globalAspectRatio.split('/')[0])) * 100}%`, height: 0 }}
@@ -217,12 +228,23 @@ const FlowerCard: React.FC<FlowerCardProps> = ({
         className={`p-3 md:p-4 flex flex-col flex-grow ${!isAdmin ? 'cursor-pointer hover:bg-pink-50/50 transition-colors' : ''}`}
         onClick={!isAdmin ? (e) => onOrderClick ? onOrderClick(product) : handleZaloRedirect(e) : undefined}
       >
-        <h3
-          className={`font-semibold mb-2 line-clamp-2 leading-snug group-hover:text-[var(--primary-pink)] transition-colors ${isAdmin ? 'text-xs md:text-base' : 'text-sm md:text-base'}`}
-          style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-title, inherit)' }}
+        <a
+          href={`/san-pham/${productSlug}`}
+          onClick={(e) => {
+            if (!isAdmin) {
+              e.preventDefault(); // Ngăn load lại trang khi click trái
+              // Event bubble sẽ tự kích hoạt onClick của div cha để mở Modal
+            }
+          }}
+          className="no-underline block"
         >
-          {product.title}
-        </h3>
+          <h3
+            className={`font-semibold mb-2 line-clamp-2 leading-snug group-hover:text-[var(--primary-pink)] transition-colors ${isAdmin ? 'text-xs md:text-base' : 'text-sm md:text-base'}`}
+            style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-title, inherit)' }}
+          >
+            {product.title}
+          </h3>
+        </a>
 
         <div className="mt-auto space-y-1">
           {enablePriceDisplay && (

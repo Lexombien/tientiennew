@@ -20,6 +20,7 @@ interface CategorySectionProps {
     zaloLink?: string;
     enablePriceDisplay?: boolean;
     onOrderClick?: (product: FlowerProduct) => void;
+    allProducts?: FlowerProduct[]; // NEW
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -35,7 +36,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({
     showSKU,
     zaloLink,
     enablePriceDisplay,
-    onOrderClick
+    onOrderClick,
+    allProducts // NEW
 }) => {
     const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -131,6 +133,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                         enablePriceDisplay={enablePriceDisplay}
                         onOrderClick={onOrderClick}
                         productIndex={index}
+                        allProducts={allProducts}
                     />
                 ))}
             </div>

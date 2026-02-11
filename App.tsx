@@ -18,6 +18,7 @@ import ShippingFeesManager from './components/ShippingFeesManager';
 import FacebookPagePlugin from './components/FacebookPagePlugin';
 import { loadAnalyticsData, trackPageView, trackProductClick, exportAnalytics, clearAllAnalytics, clearOldAnalytics } from './utils/analytics';
 import { injectTrackingScripts } from './utils/trackingInjector';
+import { getProductSlug, toSlug as slugify } from './utils/slug';
 
 // Auto-detect backend URL based on environment
 // Development: localhost or LAN IP (192.168.x.x, 10.x.x.x, etc.)
@@ -582,6 +583,78 @@ const App: React.FC = () => {
       trackPageView(currentPath);
     }
   }, [currentPath]);
+
+  // NEW: Product Deep Linking Handler (?p=productId OR /san-pham/slug)
+  useEffect(() => {
+    // 1. Check Query Paran (?p=productId) - Backward Compatibility
+    const urlParams = new URLSearchParams(window.location.search);
+    const productIdQuery = urlParams.get('p');
+
+    // 2. Check Pathname (/san-pham/slug)
+    const path = window.location.pathname.replace(/^\//, '');
+    let matchedProduct: FlowerProduct | undefined;
+
+    if (productIdQuery && products.length > 0) {
+      matchedProduct = products.find(p => p.id === productIdQuery);
+    } else if (path.startsWith('san-pham/') && products.length > 0) {
+      const targetSlug = path.replace('san-pham/', '');
+      // Find product that generates this slug
+      matchedProduct = products.find(p => getProductSlug(p, products) === targetSlug);
+    }
+
+    if (matchedProduct) {
+      const productId = matchedProduct.id;
+      const category = matchedProduct.category;
+
+      // Ensure category exists and find its index in the category's product list
+      const categoryProducts = getProductsInCategory(category, products)
+        .filter(p => !p.isHidden)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+      const productIndex = categoryProducts.findIndex(p => p.id === productId);
+
+      if (productIndex !== -1) {
+        const settings = categorySettings[category] || { itemsPerPage: 12 };
+        const itemsPerPage = settings.itemsPerPage || 12;
+        const requiredPage = Math.ceil((productIndex + 1) / itemsPerPage);
+
+        // Force category to show enough products if it's using pagination/loadmore
+        if (!categoryPages[category] || categoryPages[category] < requiredPage) {
+          setCategoryPages(prev => ({ ...prev, [category]: requiredPage }));
+        }
+
+        // Open Modal automatically
+        setSelectedProduct(matchedProduct);
+
+        // Smooth scroll to product
+        const scrollAndHighlight = () => {
+          const element = document.getElementById(`product-${productId}`);
+          if (element) {
+            const header = document.querySelector('header') as HTMLElement;
+            const headerHeight = header ? header.offsetHeight : 64;
+            const offset = headerHeight + 32;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+
+            // Add temporary highlight
+            element.classList.add('highlight-product');
+            setTimeout(() => {
+              if (element) element.classList.remove('highlight-product');
+            }, 5000);
+          }
+        };
+
+        // Delay to ensure the DOM has updated with the new page/products
+        setTimeout(scrollAndHighlight, 800);
+        setTimeout(scrollAndHighlight, 2000); // Fail-safe for slower rendering
+      }
+    }
+  }, [products, categorySettings]);
 
   // Load analytics data when analytics tab is active
   useEffect(() => {
@@ -3878,6 +3951,7 @@ const App: React.FC = () => {
               zaloLink={globalSettings.zaloLink}
               enablePriceDisplay={globalSettings.enablePriceDisplay}
               onOrderClick={(product) => setSelectedProduct(product)}
+              allProducts={products}
             />
           );
         })}
