@@ -2510,6 +2510,84 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* NEW: Upsell (Mua kèm) Settings */}
+              <div className="glass p-6 rounded-2xl border-2 border-pink-200/50">
+                <label className="block text-sm font-bold mb-1 text-pink-700 serif-display">
+                  🍫 Quản lý Sản phẩm Mua kèm (Upsell)
+                </label>
+                <p className="text-xs text-pink-600/80 mb-4">
+                  Chọn các sản phẩm (như Socola, Gấu bông) để gợi ý khách mua thêm trong Popup đặt hàng.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <select
+                      id="upsellProductSelect"
+                      className="glass-input flex-grow rounded-xl px-4 py-2 text-sm"
+                    >
+                      <option value="">-- Chọn sản phẩm để thêm vào danh sách --</option>
+                      {products
+                        .filter(p => !((globalSettings as any).upsellProductIds || []).includes(p.id))
+                        .map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.title} - {new Intl.NumberFormat('vi-VN').format(p.salePrice)}đ
+                          </option>
+                        ))
+                      }
+                    </select>
+                    <button
+                      onClick={() => {
+                        const select = document.getElementById('upsellProductSelect') as HTMLSelectElement;
+                        const productId = select.value;
+                        if (productId) {
+                          const current = (globalSettings as any).upsellProductIds || [];
+                          const newSettings = { ...globalSettings, upsellProductIds: [...current, productId] };
+                          saveGlobalSettings(newSettings);
+                          select.value = '';
+                        }
+                      }}
+                      className="bg-pink-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-pink-700 transition-all shadow-sm"
+                    >
+                      Thêm vào gợi ý
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {((globalSettings as any).upsellProductIds || []).map((id: string) => {
+                      const p = products.find(prod => prod.id === id);
+                      if (!p) return null;
+                      return (
+                        <div key={id} className="flex items-center justify-between p-3 bg-white/50 rounded-xl border border-pink-100">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-pink-50">
+                              <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-800 line-clamp-1">{p.title}</div>
+                              <div className="text-[10px] font-bold text-pink-500">{new Intl.NumberFormat('vi-VN').format(p.salePrice)}đ</div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const current = (globalSettings as any).upsellProductIds || [];
+                              const newList = current.filter((itemIds: string) => itemIds !== id);
+                              const newSettings = { ...globalSettings, upsellProductIds: newList };
+                              saveGlobalSettings(newSettings);
+                            }}
+                            className="text-rose-500 hover:text-rose-700 p-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {((globalSettings as any).upsellProductIds || []).length === 0 && (
+                    <p className="text-xs text-center text-gray-400 italic py-2">Chưa có sản phẩm gợi ý nào</p>
+                  )}
+                </div>
+              </div>
+
               {/* Favicon Upload */}
               <div className="glass p-6 rounded-2xl">
                 <label className="block text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
