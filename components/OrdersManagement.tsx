@@ -11,6 +11,8 @@ const OrdersManagement: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
 
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [shopNote, setShopNote] = useState('');
+    const [isSavingNote, setIsSavingNote] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -73,27 +75,25 @@ const OrdersManagement: React.FC = () => {
         }
     };
 
-    const updateTrackingLink = async (orderId: string, trackingLink: string) => {
+    const updateShopNote = async (orderId: string) => {
         try {
-            await fetch(`/api/orders/${orderId}`, {
+            setIsSavingNote(true);
+            const response = await fetch(`/api/orders/${orderId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ trackingLink })
+                body: JSON.stringify({ shopNote })
             });
+            const data = await response.json();
+            if (data.success) {
+                // Update local orders list
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, shopNote } : o));
+                alert('✅ Đã lưu ghi chú!');
+            }
         } catch (error) {
-            console.error('Error updating tracking link:', error);
-        }
-    };
-
-    const updateAdminNotes = async (orderId: string, adminNotes: string) => {
-        try {
-            await fetch(`/api/orders/${orderId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminNotes })
-            });
-        } catch (error) {
-            console.error('Error updating notes:', error);
+            console.error('Error updating shop note:', error);
+            alert('❌ Lỗi khi lưu ghi chú');
+        } finally {
+            setIsSavingNote(false);
         }
     };
 
@@ -364,6 +364,7 @@ const OrdersManagement: React.FC = () => {
                                         className="group hover:bg-white/40 transition-all cursor-pointer"
                                         onClick={() => {
                                             setSelectedOrder(order);
+                                            setShopNote(order.shopNote || '');
                                             setShowDetailModal(true);
                                         }}
                                     >
@@ -545,42 +546,33 @@ const OrdersManagement: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Delivery Tracking Link */}
-                            <div className="glass p-4 rounded-2xl border-2 border-blue-100 bg-blue-50/20">
-                                <h3 className="font-bold mb-2 flex items-center gap-2 text-blue-700">
-                                    <span>🚚</span> Link theo dõi đơn hàng (Be, Grab...)
+                            {/* Shop Note (Repurposed from Tracking Link) */}
+                            <div className="glass p-5 rounded-[24px] border-2 border-pink-100 bg-pink-50/10 shadow-sm transition-all focus-within:border-pink-300">
+                                <h3 className="font-bold mb-3 flex items-center gap-2 text-pink-700 serif-display">
+                                    <span className="p-1.5 bg-pink-100 rounded-lg">📝</span> Ghi chú từ Shop (Hiển thị cho khách)
                                 </h3>
-                                <div className="space-y-2">
-                                    <input
-                                        type="url"
-                                        className="glass-input w-full rounded-xl px-4 py-3 text-sm border-blue-200 focus:border-blue-500"
-                                        placeholder="Dán mã/link tracking (vd: https://tracking.be.com.vn/XYZ hoặc https://grb.to/ABC)"
-                                        defaultValue={selectedOrder.trackingLink || ''}
-                                        onBlur={(e) => updateTrackingLink(selectedOrder.id, e.target.value)}
+                                <div className="space-y-3">
+                                    <textarea
+                                        className="glass-input w-full rounded-2xl px-4 py-3 text-sm min-h-[100px] border-gray-200 focus:border-pink-500 bg-white/50"
+                                        placeholder="Nhập ghi chú gửi cho khách (vd: link tracking Be/Grab, lời cảm ơn, thông báo giao hàng...)"
+                                        value={shopNote}
+                                        onChange={(e) => setShopNote(e.target.value)}
                                     />
-                                    {selectedOrder.trackingLink && (
-                                        <a
-                                            href={selectedOrder.trackingLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1"
-                                        >
-                                            Kiểm tra link ↗
-                                        </a>
-                                    )}
+                                    <button
+                                        onClick={() => updateShopNote(selectedOrder.id)}
+                                        disabled={isSavingNote}
+                                        className="w-full bg-gradient-pink text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-pink-200 hover:shadow-pink-300 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {isSavingNote ? (
+                                            <>
+                                                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                Đang lưu...
+                                            </>
+                                        ) : (
+                                            <>✅ Lưu ghi chú</>
+                                        )}
+                                    </button>
                                 </div>
-                            </div>
-
-                            {/* Admin Notes */}
-                            <div className="glass p-4 rounded-2xl">
-                                <h3 className="font-bold mb-2">📋 Ghi chú nội bộ</h3>
-                                <textarea
-                                    className="glass-input w-full rounded-xl px-4 py-3 text-sm"
-                                    placeholder="Ghi chú của admin..."
-                                    defaultValue={selectedOrder.adminNotes || ''}
-                                    onBlur={(e) => updateAdminNotes(selectedOrder.id, e.target.value)}
-                                    rows={3}
-                                />
                             </div>
 
                             {/* Meta */}

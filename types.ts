@@ -164,8 +164,5 @@ export interface Order {
   couponCode?: string;
   discountAmount?: number;
   productImage?: string;
-  trackingLink?: string; // NEW: Link theo dõi giao hàng (be, grab, v.v.)
-
-  // Admin notes
-  adminNotes?: string;
+  shopNote?: string; // NEW: Ghi chú từ Shop gửi khách (vd: link tracking, lời nhắn)
 }

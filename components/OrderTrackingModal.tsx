@@ -195,19 +195,24 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                         <div className="text-sm text-gray-500 mt-1">Phân loại: {order.variantName}</div>
                       )}
 
-                      {/* Tracking Link - Show if available and ideally when status is shipping */}
-                      {order.trackingLink && (
-                        <a
-                          href={order.trackingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all border border-blue-100 animate-pulse"
-                        >
-                          <span className="text-base">🚚</span> Theo dõi lộ trình ngay
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
+                      {/* Shop Note - Ghi chú từ cửa hàng */}
+                      {order.shopNote && (
+                        <div className="mt-2.5 p-3 bg-blue-50 border border-blue-100 rounded-xl space-y-1 animate-fadeIn">
+                          <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                            <span className="text-xs">💬</span> Thông tin từ Shop
+                          </div>
+                          <p className="text-[13px] text-blue-800 font-bold leading-relaxed whitespace-pre-wrap">
+                            {order.shopNote}
+                          </p>
+                          {/* Helper: if note looks like a link, show a small hint */}
+                          {order.shopNote.includes('http') && (
+                            <div className="pt-1 mt-1 border-t border-blue-200/50">
+                              <p className="text-[10px] text-blue-600 font-medium italic">
+                                * Bạn có thể nhấn trực tiếp vào link trên để xem
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       )}
 
                       <div className="flex justify-between items-end mt-2">

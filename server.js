@@ -1140,7 +1140,7 @@ app.put('/api/orders/:id', (req, res) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
         }
 
-        const { status, adminNotes, trackingLink } = req.body;
+        const { status, adminNotes, shopNote } = req.body;
 
         if (status) {
             db.orders[orderIndex].status = status;
@@ -1150,8 +1150,8 @@ app.put('/api/orders/:id', (req, res) => {
             db.orders[orderIndex].adminNotes = adminNotes;
         }
 
-        if (trackingLink !== undefined) {
-            db.orders[orderIndex].trackingLink = trackingLink;
+        if (shopNote !== undefined) {
+            db.orders[orderIndex].shopNote = shopNote;
         }
 
         fs.writeFileSync(dbFile, JSON.stringify(db, null, 2));
