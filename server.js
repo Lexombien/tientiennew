@@ -1235,6 +1235,12 @@ app.get('/api/health', (req, res) => {
         ownerCount: ownerIds.length
     });
 });
+// ==================== FRONTEND STATIC FILES ====================
+// Phục vụ file tĩnh từ thư mục dist (React App)
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Phục vụ ảnh từ folder uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==================== SEO DYNAMIC META TAGS ====================
 // Helper to slugify Vietnamese string (must match frontend logic)
@@ -1373,16 +1379,7 @@ function injectMeta(html, title, description, image, url) {
 }
 
 
-// ==================== FRONTEND STATIC FILES ====================
-// Phục vụ file tĩnh từ thư mục dist (React App)
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// QUAN TRỌNG: Tất cả request không phải API sẽ trả về index.html
-// Sử dụng Regex /(.*)/ để bắt tất cả các đường dẫn (thay thế cho *)
-// This catch-all is now handled by the dynamic SEO route above.
-// app.get(/(.*)/, (req, res) => {
-//     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-// });
+// Note: Catch-all is handled by SEO DYNAMIC META TAGS section above
 
 // ==================== START SERVER ====================
 
