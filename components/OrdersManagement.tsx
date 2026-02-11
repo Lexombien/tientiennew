@@ -73,6 +73,18 @@ const OrdersManagement: React.FC = () => {
         }
     };
 
+    const updateTrackingLink = async (orderId: string, trackingLink: string) => {
+        try {
+            await fetch(`/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ trackingLink })
+            });
+        } catch (error) {
+            console.error('Error updating tracking link:', error);
+        }
+    };
+
     const updateAdminNotes = async (orderId: string, adminNotes: string) => {
         try {
             await fetch(`/api/orders/${orderId}`, {
@@ -529,6 +541,32 @@ const OrdersManagement: React.FC = () => {
                                             {new Date(selectedOrder.deliveryTime).toLocaleDateString('vi-VN')}
                                             {selectedOrder.deliverySession ? ` - Buổi ${selectedOrder.deliverySession}` : ` ${new Date(selectedOrder.deliveryTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`}
                                         </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Delivery Tracking Link */}
+                            <div className="glass p-4 rounded-2xl border-2 border-blue-100 bg-blue-50/20">
+                                <h3 className="font-bold mb-2 flex items-center gap-2 text-blue-700">
+                                    <span>🚚</span> Link theo dõi đơn hàng (Be, Grab...)
+                                </h3>
+                                <div className="space-y-2">
+                                    <input
+                                        type="url"
+                                        className="glass-input w-full rounded-xl px-4 py-3 text-sm border-blue-200 focus:border-blue-500"
+                                        placeholder="Dán mã/link tracking (vd: https://tracking.be.com.vn/XYZ hoặc https://grb.to/ABC)"
+                                        defaultValue={selectedOrder.trackingLink || ''}
+                                        onBlur={(e) => updateTrackingLink(selectedOrder.id, e.target.value)}
+                                    />
+                                    {selectedOrder.trackingLink && (
+                                        <a
+                                            href={selectedOrder.trackingLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1"
+                                        >
+                                            Kiểm tra link ↗
+                                        </a>
                                     )}
                                 </div>
                             </div>

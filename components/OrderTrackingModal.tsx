@@ -194,6 +194,22 @@ const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose
                       {order.variantName && (
                         <div className="text-sm text-gray-500 mt-1">Phân loại: {order.variantName}</div>
                       )}
+
+                      {/* Tracking Link - Show if available and ideally when status is shipping */}
+                      {order.trackingLink && (
+                        <a
+                          href={order.trackingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all border border-blue-100 animate-pulse"
+                        >
+                          <span className="text-base">🚚</span> Theo dõi lộ trình ngay
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      )}
+
                       <div className="flex justify-between items-end mt-2">
                         <div className="text-sm text-gray-500">x1</div>
                         <div className="font-bold text-pink-600">{formatPrice(order.productPrice)}</div>
