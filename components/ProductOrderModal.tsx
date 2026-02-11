@@ -221,12 +221,13 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  // Tính toán giảm giá
-  const discountAmount = appliedCoupon ? Math.floor(product.salePrice * (appliedCoupon.percent / 100)) : 0;
-
   // Lấy danh sách sản phẩm mua kèm đã chọn
   const selectedAddOns = (allProducts || []).filter(p => selectedAddOnIds.includes(p.id));
   const addOnsTotal = selectedAddOns.reduce((sum, item) => sum + item.salePrice, 0);
+
+  // Tính toán giảm giá: Giảm dựa trên tổng của (Sản phẩm chính + Sản phẩm kèm)
+  const subtotalForDiscount = product.salePrice + addOnsTotal;
+  const discountAmount = appliedCoupon ? Math.floor(subtotalForDiscount * (appliedCoupon.percent / 100)) : 0;
 
   const finalTotalPrice = product.salePrice + shippingFee + addOnsTotal - discountAmount;
 
@@ -320,7 +321,8 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({
           addOns: selectedAddOns.map(item => ({
             id: item.id,
             name: item.title,
-            price: item.salePrice
+            price: item.salePrice,
+            image: item.images[0]
           })),
           variantSKU: selectedVariant
             ? product.variants?.find(v => v.id === selectedVariant)?.sku || product.sku

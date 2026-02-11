@@ -1017,15 +1017,41 @@ app.post('/api/submit-order', async (req, res) => {
                         }
 
                         try {
+                            // 1. Gửi ảnh sản phẩm chính kèm Caption chi tiết
                             await axios.post(
                                 `https://bot-api.zaloplatforms.com/bot${botToken}/sendPhoto`,
                                 {
                                     chat_id: ownerId,
                                     photo: imageUrl,
-                                    caption: message  // Full order details as caption
+                                    caption: message
                                 },
                                 { headers: { 'Content-Type': 'application/json' } }
                             );
+
+                            // 2. Gửi thêm ảnh của các sản phẩm mua kèm (nếu có)
+                            if (addOns && addOns.length > 0) {
+                                for (const addon of addOns) {
+                                    if (addon.image) {
+                                        let addonImgUrl = addon.image;
+                                        if (addonImgUrl.startsWith('/')) {
+                                            const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+                                            const host = req.get('host');
+                                            addonImgUrl = `${protocol}://${host}${addonImgUrl}`;
+                                        }
+
+                                        await axios.post(
+                                            `https://bot-api.zaloplatforms.com/bot${botToken}/sendPhoto`,
+                                            {
+                                                chat_id: ownerId,
+                                                photo: addonImgUrl,
+                                                caption: `➕ Sản phẩm kèm: ${addon.name}`
+                                            },
+                                            { headers: { 'Content-Type': 'application/json' } }
+                                        ).catch(e => console.error(`⚠️ Lỗi gửi kèm ảnh addon ${addon.name}:`, e.message));
+                                    }
+                                }
+                            }
+
                             console.log(`✅ Đã gửi đơn hàng kèm ảnh qua Zalo đến ${ownerId}`);
                             sentCount++;
                         } catch (photoError) {
