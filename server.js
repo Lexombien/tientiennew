@@ -1236,6 +1236,90 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// ==================== SEO DYNAMIC META TAGS ====================
+// Helper to slugify Vietnamese string (must match frontend logic)
+const toSlug = (str) => {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .normalize('NFD') // Decompose combined characters
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+        .replace(/[đĐ]/g, 'd') // Convert đ -> d
+        .replace(/[^0-9a-z]/g, '-') // Replace NON-alphanumeric (spaces, symbols) with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-+|-+$/g, ''); // Trim leading/trailing dashes
+};
+
+const getProductSlug = (product, allProducts) => {
+    const baseSlug = toSlug(product.title);
+    const sameNameProducts = allProducts
+        .filter(p => toSlug(p.title) === baseSlug)
+        .sort((a, b) => a.id.localeCompare(b.id));
+
+    const index = sameNameProducts.findIndex(p => p.id === product.id);
+    if (index <= 0) return baseSlug;
+    return `${baseSlug}-${index + 1}`;
+};
+
+// Route for specific product links to serve dynamic meta tags
+app.get('/san-pham/:slug', (req, res) => {
+    try {
+        const slug = req.params.slug;
+        const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+        const products = db.products || [];
+        const settings = db.settings || {};
+
+        // Find match
+        const matchedProduct = products.find(p => getProductSlug(p, products) === slug);
+
+        // Load index.html
+        const indexPath = path.join(__dirname, 'dist', 'index.html');
+        if (!fs.existsSync(indexPath)) {
+            return res.sendFile(path.join(__dirname, 'index.html'));
+        }
+
+        let html = fs.readFileSync(indexPath, 'utf8');
+
+        if (matchedProduct) {
+            const siteName = settings.websiteName || 'HoasapHCM.vn';
+            const title = `${matchedProduct.title} - ${siteName}`;
+            const description = `Xem chi tiết sản phẩm ${matchedProduct.title} tại ${siteName}. Quà tặng hoa sáp cao cấp, bền đẹp, sang trọng.`;
+
+            let imageUrl = matchedProduct.images[0];
+            if (imageUrl && imageUrl.startsWith('/')) {
+                const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+                const host = req.get('host');
+                imageUrl = `${protocol}://${host}${imageUrl}`;
+            }
+
+            const currentUrl = `${req.get('x-forwarded-proto') || req.protocol}://${req.get('host')}${req.originalUrl}`;
+
+            // Replace standard meta tags
+            html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+
+            // Replace Open Graph Tags
+            html = html.replace(/<meta property="og:title" content=".*?"/g, `<meta property="og:title" content="${title}"`);
+            html = html.replace(/<meta property="og:description" content=".*?"/g, `<meta property="og:description" content="${description}"`);
+            html = html.replace(/<meta property="og:image" content=".*?"/g, `<meta property="og:image" content="${imageUrl}"`);
+            html = html.replace(/<meta property="og:url" content=".*?"/g, `<meta property="og:url" content="${currentUrl}"`);
+
+            // Twitter
+            html = html.replace(/<meta property="twitter:title" content=".*?"/g, `<meta property="twitter:title" content="${title}"`);
+            html = html.replace(/<meta property="twitter:description" content=".*?"/g, `<meta property="twitter:description" content="${description}"`);
+            html = html.replace(/<meta property="twitter:image" content=".*?"/g, `<meta property="twitter:image" content="${imageUrl}"`);
+            html = html.replace(/<meta property="twitter:url" content=".*?"/g, `<meta property="twitter:url" content="${currentUrl}"`);
+
+            console.log(`🚀 Serving SEO HTML for product: ${matchedProduct.title}`);
+        }
+
+        res.send(html);
+    } catch (error) {
+        console.error('❌ Error serving dynamic OG tags:', error);
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
+});
+
+
 // ==================== FRONTEND STATIC FILES ====================
 // Phục vụ file tĩnh từ thư mục dist (React App)
 app.use(express.static(path.join(__dirname, 'dist')));
