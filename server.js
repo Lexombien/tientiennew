@@ -1261,16 +1261,22 @@ const getProductSlug = (product, allProducts) => {
     return `${baseSlug}-${index + 1}`;
 };
 
-// Route for specific product links to serve dynamic meta tags
-app.get('/san-pham/:slug', (req, res) => {
+// Route for all frontend paths to serve dynamic meta tags (Categories and catch-all)
+app.get(/(.*)/, (req, res, next) => { // Added 'next' parameter
+    // Skip API routes
+    if (req.url.startsWith('/api/')) return next();
+
     try {
-        const slug = req.params.slug;
+        const fullPath = req.params[0] || '';
+        const pathParts = fullPath.split('/').filter(Boolean);
+        const slug = pathParts[0] || '';
+
+        // Load Database
         const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
         const products = db.products || [];
+        const categories = db.categories || [];
+        const categorySettings = db.categorySettings || {};
         const settings = db.settings || {};
-
-        // Find match
-        const matchedProduct = products.find(p => getProductSlug(p, products) === slug);
 
         // Load index.html
         const indexPath = path.join(__dirname, 'dist', 'index.html');
@@ -1279,45 +1285,92 @@ app.get('/san-pham/:slug', (req, res) => {
         }
 
         let html = fs.readFileSync(indexPath, 'utf8');
+        let matchedSomething = false;
 
-        if (matchedProduct) {
-            const siteName = settings.websiteName || 'HoasapHCM.vn';
-            const title = `${matchedProduct.title} - ${siteName}`;
-            const description = `Xem chi tiết sản phẩm ${matchedProduct.title} tại ${siteName}. Quà tặng hoa sáp cao cấp, bền đẹp, sang trọng.`;
+        const siteName = settings.websiteName || 'HoasapHCM.vn';
+        const defaultDesc = settings.seoDescription || 'Thế Giới Hoa Sáp TPHCM chuyên bó hoa, hộp hoa, giỏ hoa sáp đẹp – bền, sang trọng.';
+        const defaultImage = settings.socialShareImage || '';
 
-            let imageUrl = matchedProduct.images[0];
-            if (imageUrl && imageUrl.startsWith('/')) {
-                const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
-                const host = req.get('host');
-                imageUrl = `${protocol}://${host}${imageUrl}`;
+        // 1. Check if it's a PRODUCT path (/san-pham/slug)
+        if (pathParts[0] === 'san-pham' && pathParts[1]) {
+            const productSlug = pathParts[1];
+            const matchedProduct = products.find(p => getProductSlug(p, products) === productSlug);
+
+            if (matchedProduct) {
+                const title = `${matchedProduct.title} - ${siteName}`;
+                const description = matchedProduct.description || `Xem chi tiết sản phẩm ${matchedProduct.title} tại ${siteName}.`;
+                let imageUrl = matchedProduct.images[0];
+
+                if (imageUrl && imageUrl.startsWith('/')) {
+                    const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+                    imageUrl = `${protocol}://${req.get('host')}${imageUrl}`;
+                }
+
+                html = injectMeta(html, title, description, imageUrl, `${req.get('x-forwarded-proto') || req.protocol}://${req.get('host')}${req.originalUrl}`);
+                matchedSomething = true;
+                console.log(`🚀 Serving Product SEO: ${matchedProduct.title}`);
             }
+        }
+        // 2. Check if it's a CATEGORY path (/category-slug)
+        else if (slug && slug !== 'admin') {
+            const matchedCategory = categories.find(cat => toSlug(cat) === slug);
 
-            const currentUrl = `${req.get('x-forwarded-proto') || req.protocol}://${req.get('host')}${req.originalUrl}`;
+            if (matchedCategory) {
+                const catInfo = categorySettings[matchedCategory] || {};
+                const displayName = catInfo.displayName || matchedCategory;
 
-            // Replace standard meta tags
-            html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+                const title = `${displayName} - ${siteName}`;
+                const description = defaultDesc;
+                const imageUrl = defaultImage; // Dùng ảnh mặc định của web theo ý user
 
-            // Replace Open Graph Tags
-            html = html.replace(/<meta property="og:title" content=".*?"/g, `<meta property="og:title" content="${title}"`);
-            html = html.replace(/<meta property="og:description" content=".*?"/g, `<meta property="og:description" content="${description}"`);
-            html = html.replace(/<meta property="og:image" content=".*?"/g, `<meta property="og:image" content="${imageUrl}"`);
-            html = html.replace(/<meta property="og:url" content=".*?"/g, `<meta property="og:url" content="${currentUrl}"`);
-
-            // Twitter
-            html = html.replace(/<meta property="twitter:title" content=".*?"/g, `<meta property="twitter:title" content="${title}"`);
-            html = html.replace(/<meta property="twitter:description" content=".*?"/g, `<meta property="twitter:description" content="${description}"`);
-            html = html.replace(/<meta property="twitter:image" content=".*?"/g, `<meta property="twitter:image" content="${imageUrl}"`);
-            html = html.replace(/<meta property="twitter:url" content=".*?"/g, `<meta property="twitter:url" content="${currentUrl}"`);
-
-            console.log(`🚀 Serving SEO HTML for product: ${matchedProduct.title}`);
+                html = injectMeta(html, title, description, imageUrl, `${req.get('x-forwarded-proto') || req.protocol}://${req.get('host')}${req.originalUrl}`);
+                matchedSomething = true;
+                console.log(`🚀 Serving Category SEO: ${displayName}`);
+            }
         }
 
-        res.send(html);
+        if (matchedSomething) {
+            res.send(html);
+        } else {
+            // Default catch-all
+            res.sendFile(indexPath);
+        }
     } catch (error) {
-        console.error('❌ Error serving dynamic OG tags:', error);
+        console.error('❌ Error in Dynamic SEO Handler:', error);
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     }
 });
+
+/**
+ * Helper to inject meta tags into HTML string
+ */
+function injectMeta(html, title, description, image, url) {
+    let result = html;
+
+    // Title
+    result = result.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+    result = result.replace(/<meta name="title" content=".*?"/g, `<meta name="title" content="${title}"`);
+
+    // Description
+    result = result.replace(/<meta name="description" content=".*?"/g, `<meta name="description" content="${description}"`);
+
+    // Open Graph
+    result = result.replace(/<meta property="og:title" content=".*?"/g, `<meta property="og:title" content="${title}"`);
+    result = result.replace(/<meta property="og:description" content=".*?"/g, `<meta property="og:description" content="${description}"`);
+    if (image) {
+        result = result.replace(/<meta property="og:image" content=".*?"/g, `<meta property="og:image" content="${image}"`);
+    }
+    result = result.replace(/<meta property="og:url" content=".*?"/g, `<meta property="og:url" content="${url}"`);
+
+    // Twitter
+    result = result.replace(/<meta property="twitter:title" content=".*?"/g, `<meta property="twitter:title" content="${title}"`);
+    result = result.replace(/<meta property="twitter:description" content=".*?"/g, `<meta property="twitter:description" content="${description}"`);
+    if (image) {
+        result = result.replace(/<meta property="twitter:image" content=".*?"/g, `<meta property="twitter:image" content="${image}"`);
+    }
+
+    return result;
+}
 
 
 // ==================== FRONTEND STATIC FILES ====================
@@ -1326,9 +1379,10 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // QUAN TRỌNG: Tất cả request không phải API sẽ trả về index.html
 // Sử dụng Regex /(.*)/ để bắt tất cả các đường dẫn (thay thế cho *)
-app.get(/(.*)/, (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+// This catch-all is now handled by the dynamic SEO route above.
+// app.get(/(.*)/, (req, res) => {
+//     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// });
 
 // ==================== START SERVER ====================
 
