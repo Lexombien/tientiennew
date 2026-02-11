@@ -50,18 +50,38 @@ const CategorySection: React.FC<CategorySectionProps> = ({
     const itemsPerPage = settings.itemsPerPage;
     const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
 
+    /**
+     * TÍNH TOÁN SỐ LƯỢNG HIỂN THỊ ĐỂ LẤP ĐẦY KHOẢNG TRỐNG (Responsive Filling)
+     * Mobile: 2 cột -> chia hết cho 2
+     * Tablet (md): 3 cột -> chia hết cho 3
+     * PC (lg): 4 cột -> chia hết cho 4
+     */
+    const limitMobile = Math.ceil(itemsPerPage / 2) * 2;
+    const limitTablet = Math.ceil(itemsPerPage / 3) * 3;
+    const limitPC = Math.ceil(itemsPerPage / 4) * 4;
+
+    // Số lượng tối đa cần lấy từ danh sách (để phục vụ cho breakpoint cần nhiều nhất)
+    const responsiveLimit = Math.max(limitMobile, limitTablet, limitPC);
+
     let displayProducts = sortedProducts;
 
     if (settings.paginationType === 'pagination') {
         // Traditional pagination: show only current page
         const startIndex = (currentPage - 1) * itemsPerPage;
+        // Cho pagination, ta giữ nguyên itemsPerPage gốc để đảm bảo trang ổn định
         displayProducts = sortedProducts.slice(startIndex, startIndex + itemsPerPage);
     } else if (settings.paginationType === 'loadmore' || settings.paginationType === 'infinite') {
         // Load more / Infinite: show from start to current page
-        displayProducts = sortedProducts.slice(0, currentPage * itemsPerPage);
+        const baseLimit = currentPage * itemsPerPage;
+        const currentLimitMobile = Math.ceil(baseLimit / 2) * 2;
+        const currentLimitTablet = Math.ceil(baseLimit / 3) * 3;
+        const currentLimitPC = Math.ceil(baseLimit / 4) * 4;
+        const currentResponsiveLimit = Math.max(currentLimitMobile, currentLimitTablet, currentLimitPC);
+
+        displayProducts = sortedProducts.slice(0, currentResponsiveLimit);
     } else {
-        // 'none': show limited items  
-        displayProducts = sortedProducts.slice(0, itemsPerPage);
+        // 'none': dùng responsiveLimit để lấp đầy hàng
+        displayProducts = sortedProducts.slice(0, responsiveLimit);
     }
 
     const hasMore = displayProducts.length < sortedProducts.length;
@@ -115,27 +135,54 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                 </span>
             </div>
 
-            {/* Products Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-                {displayProducts.map((flower, index) => (
-                    <FlowerCard
-                        key={flower.id}
-                        product={{
-                            ...flower,
-                            imageTransition: flower.imageTransition || effectToUse
-                        }}
-                        globalAspectRatio={globalAspectRatio}
-                        categoryImageInterval={settings.imageInterval || 3000}
-                        mediaMetadata={mediaMetadata}
-                        onImageClick={onImageClick}
-                        showSKU={showSKU}
-                        zaloLink={zaloLink}
-                        enablePriceDisplay={enablePriceDisplay}
-                        onOrderClick={onOrderClick}
-                        productIndex={index}
-                        allProducts={allProducts}
-                    />
-                ))}
+            {/* Products Flex Grid - Using flex to allow centering orphans */}
+            <div className="flex flex-wrap justify-center -mx-2 md:-mx-3 lg:-mx-4">
+                {displayProducts.map((flower, index) => {
+                    // Logic ẩn/hiện dựa trên breakpoint để lấp đầy hàng
+                    const baseLimit = (settings.paginationType === 'pagination') ? itemsPerPage : (currentPage * itemsPerPage);
+                    const curLimitMobile = Math.ceil(baseLimit / 2) * 2;
+                    const curLimitTablet = Math.ceil(baseLimit / 3) * 3;
+                    const curLimitPC = Math.ceil(baseLimit / 4) * 4;
+
+                    const isVisibleMobile = index < curLimitMobile;
+                    const isVisibleTablet = index < curLimitTablet;
+                    const isVisiblePC = index < curLimitPC;
+
+                    // Building responsive classes
+                    let visibilityClass = "";
+                    if (!isVisibleMobile) visibilityClass += " hidden";
+                    else visibilityClass += " block";
+
+                    if (isVisibleTablet) visibilityClass += " md:block";
+                    else visibilityClass += " md:hidden";
+
+                    if (isVisiblePC) visibilityClass += " lg:block";
+                    else visibilityClass += " lg:hidden";
+
+                    return (
+                        <div
+                            key={flower.id}
+                            className={`w-1/2 md:w-1/3 lg:w-1/4 p-2 md:p-3 lg:p-4 ${visibilityClass}`}
+                        >
+                            <FlowerCard
+                                product={{
+                                    ...flower,
+                                    imageTransition: flower.imageTransition || effectToUse
+                                }}
+                                globalAspectRatio={globalAspectRatio}
+                                categoryImageInterval={settings.imageInterval || 3000}
+                                mediaMetadata={mediaMetadata}
+                                onImageClick={onImageClick}
+                                showSKU={showSKU}
+                                zaloLink={zaloLink}
+                                enablePriceDisplay={enablePriceDisplay}
+                                onOrderClick={onOrderClick}
+                                productIndex={index}
+                                allProducts={allProducts}
+                            />
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Load More Button */}
