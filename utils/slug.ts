@@ -9,7 +9,7 @@ export const toSlug = (str: string): string => {
         .normalize('NFD') // Tách các ký tự dấu
         .replace(/[\u0300-\u036f]/g, '') // Xóa các ký tự dấu
         .replace(/[đĐ]/g, 'd') // Chuyển đ -> d
-        .replace(/[^0-9a-z]/g, '-') // Thay thế các ký tự không phải chữ/số bằng gạch ngang
+        .replace(/[^0-9a-z~]/g, '-') // Thay thế các ký tự không phải chữ/số/~ bằng gạch ngang
         .replace(/-+/g, '-') // Thay thế nhiều gạch ngang liên tiếp bằng 1
         .replace(/^-+|-+$/g, ''); // Xóa gạch ngang ở đầu và cuối
 };

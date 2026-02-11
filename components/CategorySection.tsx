@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { FlowerProduct, CategorySettings, PaginationType } from '../types';
 import FlowerCard from './FlowerCard';
+import { toSlug } from '../utils/slug';
 
 interface CategorySectionProps {
     category: string;
@@ -119,12 +120,22 @@ const CategorySection: React.FC<CategorySectionProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4 flex-grow">
-                    <h3
-                        className="text-2xl md:text-3xl font-bold gradient-text serif-display whitespace-nowrap"
-                        style={{ fontFamily: 'var(--font-category-title)' }}
+                    <a
+                        href={`/${toSlug(category)}`}
+                        className="no-underline hover:opacity-80 transition-opacity text-inherit"
+                        onClick={(e) => {
+                            if (!e.ctrlKey && !e.metaKey) {
+                                e.preventDefault();
+                            }
+                        }}
                     >
-                        {settings.displayName || category}
-                    </h3>
+                        <h3
+                            className="text-2xl md:text-3xl font-bold gradient-text serif-display whitespace-nowrap"
+                            style={{ fontFamily: 'var(--font-category-title)' }}
+                        >
+                            {settings.displayName || category}
+                        </h3>
+                    </a>
                     <div className="h-[2px] bg-gradient-to-r from-pink-300 via-purple-300 to-transparent w-full" />
                 </div>
                 <span

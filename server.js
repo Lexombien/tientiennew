@@ -1245,7 +1245,7 @@ const toSlug = (str) => {
         .normalize('NFD') // Decompose combined characters
         .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
         .replace(/[đĐ]/g, 'd') // Convert đ -> d
-        .replace(/[^0-9a-z]/g, '-') // Replace NON-alphanumeric (spaces, symbols) with hyphens
+        .replace(/[^0-9a-z~]/g, '-') // Replace NON-alphanumeric (spaces, symbols, but not ~) with hyphens
         .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
         .replace(/^-+|-+$/g, ''); // Trim leading/trailing dashes
 };
