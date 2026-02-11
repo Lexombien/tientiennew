@@ -834,7 +834,8 @@ app.post('/api/submit-order', async (req, res) => {
             totalPrice,
             couponCode,
             discountAmount,
-            productImage
+            productImage,
+            addOns // NEW: Danh sách mua kèm
         } = req.body;
 
         const time = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
@@ -887,6 +888,14 @@ app.post('/api/submit-order', async (req, res) => {
         }
         if (variantSKU) {
             message += `🏷️ SKU: ${variantSKU}\n`;
+        }
+
+        // Thông tin quà tặng kèm (Nếu có) ← NEW
+        if (addOns && addOns.length > 0) {
+            message += `\n➕ QUÀ MUA KÈM:\n`;
+            addOns.forEach(addon => {
+                message += `• ${addon.name} (+${new Intl.NumberFormat('vi-VN').format(addon.price)}đ)\n`;
+            });
         }
 
         // Tạm thời ẩn giá lẻ ở đây để gom xuống phần THANH TOÁN cho đẹp
@@ -977,7 +986,8 @@ app.post('/api/submit-order', async (req, res) => {
             totalPrice,
             couponCode,
             discountAmount,
-            productImage
+            productImage,
+            addOns // NEW: Lưu danh sách mua kèm vào DB
         };
 
         db.orders.unshift(newOrder); // Thêm vào đầu array

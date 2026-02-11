@@ -96,6 +96,8 @@ const DEFAULT_GLOBAL_SETTINGS = {
   // NEW: Coupon Settings
   coupons: [] as { code: string; discountPercent: number }[],
 
+  // NEW: Upsell Settings
+  upsellProductIds: [] as string[],
   // Facebook Page Settings
   facebookPageUrl: 'https://www.facebook.com/thegioihoasapp', // URL của Facebook Fanpage
   showFacebookWidget: true, // Hiển thị widget Facebook hay không
@@ -225,7 +227,7 @@ const App: React.FC = () => {
   };
 
   // Order Modal State
-  const [orderModalProduct, setOrderModalProduct] = useState<FlowerProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<FlowerProduct | null>(null); // Renamed from orderModalProduct
   const [showOrderTracking, setShowOrderTracking] = useState(false);
 
   // Apply Theme Color Dynamically
@@ -1117,6 +1119,15 @@ const App: React.FC = () => {
     }
   };
 
+  // Helper function for ProductOrderModal's onImageClick
+  const handleImageClick = (
+    images: { url: string; alt?: string; title?: string; variantId?: string }[],
+    index: number = 0,
+    productInfo?: { title?: string; sku?: string; variants?: any[] }
+  ) => {
+    openLightbox(images, index, productInfo);
+  };
+
   // GIAO DIỆN ĐĂNG NHẬP ADMIN (KHI VÀO #admin)
   if (currentPath === '#admin' && !isAuthenticated) {
     return (
@@ -1626,7 +1637,7 @@ const App: React.FC = () => {
                                 onDragEnd={handleProductDragEnd}
                                 onDragOver={handleDragOver}
                                 onDrop={(e) => handleProductDrop(e, p.id, category)}
-                                className={`relative group cursor-move ${draggedProduct === p.id ? 'opacity-50 scale-95' : ''} ${p.isHidden ? 'opacity-60 grayscale' : ''}`}
+                                className={`relative group ${draggedProduct === p.id ? 'opacity-50 scale-95' : ''} ${p.isHidden ? 'opacity-60 grayscale' : ''}`}
                               >
                                 {p.isHidden && (
                                   <div className="absolute top-2 right-2 z-10 bg-neutral-800/80 text-white px-2 py-1 rounded text-[10px] font-bold">
@@ -1746,7 +1757,7 @@ const App: React.FC = () => {
                     Ví dụ: .glass {'{ background: rgba(255, 255, 255, 0.1); }'}
                   </p>
                   <textarea
-                    className="glass-input w-full rounded-2xl px-5 py-4 text-sm font-mono"
+                    className="glass-input w-full rounded-2xl px-5 py-3 text-sm font-mono"
                     rows={20}
                     placeholder="/* Nhập CSS tùy chỉnh tại đây */&#10;.your-class {&#10;  color: #FF6B9D;&#10;  font-size: 16px;&#10;}"
                     value={globalSettings.customCSS}
@@ -3788,7 +3799,7 @@ const App: React.FC = () => {
               showSKU={globalSettings.showSKU}
               zaloLink={globalSettings.zaloLink}
               enablePriceDisplay={globalSettings.enablePriceDisplay}
-              onOrderClick={(product) => setOrderModalProduct(product)}
+              onOrderClick={(product) => setSelectedProduct(product)}
             />
           );
         })}
@@ -3807,12 +3818,13 @@ const App: React.FC = () => {
       )}
 
       {/* Product Order Modal */}
-      {orderModalProduct && (
+      {selectedProduct && (
         <ProductOrderModal
-          product={orderModalProduct}
-          onClose={() => setOrderModalProduct(null)}
+          product={selectedProduct}
+          allProducts={products}
+          onClose={() => setSelectedProduct(null)}
           mediaMetadata={mediaMetadata}
-          onImageClick={openLightbox}
+          onImageClick={handleImageClick}
           globalSettings={globalSettings}
         />
       )}

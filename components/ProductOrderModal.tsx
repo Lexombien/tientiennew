@@ -10,13 +10,21 @@ registerLocale('vi', vi);
 
 interface ProductOrderModalProps {
   product: FlowerProduct;
+  allProducts?: FlowerProduct[];
   onClose: () => void;
   mediaMetadata?: Record<string, { alt?: string, title?: string, description?: string }>;
   onImageClick?: (images: { url: string, alt: string }[], index: number, productInfo?: any) => void;
   globalSettings?: any;
 }
 
-const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose, mediaMetadata = {}, onImageClick, globalSettings }) => {
+const ProductOrderModal: React.FC<ProductOrderModalProps> = ({
+  product,
+  allProducts = [],
+  onClose,
+  mediaMetadata = {},
+  onImageClick,
+  globalSettings
+}) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGiftMode, setIsGiftMode] = useState(false); // Tặng người khác mode
   const [showSuccessScreen, setShowSuccessScreen] = useState(false); // Success screen
@@ -58,6 +66,9 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string, percent: number } | null>(null);
   const [couponError, setCouponError] = useState('');
+
+  // Upsell states
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
 
   // 🆕 Lock body scroll when modal is open
   useEffect(() => {
@@ -212,7 +223,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
 
   // Tính toán giảm giá
   const discountAmount = appliedCoupon ? Math.floor(product.salePrice * (appliedCoupon.percent / 100)) : 0;
-  const finalTotalPrice = product.salePrice + shippingFee - discountAmount;
+
+  // Lấy danh sách sản phẩm mua kèm đã chọn
+  const selectedAddOns = (allProducts || []).filter(p => selectedAddOnIds.includes(p.id));
+  const addOnsTotal = selectedAddOns.reduce((sum, item) => sum + item.salePrice, 0);
+
+  const finalTotalPrice = product.salePrice + shippingFee + addOnsTotal - discountAmount;
 
   const handleApplyCoupon = () => {
     setCouponError('');
@@ -300,6 +316,12 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
           variantName: selectedVariant
             ? product.variants?.find(v => v.id === selectedVariant)?.name
             : undefined,
+          // NEW: Add-ons
+          addOns: selectedAddOns.map(item => ({
+            id: item.id,
+            name: item.title,
+            price: item.salePrice
+          })),
           variantSKU: selectedVariant
             ? product.variants?.find(v => v.id === selectedVariant)?.sku || product.sku
             : product.sku,
@@ -998,6 +1020,66 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                     </div>
                   </div>
                 )}
+                {/* Upsell (Mua kèm) Section */}
+                {globalSettings?.upsellProductIds && globalSettings.upsellProductIds.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-black text-pink-600 uppercase tracking-wider flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-ping"></span>
+                      💐 Quà tặng kèm hoàn hảo
+                    </p>
+                    <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-1 px-1">
+                      {globalSettings.upsellProductIds.map((id: string) => {
+                        const upsellProd = allProducts.find(p => p.id === id);
+                        if (!upsellProd) return null;
+                        const isSelected = selectedAddOnIds.includes(id);
+
+                        return (
+                          <div
+                            key={id}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedAddOnIds(prev => prev.filter(itemId => itemId !== id));
+                              } else {
+                                setSelectedAddOnIds(prev => [...prev, id]);
+                              }
+                            }}
+                            className={`flex-shrink-0 w-[140px] glass rounded-2xl p-2 border-2 transition-all cursor-pointer select-none ${isSelected ? 'border-pink-500 bg-pink-50 shadow-md scale-[1.02]' : 'border-gray-100 hover:border-pink-300'
+                              }`}
+                          >
+                            <div className="relative aspect-square rounded-xl overflow-hidden mb-2 bg-gray-50">
+                              <img
+                                src={upsellProd.images[0]}
+                                alt={upsellProd.title}
+                                className="w-full h-full object-cover"
+                              />
+                              {isSelected && (
+                                <div className="absolute inset-0 bg-pink-500/10 flex items-center justify-center">
+                                  <div className="bg-pink-500 text-white p-1 rounded-full shadow-lg">
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <h5 className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-tight h-[2.4em]">
+                              {upsellProd.title}
+                            </h5>
+                            <div className="mt-1 flex items-center justify-between">
+                              <span className="text-[10px] font-black text-pink-600">
+                                +{formatPrice(upsellProd.salePrice)}
+                              </span>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-pink-500 border-pink-500' : 'border-gray-200'
+                                }`}>
+                                {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Coupon Section */}
                 <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
@@ -1102,6 +1184,13 @@ const ProductOrderModal: React.FC<ProductOrderModalProps> = ({ product, onClose,
                       )}
                     </span>
                   </div>
+
+                  {selectedAddOns.length > 0 && (
+                    <div className="flex items-center justify-between text-sm animate-fadeIn">
+                      <span className="text-pink-600 font-medium">Mua kèm ({selectedAddOns.length}):</span>
+                      <span className="font-bold text-pink-600">+{formatPrice(addOnsTotal)}</span>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                     <span className="text-base font-bold text-gray-800">Tổng cộng:</span>

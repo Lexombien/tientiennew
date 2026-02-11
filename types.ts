@@ -165,4 +165,5 @@ export interface Order {
   discountAmount?: number;
   productImage?: string;
   shopNote?: string; // NEW: Ghi chú từ Shop gửi khách (vd: link tracking, lời nhắn)
+  addOns?: { id: string; name: string; price: number }[]; // NEW: Danh sách sản phẩm mua kèm
 }

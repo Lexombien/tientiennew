@@ -486,7 +486,7 @@ const OrdersManagement: React.FC = () => {
 
                             {/* Product Info */}
                             <div className="glass p-4 rounded-2xl">
-                                <h3 className="font-bold mb-3">📦 Sản phẩm</h3>
+                                <h3 className="font-bold mb-3">📦 Sản phẩm chính</h3>
                                 <div className="flex gap-4">
                                     {/* Product Image - Large */}
                                     {selectedOrder.productImage && (
@@ -509,6 +509,27 @@ const OrdersManagement: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* add-ons Info */}
+                            {selectedOrder.addOns && selectedOrder.addOns.length > 0 && (
+                                <div className="glass p-4 rounded-2xl bg-pink-50/30 border border-pink-100">
+                                    <h3 className="font-bold mb-3 text-pink-600 flex items-center gap-2">
+                                        🍫 Quà mua kèm ({selectedOrder.addOns.length})
+                                    </h3>
+                                    <div className="space-y-2">
+                                        {selectedOrder.addOns.map((addon, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-sm bg-white/60 p-2 rounded-lg border border-pink-50">
+                                                <span className="font-medium text-gray-700">{addon.name}</span>
+                                                <span className="font-bold text-pink-500">+{formatPrice(addon.price)}</span>
+                                            </div>
+                                        ))}
+                                        <div className="pt-2 border-t border-pink-100 flex justify-between items-center text-sm font-black text-pink-700">
+                                            <span>Tổng quà kèm:</span>
+                                            <span>{formatPrice(selectedOrder.addOns.reduce((sum, item) => sum + item.price, 0))}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Card/Banner Info */}
                             {selectedOrder.isCard && selectedOrder.cardContent && (
