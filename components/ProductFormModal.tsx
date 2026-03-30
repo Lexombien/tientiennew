@@ -497,7 +497,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                 onDragEnd={handleDragEnd}
                             >
                                 <SortableContext
-                                    items={formData.imagesWithMetadata.map((img, idx) => img.url + idx)}
+                                    items={(formData.imagesWithMetadata || []).filter(img => img && img.url).map((img, idx) => img.url + idx)}
                                     strategy={rectSortingStrategy}
                                 >
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">

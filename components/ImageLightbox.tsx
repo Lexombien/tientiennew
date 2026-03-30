@@ -60,9 +60,10 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, handleNext, handlePrev, onClose]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !images || images.length === 0) return null;
 
     const currentImage = images[currentIndex];
+    if (!currentImage) return null;
 
     // 🔧 WORKAROUND: Get variants directly from localStorage since props aren't working
     const getVariantsFromStorage = () => {

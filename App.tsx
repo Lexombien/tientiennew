@@ -507,7 +507,7 @@ const App: React.FC = () => {
             localStorage.setItem('category_settings', JSON.stringify(result.data.categorySettings));
           }
           if (result.data.media) {
-            setMediaMetadata(result.data.media);
+            setMediaMetadata(result.data.media || {});
           }
 
           console.log('✅ Đã tải data từ server thành công!');
